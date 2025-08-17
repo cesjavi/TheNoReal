@@ -1,90 +1,61 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 
-type Option = {
-  text: string;
-  next: string;
-};
-
-type Scene = {
-  text: string;
-  options?: Option[];
-};
-
-const story: Record<string, Scene> = {
-  start: {
-    text: "Te despiertas en un bosque misterioso. ¿Qué haces?",
-    options: [
-      { text: "Caminar hacia la luz", next: "light" },
-      { text: "Explorar la oscuridad", next: "dark" },
-    ],
-  },
-  light: {
-    text: "Encuentras un pueblo tranquilo.",
-    options: [
-      { text: "Hablar con los aldeanos", next: "end" },
-      { text: "Continuar tu viaje", next: "end" },
-    ],
-  },
-  dark: {
-    text: "Una criatura aparece y te asusta.",
-    options: [
-      { text: "Huir", next: "end" },
-      { text: "Enfrentarte a la criatura", next: "end" },
-    ],
-  },
-  end: {
-    text: "La aventura termina aquí.",
-  },
-};
-
-const initialScene = story.start;
-
 export default function Home() {
-  const [history, setHistory] = useState<string[]>([initialScene.text]);
-  const [options, setOptions] = useState<Option[]>(initialScene.options ?? []);
+  const [prompt, setPrompt] = useState("");
+  const [numOptions, setNumOptions] = useState(1);
+  const [options, setOptions] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleOption = (option: Option) => {
-    const nextScene = story[option.next];
-    setHistory((h) => [...h, option.text, nextScene.text]);
-    setOptions(nextScene.options ?? []);
-  };
-
-  const resetAdventure = () => {
-    setHistory([initialScene.text]);
-    setOptions(initialScene.options ?? []);
+  const generate = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/options", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, numOptions }),
+      });
+      const data = await res.json();
+      setOptions(data.options || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <main className="p-8">
-      <section className="mb-4 space-y-2">
-        {history.map((line, idx) => (
-          <p key={idx}>{line}</p>
-        ))}
-      </section>
-
-      <div className="flex flex-col gap-2">
-        {options.map((opt) => (
-          <button
-            key={opt.text}
-            onClick={() => handleOption(opt)}
-            className="px-4 py-2 bg-blue-500 text-white rounded"
-          >
-            {opt.text}
-          </button>
-        ))}
-        {options.length === 0 && (
-          <p className="italic">No hay más opciones.</p>
-        )}
+    <main className="flex flex-col items-center p-8 gap-4">
+      <textarea
+        className="border p-2 w-full max-w-xl"
+        placeholder="Escribe tu pregunta"
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+      />
+      <div className="flex items-center gap-2">
+        <label htmlFor="numOptions">Número de opciones:</label>
+        <input
+          id="numOptions"
+          type="number"
+          min={1}
+          value={numOptions}
+          onChange={(e) => setNumOptions(Number(e.target.value))}
+          className="border p-1 w-20"
+        />
       </div>
-
       <button
-        onClick={resetAdventure}
-        className="mt-6 underline text-sm text-blue-700"
+        onClick={generate}
+        disabled={loading}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
       >
-        Reiniciar
+        {loading ? "Generando..." : "Generar"}
       </button>
+      <ul className="list-disc mt-4">
+        {options.map((o, i) => (
+          <li key={i}>{o}</li>
+        ))}
+      </ul>
     </main>
   );
 }
