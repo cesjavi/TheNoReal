@@ -7,6 +7,12 @@ interface StoryProps {
   initialStory: string;
   /** Opciones iniciales para continuar la historia */
   initialOptions: string[];
+  /** Número de opciones a generar por decisión */
+  optionsPerDecision: number;
+  /** Modo de finalización de la historia */
+  endingMode: 'capitulos' | 'final_sorpresa' | 'sin_final_definido' | 'infinita';
+  /** Número máximo de capítulos (opcional) */
+  chaptersCount?: number;
 }
 
 /**
@@ -14,20 +20,30 @@ interface StoryProps {
  * Muestra el texto actual y un conjunto de botones para continuarla.
  * Al seleccionar una opción se consulta la API de Groq y se actualiza el estado.
  */
-export default function Story({ initialStory, initialOptions }: StoryProps) {
+export default function Story({
+  initialStory,
+  initialOptions,
+  optionsPerDecision,
+  endingMode,
+  chaptersCount,
+}: StoryProps) {
   const [story, setStory] = useState(initialStory);
-  const [options, setOptions] = useState(initialOptions);
+  const [options, setOptions] = useState(
+    initialOptions.slice(0, optionsPerDecision)
+  );
   const [loading, setLoading] = useState(false);
+  const [currentChapter, setCurrentChapter] = useState(1);
 
   const handleSelect = async (option: string) => {
     setLoading(true);
     try {
+      const nextChapter = currentChapter + 1;
       const response = await fetch('/api/story', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ story, option }),
+        body: JSON.stringify({ story, option, optionsPerDecision }),
       });
       const data = await response.json();
       const text = data.text || '';
@@ -35,7 +51,33 @@ export default function Story({ initialStory, initialOptions }: StoryProps) {
       const [newStory, ...newOptions] = lines;
 
       setStory((prev) => `${prev}\n\n${newStory}`);
-      setOptions(newOptions.length > 0 ? newOptions : []);
+      setCurrentChapter(nextChapter);
+
+      let opts = newOptions.slice(0, optionsPerDecision);
+      let end = false;
+      if (endingMode === 'capitulos') {
+        if (chaptersCount && nextChapter > chaptersCount) {
+          end = true;
+        }
+      } else if (endingMode === 'final_sorpresa') {
+        const SURPRISE_ENDING_PROBABILITY = 0.1;
+        if (
+          (chaptersCount && nextChapter > chaptersCount) ||
+          Math.random() < SURPRISE_ENDING_PROBABILITY
+        ) {
+          end = true;
+        }
+      } else if (endingMode === 'infinita') {
+        // nunca termina por contador
+      } else if (endingMode === 'sin_final_definido') {
+        // se permite que la historia termine de forma variable
+      }
+
+      if (end) {
+        opts = [];
+      }
+
+      setOptions(opts);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
     } finally {

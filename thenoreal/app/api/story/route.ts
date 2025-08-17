@@ -12,13 +12,20 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { story, option } = await req.json();
+    const { story, option, optionsPerDecision } = await req.json();
 
     const completion = await groq.chat.completions.create({
       model: "mixtral-8x7b-32768",
       messages: [
-        { role: "system", content: "Eres un generador de historias ramificadas." },
-        { role: "user", content: `${story}\n\nOpción elegida: ${option}` },
+        {
+          role: "system",
+          content:
+            "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea.",
+        },
+        {
+          role: "user",
+          content: `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`,
+        },
       ],
     });
 
