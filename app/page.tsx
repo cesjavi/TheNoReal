@@ -3,17 +3,25 @@
 import { useState } from "react";
 import Story from "./components/Story";
 
-const MODALITY_HELP: Record<string, string> = {
+type EndingMode =
+  | "capitulos"
+  | "sin_final_definido"
+  | "final_sorpresa"
+  | "infinita";
+
+const MODALITY_HELP = {
   capitulos: "Divide la historia en capítulos.",
   final_sorpresa: "Añade un giro inesperado al final.",
   final_abierto: "La historia queda abierta a interpretación.",
   final_cerrado: "La historia tiene un desenlace definido.",
-};
+} as const;
+
+type Modality = keyof typeof MODALITY_HELP;
 
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [numOptions, setNumOptions] = useState(2);
-  const [modality, setModality] = useState<keyof typeof MODALITY_HELP>("capitulos");
+  const [modality, setModality] = useState<Modality>("capitulos");
   const [chapters, setChapters] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,7 +29,7 @@ export default function Home() {
   const [initialOptions, setInitialOptions] = useState<string[]>([]);
   const [storyConfig, setStoryConfig] = useState<{
     optionsPerDecision: number;
-    endingMode: "capitulos" | "final_sorpresa" | "sin_final_definido" | "infinita";
+    endingMode: EndingMode;
     chaptersCount?: number;
   } | null>(null);
 
@@ -35,7 +43,7 @@ export default function Home() {
     setInitialOptions([]);
     try {
       // mapear la modalidad del select al valor que espera el backend
-      const final = (() => {
+      const final: EndingMode = (() => {
         switch (modality) {
           case "final_abierto":
             return "sin_final_definido";
@@ -133,9 +141,7 @@ export default function Home() {
             <select
               id="modality"
               value={modality}
-              onChange={(e) =>
-                setModality(e.target.value as keyof typeof MODALITY_HELP)
-              }
+              onChange={(e) => setModality(e.target.value as Modality)}
               className="border p-2"
             >
               <option value="capitulos">Capítulos</option>
