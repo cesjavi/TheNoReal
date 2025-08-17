@@ -7,9 +7,11 @@ export default function Home() {
   const [numOptions, setNumOptions] = useState(1);
   const [options, setOptions] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const generate = async () => {
     setLoading(true);
+    setError(null);
     try {
       const res = await fetch("/api/options", {
         method: "POST",
@@ -17,9 +19,16 @@ export default function Home() {
         body: JSON.stringify({ prompt, numOptions }),
       });
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Error generating options");
+        setOptions([]);
+        return;
+      }
       setOptions(data.options || []);
     } catch (err) {
       console.error(err);
+      setError("Error connecting to the API");
+      setOptions([]);
     } finally {
       setLoading(false);
     }
@@ -39,6 +48,7 @@ export default function Home() {
           id="numOptions"
           type="number"
           min={1}
+          max={5}
           value={numOptions}
           onChange={(e) => setNumOptions(Number(e.target.value))}
           className="border p-1 w-20"
@@ -51,6 +61,7 @@ export default function Home() {
       >
         {loading ? "Generando..." : "Generar"}
       </button>
+      {error && <p className="text-red-500">{error}</p>}
       <ul className="list-disc mt-4">
         {options.map((o, i) => (
           <li key={i}>{o}</li>
