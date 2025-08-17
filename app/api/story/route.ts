@@ -27,7 +27,10 @@ export async function POST(req: Request) {
       ],
     });
 
-    const text = completion.choices?.[0]?.message?.content || "";
+    const text =
+      'choices' in completion
+        ? completion.choices?.[0]?.message?.content || ""
+        : "";
 
     return NextResponse.json({ text });
   } catch (error) {
