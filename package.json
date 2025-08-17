@@ -6,9 +6,10 @@
     "dev": "next dev --turbopack",
     "postinstall": "prisma generate",
     "prisma:gen": "prisma generate --schema=prisma/schema.prisma",
-    "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "DATABASE_URL=$DATABASE_URL_UNPOOLED prisma db push",
+    "build": "npm run db:push && next build"  
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
