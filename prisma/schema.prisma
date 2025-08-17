@@ -1,25 +1,12 @@
-// prisma/schema.prisma
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
 generator client {
   provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum EndingMode {
-  CAPITULOS
-  SIN_FINAL_DEFINIDO
-  FINAL_SORPRESA
-  INFINITA
-}
-
-model Story {
-  id                 String     @id @default(cuid())
-  optionsPerDecision Int
-  endingMode         EndingMode
-  chaptersCount      Int?
-  createdAt          DateTime   @default(now())
-  updatedAt          DateTime   @updatedAt
 }
