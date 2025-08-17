@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     const { story, option, optionsPerDecision } = await req.json();
 
     const completion = await groq.chat.completions.create({
-      model: "mixtral-8x7b-32768",
+      model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "system",
