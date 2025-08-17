@@ -22,34 +22,45 @@ export default function Home() {
     modality === "capitulos" || modality === "final_sorpresa";
 
   const handleSubmit = async () => {
-    setLoading(true);
-    setError(null);
-    setMessage(null);
-    try {
-      const res = await fetch("/api/stories", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt,
-          numOptions,
-          modality,
-          ...(showChapters && chapters
-            ? { chapters: Number(chapters) }
-            : {}),
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error || "Error al crear la historia");
-      } else {
-        setMessage("Historia creada correctamente");
+  setLoading(true);
+  setError(null);
+  setMessage(null);
+  try {
+    // mapear la modalidad del select al valor que espera el backend
+    const final = (() => {
+      switch (modality) {
+        case 'final_abierto':  return 'sin_final_definido';
+        case 'final_cerrado':  return chapters ? 'capitulos' : 'sin_final_definido';
+        default:               return modality; // 'capitulos' | 'final_sorpresa'
       }
-    } catch (err) {
-      setError("Error al conectar con el servidor");
-    } finally {
-      setLoading(false);
-    }
-  };
+    })();
+
+    const payload: any = {
+      opciones_por_decision: Number(numOptions),
+      final,
+      ...( (final === 'capitulos' || final === 'final_sorpresa') && chapters
+          ? { capitulos: Number(chapters) }
+          : {} ),
+    };
+
+    console.log('POST /api/stories payload =>', payload);
+
+    const res = await fetch('/api/stories', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) setError(data.error || 'Error al crear la historia');
+    else setMessage('Historia creada correctamente');
+  } catch {
+    setError('Error al conectar con el servidor');
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   return (
     <main className="flex flex-col items-center p-8 gap-4">

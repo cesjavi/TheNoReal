@@ -26,7 +26,7 @@ function toInt(x: unknown): number | null {
   return null;
 }
 
-// 🔧 normaliza claves: minúsculas, sin acentos, separadores → "_"
+// normaliza claves: minúsculas, sin acentos; espacios/guiones/puntos → "_"; camelCase → pegado (luego cubrimos alias)
 function normalizeKeys(obj: AnyObj): AnyObj {
   const out: AnyObj = {};
   for (const [k, v] of Object.entries(obj)) {
@@ -34,7 +34,7 @@ function normalizeKeys(obj: AnyObj): AnyObj {
       .toLowerCase()
       .normalize('NFD')
       .replace(ACCENTS, '')
-      .replace(/[\s\-\.]+/g, '_'); // espacios, guiones, puntos → _
+      .replace(/[\s\-.]+/g, '_'); // espacios, guiones, puntos → _
     out[nk] = v;
   }
   return out;
@@ -52,13 +52,17 @@ export function normalizeStoryConfig(raw: unknown):
 
   const r = normalizeKeys(raw as AnyObj);
 
-  // admite: opciones_por_decision, optionsPerDecision, opciones, etc.
+  // 🔑 MUCHAS variantes para "opciones por decisión"
   const opcionesVal = pick(r, [
     'opciones_por_decision',
+    'opcionespordecision',    // ← español camelCase normalizado
     'optionsperdecision',
+    'options_per_decision',
     'opciones',
+    'options',
     'options_count',
     'choicesperstep',
+    'choices_per_step',
     'choices',
   ]);
   const opciones = toInt(opcionesVal);
@@ -66,10 +70,11 @@ export function normalizeStoryConfig(raw: unknown):
     return { ok: false, error: 'opciones_por_decision debe ser entero ≥ 2' };
   }
 
-  // final: acepta "Final sorpresa", "final_sorpresa", etc.
+  // final: acepta "Final sorpresa" / "final_sorpresa"
   const finalKey = (typeof r['final'] === 'string'
     ? r['final']
-    : '').toLowerCase().normalize('NFD').replace(ACCENTS, '').replace(/\s+/g, '_');
+    : ''
+  ).toLowerCase().normalize('NFD').replace(ACCENTS, '').replace(/\s+/g, '_');
 
   if (!(finalKey in endingMap)) {
     return { ok: false, error: "final inválido. Usa: 'capitulos' | 'sin_final_definido' | 'final_sorpresa' | 'infinita'" };
