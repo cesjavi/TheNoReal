@@ -1,0 +1,21 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum EndingMode {
+  LIVES
+  TIME
+}
+
+model Story {
+  id                 Int        @id @default(autoincrement())
+  optionsPerDecision Int
+  endingMode         EndingMode
+  chaptersCount      Int?
+  createdAt          DateTime   @default(now())
+}
