@@ -22,22 +22,15 @@ export default function Story({ initialStory, initialOptions }: StoryProps) {
   const handleSelect = async (option: string) => {
     setLoading(true);
     try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      const response = await fetch('/api/story', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_GROQ_API_KEY}`,
         },
-        body: JSON.stringify({
-          model: 'mixtral-8x7b-32768',
-          messages: [
-            { role: 'system', content: 'Eres un generador de historias ramificadas.' },
-            { role: 'user', content: `${story}\n\nOpción elegida: ${option}` },
-          ],
-        }),
+        body: JSON.stringify({ story, option }),
       });
       const data = await response.json();
-      const text = data.choices?.[0]?.message?.content || '';
+      const text = data.text || '';
       const lines = text.split('\n').filter(Boolean);
       const [newStory, ...newOptions] = lines;
 
