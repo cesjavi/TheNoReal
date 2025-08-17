@@ -1,6 +1,4 @@
-import Groq from "groq-sdk";
-
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+import createChatCompletion from "@/lib/groqClient";
 
 const MAX_OPTIONS = 5;
 
@@ -18,7 +16,7 @@ export async function POST(req: Request) {
 
     const completions = await Promise.all(
       Array.from({ length: count }).map(() =>
-        groq.chat.completions.create({
+        createChatCompletion({
           model: "llama3-8b-8192",
           messages: [{ role: "user", content: prompt }],
           n: 1,
