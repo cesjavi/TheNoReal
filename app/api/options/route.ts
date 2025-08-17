@@ -25,7 +25,9 @@ export async function POST(req: Request) {
     );
 
     const options = completions
-      .map((c) => c.choices[0]?.message?.content?.trim())
+      .map((c) =>
+        'choices' in c ? c.choices[0]?.message?.content?.trim() : undefined
+      )
       .filter(Boolean);
 
     return Response.json({ options });

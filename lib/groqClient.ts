@@ -1,4 +1,9 @@
 import Groq from 'groq-sdk';
+import type {
+  ChatCompletion,
+  ChatCompletionChunk,
+} from 'groq-sdk/resources/chat/completions';
+import type { Stream } from 'groq-sdk/lib/streaming';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
@@ -22,6 +27,12 @@ function filterSensitive(data: unknown): unknown {
   return data;
 }
 
+export async function createChatCompletion(
+  params: { stream: true } & Parameters<typeof groq.chat.completions.create>[0]
+): Promise<Stream<ChatCompletionChunk>>;
+export async function createChatCompletion(
+  params: { stream?: false } & Parameters<typeof groq.chat.completions.create>[0]
+): Promise<ChatCompletion>;
 export async function createChatCompletion(
   params: Parameters<typeof groq.chat.completions.create>[0]
 ) {
