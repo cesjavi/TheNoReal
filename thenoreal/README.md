@@ -20,6 +20,16 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Variables de entorno
+
+Para utilizar la API de Groq, define la variable `GROQ_API_KEY` en un archivo `.env.local` en la raíz del proyecto:
+
+```bash
+GROQ_API_KEY=tu_token_de_groq
+```
+
+Next.js cargará automáticamente esta variable y estará disponible como `process.env.GROQ_API_KEY` dentro de las rutas de la API.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

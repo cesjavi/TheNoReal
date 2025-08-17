@@ -1,42 +1,14 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-export async function POST(req: Request) {
-  const { history, choice } = await req.json();
-
-  const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${process.env.GROQ_API_KEY}`,
-    },
-    body: JSON.stringify({
-      model: 'llama3-8b-8192',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Eres un narrador interactivo. Continua la historia y devuelve un objeto JSON con las claves "texto" y "opciones".',
-        },
-        {
-          role: 'user',
-          content: `Historia: ${history}\nOpcion elegida: ${choice}`,
-        },
-      ],
-    }),
-  });
-
-  const groqData = await groqRes.json();
-  let text = '';
-  let options: string[] = [];
-
-  try {
-    const parsed = JSON.parse(groqData.choices[0].message.content);
-    text = parsed.texto ?? '';
-    options = parsed.opciones ?? [];
-  } catch {
-    text = groqData.choices?.[0]?.message?.content ?? '';
+export async function GET() {
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "GROQ_API_KEY is not defined" },
+      { status: 500 }
+    );
   }
 
-  return NextResponse.json({ text, options });
+  // Example usage: the key could be used to call Groq's API here.
+  return NextResponse.json({ message: "GROQ_API_KEY loaded" });
 }
-
