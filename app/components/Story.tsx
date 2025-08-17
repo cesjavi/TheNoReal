@@ -15,6 +15,12 @@ interface StoryProps {
   chaptersCount?: number;
 }
 
+interface HistoryEntry {
+  story: string;
+  options: string[];
+  currentChapter: number;
+}
+
 /**
  * Componente que renderiza una historia interactiva.
  * Muestra el texto actual y un conjunto de botones para continuarla.
@@ -33,9 +39,15 @@ export default function Story({
   );
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
+  const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   const handleSelect = async (option: string) => {
     setLoading(true);
+    setHistory((prev) => [
+      ...prev,
+      { story, options, currentChapter },
+    ]);
+    setStory((prev) => `${prev}\n> ${option}`);
     try {
       const nextChapter = currentChapter + 1;
       const response = await fetch('/api/story', {
@@ -85,10 +97,28 @@ export default function Story({
     }
   };
 
+  const handleBack = () => {
+    setHistory((prev) => {
+      const last = prev[prev.length - 1];
+      if (!last) return prev;
+      setStory(last.story);
+      setOptions(last.options);
+      setCurrentChapter(last.currentChapter);
+      return prev.slice(0, -1);
+    });
+  };
+
   return (
     <div className="space-y-4">
       <p className="whitespace-pre-line">{story}</p>
       <div className="flex flex-col gap-2">
+        <button
+          onClick={handleBack}
+          disabled={history.length === 0 || loading}
+          className="rounded bg-blue-600 text-white px-4 py-2 disabled:opacity-50"
+        >
+          Volver
+        </button>
         {options.map((opt) => (
           <button
             key={opt}
