@@ -85,6 +85,12 @@ export default function Story({
     }
   };
 
+  const handleReset = () => {
+    setStory(initialStory);
+    setOptions(initialOptions.slice(0, optionsPerDecision));
+    setCurrentChapter(1);
+  };
+
   return (
     <div className="space-y-4">
       <p className="whitespace-pre-line">{story}</p>
@@ -99,6 +105,12 @@ export default function Story({
             {opt}
           </button>
         ))}
+        <button
+          onClick={handleReset}
+          className="rounded bg-gray-600 text-white px-4 py-2"
+        >
+          Volver
+        </button>
       </div>
     </div>
   );
