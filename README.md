@@ -24,6 +24,18 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Environment variables
+
+Copy the example file and provide your own values:
+
+```bash
+cp .env.example .env.local
+```
+
+Set `GROQ_API_KEY` to a valid token from Groq (the previously committed key has been revoked) and update `DATABASE_URL` for your database. ` .env.local` is ignored by git and should not be committed.
+
+Next.js will load variables from `.env.local` in development. For deployments, configure these environment variables through your hosting provider.
+
 ## Cargar la PWA en React Native/Expo
 
 Para empaquetar esta PWA dentro de una app móvil:
