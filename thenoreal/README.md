@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The No Real
 
-## Getting Started
+The No Real es un proyecto de juego web construido con [Next.js](https://nextjs.org) y React. Este repositorio contiene la base del juego y una configuración inicial con Tailwind CSS.
 
-First, run the development server:
+## Desarrollo
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Instala las dependencias:
+   ```bash
+   npm install
+   ```
+2. Inicia el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
+   La aplicación estará disponible en [http://localhost:3000](http://localhost:3000).
+3. Ejecuta el lint para mantener un estilo de código consistente:
+   ```bash
+   npm run lint
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Empaquetado
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Genera la compilación optimizada para producción:
+   ```bash
+   npm run build
+   ```
+2. Arranca la aplicación usando la compilación generada:
+   ```bash
+   npm start
+   ```
+   El resultado se guarda en la carpeta `.next/`, lista para ser desplegada o empaquetada en un contenedor.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Variables de entorno
 
-## Learn More
+- `NODE_ENV`: define el entorno de ejecución (`development`, `production` o `test`).
+- `PORT`: puerto en el que se ejecuta el servidor (por defecto 3000).
+- Variables que comienzan con `NEXT_PUBLIC_` se exponen al cliente y deben declararse sólo con información que pueda ser pública.
+- Puedes definir variables en archivos `.env.local`, `.env.development` o `.env.production` según la necesidad del entorno.
 
-To learn more about Next.js, take a look at the following resources:
+## Comandos disponibles
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Comando         | Descripción                                                       |
+|-----------------|-------------------------------------------------------------------|
+| `npm run dev`   | Inicia el servidor de desarrollo con Turbopack.                   |
+| `npm run build` | Genera la versión optimizada de producción.                       |
+| `npm start`     | Sirve la compilación generada por `npm run build`.                |
+| `npm run lint`  | Ejecuta ESLint para validar el código.                            |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Actualmente no hay un comando `npm test`; añade pruebas conforme evolucione el proyecto.
