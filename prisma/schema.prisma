@@ -1,21 +1,25 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
 enum EndingMode {
-  LIVES
-  TIME
+  CAPITULOS
+  SIN_FINAL_DEFINIDO
+  FINAL_SORPRESA
+  INFINITA
 }
 
 model Story {
-  id                 Int        @id @default(autoincrement())
+  id                 String     @id @default(cuid())
   optionsPerDecision Int
   endingMode         EndingMode
   chaptersCount      Int?
   createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
 }
