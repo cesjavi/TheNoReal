@@ -4,8 +4,9 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")            // pooling (Neon -pooler)
+  directUrl = env("DATABASE_URL_UNPOOLED")   // direct (Neon sin -pooler)
 }
 
 enum EndingMode {
