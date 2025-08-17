@@ -1,14 +1,3 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
-
-## Getting Started
-
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
 pnpm dev
 # or
 bun dev
@@ -34,3 +23,27 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Cargar la PWA en React Native/Expo
+
+Para empaquetar esta PWA dentro de una app móvil:
+
+1. **Crear un proyecto móvil** con React Native o Expo.
+2. **Instalar WebView**:
+   - React Native: `npm install react-native-webview` y luego `npx pod-install` en iOS.
+   - Expo: `expo install react-native-webview`.
+3. **Utilizar el WebView** para apuntar a la URL pública de la PWA:
+
+   ```tsx
+   import { WebView } from "react-native-webview";
+
+   export default function App() {
+     return <WebView source={{ uri: "https://tusitio.com" }} style={{ flex: 1 }} />;
+   }
+   ```
+
+4. **Generar el APK**:
+   - React Native CLI: `npx react-native run-android --variant release`.
+   - Expo: usar `eas build -p android` o `expo build:android`.
+
+El WebView cargará la PWA y permitirá publicar la experiencia como aplicación nativa.
