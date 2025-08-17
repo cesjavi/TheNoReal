@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Story from "./components/Story";
 
 const MODALITY_HELP: Record<string, string> = {
   capitulos: "Divide la historia en capítulos.",
@@ -16,108 +17,166 @@ export default function Home() {
   const [chapters, setChapters] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  const [initialStory, setInitialStory] = useState<string | null>(null);
+  const [initialOptions, setInitialOptions] = useState<string[]>([]);
+  const [storyConfig, setStoryConfig] = useState<{
+    optionsPerDecision: number;
+    endingMode: "capitulos" | "final_sorpresa" | "sin_final_definido" | "infinita";
+    chaptersCount?: number;
+  } | null>(null);
 
   const showChapters =
     modality === "capitulos" || modality === "final_sorpresa";
 
   const handleSubmit = async () => {
-  setLoading(true);
-  setError(null);
-  setMessage(null);
-  try {
-    // mapear la modalidad del select al valor que espera el backend
-    const final = (() => {
-      switch (modality) {
-        case 'final_abierto':  return 'sin_final_definido';
-        case 'final_cerrado':  return chapters ? 'capitulos' : 'sin_final_definido';
-        default:               return modality; // 'capitulos' | 'final_sorpresa'
-      }
-    })();
+    setLoading(true);
+    setError(null);
+    setInitialStory(null);
+    setInitialOptions([]);
+    try {
+      // mapear la modalidad del select al valor que espera el backend
+      const final = (() => {
+        switch (modality) {
+          case "final_abierto":
+            return "sin_final_definido";
+          case "final_cerrado":
+            return chapters ? "capitulos" : "sin_final_definido";
+          default:
+            return modality; // 'capitulos' | 'final_sorpresa'
+        }
+      })();
 
-    const payload: any = {
-      opciones_por_decision: Number(numOptions),
-      final,
-      ...( (final === 'capitulos' || final === 'final_sorpresa') && chapters
+      const payload: any = {
+        prompt,
+        opciones_por_decision: Number(numOptions),
+        final,
+        ...((final === "capitulos" || final === "final_sorpresa") && chapters
           ? { capitulos: Number(chapters) }
-          : {} ),
-    };
+          : {}),
+      };
 
-    console.log('POST /api/stories payload =>', payload);
+      console.log("POST /api/stories payload =>", payload);
 
-    const res = await fetch('/api/stories', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
+      const res = await fetch("/api/stories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
 
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) setError(data.error || 'Error al crear la historia');
-    else setMessage('Historia creada correctamente');
-  } catch {
-    setError('Error al conectar con el servidor');
-  } finally {
-    setLoading(false);
-  }
-};
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error || "Error al crear la historia");
+      } else {
+        const storyRes = await fetch("/api/story", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            story: prompt,
+            option: "",
+            optionsPerDecision: Number(numOptions),
+          }),
+        });
+        const storyData = await storyRes.json().catch(() => ({}));
+        if (!storyRes.ok) {
+          setError(storyData.error || "Error al obtener la historia inicial");
+        } else {
+          const text: string = storyData.text || "";
+          const lines = text.split("\n").filter(Boolean);
+          const [first, ...opts] = lines;
+          setInitialStory(first || "");
+          setInitialOptions(opts.slice(0, Number(numOptions)));
+          setStoryConfig({
+            optionsPerDecision: Number(numOptions),
+            endingMode: final,
+            chaptersCount:
+              (final === "capitulos" || final === "final_sorpresa") && chapters
+                ? Number(chapters)
+                : undefined,
+          });
+          setPrompt("");
+          setNumOptions(2);
+          setModality("capitulos");
+          setChapters("");
+        }
+      }
+    } catch {
+      setError("Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   return (
     <main className="flex flex-col items-center p-8 gap-4">
-      <textarea
-        className="border p-2 w-full max-w-xl"
-        placeholder="Escribe el inicio de la historia"
-        value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-      />
-      <div className="flex items-center gap-2">
-        <label htmlFor="numOptions">Opciones por decisión:</label>
-        <input
-          id="numOptions"
-          type="number"
-          min={2}
-          value={numOptions}
-          onChange={(e) => setNumOptions(Number(e.target.value))}
-          className="border p-1 w-20"
-        />
-      </div>
-      <div className="flex flex-col w-full max-w-xl gap-2">
-        <label htmlFor="modality">Modalidad de final:</label>
-        <select
-          id="modality"
-          value={modality}
-          onChange={(e) => setModality(e.target.value as keyof typeof MODALITY_HELP)}
-          className="border p-2"
-        >
-          <option value="capitulos">Capítulos</option>
-          <option value="final_sorpresa">Final sorpresa</option>
-          <option value="final_abierto">Final abierto</option>
-          <option value="final_cerrado">Final cerrado</option>
-        </select>
-        <p className="text-sm text-gray-600">{MODALITY_HELP[modality]}</p>
-      </div>
-      {showChapters && (
-        <div className="flex items-center gap-2">
-          <label htmlFor="chapters">Capítulos:</label>
-          <input
-            id="chapters"
-            type="number"
-            min={1}
-            required={modality === "capitulos"}
-            value={chapters}
-            onChange={(e) => setChapters(e.target.value)}
-            className="border p-1 w-20"
+      {!initialStory && (
+        <>
+          <textarea
+            className="border p-2 w-full max-w-xl"
+            placeholder="Escribe el inicio de la historia"
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
           />
-        </div>
+          <div className="flex items-center gap-2">
+            <label htmlFor="numOptions">Opciones por decisión:</label>
+            <input
+              id="numOptions"
+              type="number"
+              min={2}
+              value={numOptions}
+              onChange={(e) => setNumOptions(Number(e.target.value))}
+              className="border p-1 w-20"
+            />
+          </div>
+          <div className="flex flex-col w-full max-w-xl gap-2">
+            <label htmlFor="modality">Modalidad de final:</label>
+            <select
+              id="modality"
+              value={modality}
+              onChange={(e) =>
+                setModality(e.target.value as keyof typeof MODALITY_HELP)
+              }
+              className="border p-2"
+            >
+              <option value="capitulos">Capítulos</option>
+              <option value="final_sorpresa">Final sorpresa</option>
+              <option value="final_abierto">Final abierto</option>
+              <option value="final_cerrado">Final cerrado</option>
+            </select>
+            <p className="text-sm text-gray-600">{MODALITY_HELP[modality]}</p>
+          </div>
+          {showChapters && (
+            <div className="flex items-center gap-2">
+              <label htmlFor="chapters">Capítulos:</label>
+              <input
+                id="chapters"
+                type="number"
+                min={1}
+                required={modality === "capitulos"}
+                value={chapters}
+                onChange={(e) => setChapters(e.target.value)}
+                className="border p-1 w-20"
+              />
+            </div>
+          )}
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            {loading ? "Enviando..." : "Crear historia"}
+          </button>
+        </>
       )}
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        {loading ? "Enviando..." : "Crear historia"}
-      </button>
-      {message && <p className="text-green-600">{message}</p>}
+      {initialStory && storyConfig && (
+        <Story
+          initialStory={initialStory}
+          initialOptions={initialOptions}
+          optionsPerDecision={storyConfig.optionsPerDecision}
+          endingMode={storyConfig.endingMode}
+          chaptersCount={storyConfig.chaptersCount}
+        />
+      )}
       {error && <p className="text-red-500">{error}</p>}
     </main>
   );
