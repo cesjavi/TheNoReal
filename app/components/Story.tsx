@@ -111,11 +111,11 @@ export default function Story({
   return (
     <div className="space-y-4">
       <p className="whitespace-pre-line">{story}</p>
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-2 rounded-lg">
         <button
           onClick={handleBack}
           disabled={history.length === 0 || loading}
-          className="rounded bg-blue-600 text-white px-4 py-2 disabled:opacity-50"
+          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
         >
           Volver
         </button>
@@ -124,7 +124,7 @@ export default function Story({
             key={opt}
             onClick={() => handleSelect(opt)}
             disabled={loading}
-            className="rounded bg-blue-600 text-white px-4 py-2 disabled:opacity-50"
+            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
           >
             {opt}
           </button>
