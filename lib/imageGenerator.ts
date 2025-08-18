@@ -1,7 +1,7 @@
-const ENDPOINT = 'https://tbhvrp51-8000.brs.devtunnels.ms/generate';
+const SD_API = process.env.NEXT_PUBLIC_SD_API ?? '/api/sd/generate';
 
 export async function generateImage(prompt: string): Promise<string> {
-  const res = await fetch(ENDPOINT, {
+  const res = await fetch(SD_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
