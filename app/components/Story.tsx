@@ -88,8 +88,14 @@ export default function Story({
       const [newStory, ...newOptions] = lines;
 
       let imageUrl: string | null = null;
+      let promptTruncated = false;
       try {
-        imageUrl = await generateImage(newStory, genres);
+        const { url, truncated } = await generateImage(newStory, genres);
+        imageUrl = url;
+        promptTruncated = truncated;
+        if (promptTruncated) {
+          console.warn('El prompt para la imagen fue truncado a 77 tokens');
+        }
       } catch (err) {
         console.error('Error al generar la imagen, No se pudo generar la imagen', err);
       }
