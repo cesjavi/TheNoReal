@@ -17,7 +17,7 @@ export async function POST(req: Request) {
     const completions = await Promise.all(
       Array.from({ length: count }).map(() =>
         createChatCompletion({
-          model: "llama3-8b-8192",
+          model: "openai/gpt-oss-120b",
           messages: [{ role: "user", content: prompt }],
           n: 1,
         })
