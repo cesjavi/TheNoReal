@@ -2,13 +2,27 @@ const env = process.env.NEXT_PUBLIC_SD_API?.trim();
 // Si NO hay env, usamos el proxy de Next:
 const SD_API = env && env.length > 0 ? env : '/api/sd/generate';
 
+export function truncatePrompt(
+  prompt: string,
+  maxTokens: number = 77
+): { text: string; truncated: boolean } {
+  const tokens = prompt.trim().split(/\s+/);
+  const truncated = tokens.length > maxTokens;
+  return {
+    text: tokens.slice(0, maxTokens).join(' '),
+    truncated,
+  };
+}
+
 export async function generateImage(
   prompt: string,
   genres: string[] = [],
   timeoutMs: number = Number(process.env.NEXT_PUBLIC_IMAGE_TIMEOUT) || 15000
-): Promise<string | null> {
+): Promise<{ url: string | null; truncated: boolean }> {
+  const { text: truncatedPrompt, truncated } = truncatePrompt(prompt);
   const genrePrompt = genres.length > 0 ? `\nGéneros: ${genres.join(', ')}` : '';
-  const finalPrompt = `${prompt}${genrePrompt}\n\nEstilo: minimalist ink, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
+  const finalPrompt = `${truncatedPrompt}${genrePrompt}\n\nEstilo: tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
+
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
@@ -54,10 +68,10 @@ export async function generateImage(
         : undefined);
 
     if (!url) throw new Error('Image URL not found in response');
-    return url;
+    return { url, truncated };
   } catch (error: any) {
     if (error.name === 'AbortError') {
-      return null; // Aborted by timeout
+      return { url: null, truncated }; // Aborted by timeout
     }
     throw error;
   } finally {
