@@ -120,7 +120,7 @@ export default function Home() {
       {!initialStory && (
         <>
           <textarea
-            className="border p-2 w-full max-w-xl"
+            className="w-full max-w-xl p-2 border border-accent rounded-lg focus:ring-2 focus:ring-accent"
             placeholder="Escribe el inicio de la historia"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
@@ -133,7 +133,7 @@ export default function Home() {
               min={2}
               value={numOptions}
               onChange={(e) => setNumOptions(Number(e.target.value))}
-              className="border p-1 w-20"
+              className="w-20 p-1 border border-accent rounded-lg focus:ring-2 focus:ring-accent"
             />
           </div>
           <div className="flex flex-col w-full max-w-xl gap-2">
@@ -142,7 +142,7 @@ export default function Home() {
               id="modality"
               value={modality}
               onChange={(e) => setModality(e.target.value as Modality)}
-              className="border p-2"
+              className="p-2 border border-accent rounded-lg focus:ring-2 focus:ring-accent"
             >
               <option value="capitulos">Capítulos</option>
               <option value="final_sorpresa">Final sorpresa</option>
@@ -161,14 +161,14 @@ export default function Home() {
                 required={modality === "capitulos"}
                 value={chapters}
                 onChange={(e) => setChapters(e.target.value)}
-                className="border p-1 w-20"
+                className="w-20 p-1 border border-accent rounded-lg focus:ring-2 focus:ring-accent"
               />
             </div>
           )}
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-blue-500 text-white px-4 py-2 rounded"
+            className="px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent-dark focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:hover:bg-accent"
           >
             {loading ? "Enviando..." : "Crear historia"}
           </button>
