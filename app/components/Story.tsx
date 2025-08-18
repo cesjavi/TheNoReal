@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { generateImage } from '@/lib/imageGenerator';
 
 interface StoryProps {
   /** Texto inicial de la historia */
@@ -65,6 +66,15 @@ export default function Story({
 
       setStory((prev) => `${prev}\n\n${newStory}`);
       setCurrentChapter(nextChapter);
+
+      try {
+        const url = await generateImage(newStory);
+        setImageSrc(url);
+      } catch (err) {
+        console.error('Error al generar la imagen', err);
+        setImageSrc(null);
+        alert('No se pudo generar la imagen');
+      }
 
       let opts = newOptions.slice(0, optionsPerDecision);
       let end = false;
