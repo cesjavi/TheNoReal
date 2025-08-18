@@ -36,6 +36,16 @@ Set `GROQ_API_KEY` to a valid token from Groq (the previously committed key has 
 
 Next.js will load variables from `.env.local` in development. For deployments, configure these environment variables through your hosting provider.
 
+## SDXL Server
+
+Para generar imágenes con Stable Diffusion XL, la aplicación se conecta a un servidor SDXL. Configura la URL del endpoint en `.env.local`:
+
+```bash
+SD_API_URL="http://localhost:8000/generate"
+```
+
+Actualiza `SD_API_URL` según la dirección de tu servidor SDXL.
+
 ## Cargar la PWA en React Native/Expo
 
 Para empaquetar esta PWA dentro de una app móvil:
