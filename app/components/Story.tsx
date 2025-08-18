@@ -52,7 +52,8 @@ export default function Story({
       ...prev,
       { story, options, currentChapter },
     ]);
-    setStory((prev) => `${prev}\n> ${option}`);
+    const nextStory = `${story}\n> ${option}`;
+    setStory(nextStory);
     try {
       const nextChapter = currentChapter + 1;
       const response = await fetch('/api/story', {
@@ -60,7 +61,7 @@ export default function Story({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ story, option, optionsPerDecision, genres }),
+        body: JSON.stringify({ story: nextStory, option, optionsPerDecision, genres }),
       });
       const data = await response.json();
       const text = data.text || '';
