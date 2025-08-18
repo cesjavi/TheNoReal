@@ -10,15 +10,26 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { story, option, optionsPerDecision } = await req.json();
+    const { story, option, optionsPerDecision, genres } = await req.json();
+
+    const genreLine =
+      Array.isArray(genres) && genres.length > 0
+        ? `Géneros a respetar: ${genres.join(', ')}.`
+        : '';
+
+    const systemPrompt = [
+      "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea.",
+      genreLine,
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     const completion = await createChatCompletion({
       model: "openai/gpt-oss-120b",
       messages: [
         {
           role: "system",
-          content:
-            "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea.",
+          content: systemPrompt,
         },
         {
           role: "user",
