@@ -18,10 +18,16 @@ interface StoryProps {
   genres: string[];
 }
 
+interface Chapter {
+  texto: string;
+  imageUrl: string | null;
+}
+
 interface HistoryEntry {
-  story: string;
+  chapters: Chapter[];
   options: string[];
   currentChapter: number;
+  choices: string[];
 }
 
 /**
@@ -37,23 +43,36 @@ export default function Story({
   chaptersCount,
   genres,
 }: StoryProps) {
-  const [story, setStory] = useState(initialStory);
+  const [chapters, setChapters] = useState<Chapter[]>([
+    { texto: initialStory, imageUrl: null },
+  ]);
+  const [choices, setChoices] = useState<string[]>([]);
   const [options, setOptions] = useState(
     initialOptions.slice(0, optionsPerDecision)
   );
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   const handleSelect = async (option: string) => {
     setLoading(true);
     setHistory((prev) => [
       ...prev,
-      { story, options, currentChapter },
+      {
+        chapters: chapters.map((c) => ({ ...c })),
+        options,
+        currentChapter,
+        choices: [...choices],
+      },
     ]);
-    const nextStory = `${story}\n> ${option}`;
-    setStory(nextStory);
+
+    const currentStory = chapters
+      .map((c, idx) =>
+        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
+      )
+      .join('\n\n');
+    const nextStory = `${currentStory}\n> ${option}`;
+
     try {
       const nextChapter = currentChapter + 1;
       const response = await fetch('/api/story', {
@@ -68,21 +87,16 @@ export default function Story({
       const lines = text.split('\n').filter(Boolean);
       const [newStory, ...newOptions] = lines;
 
-      setStory((prev) => `${prev}\n\n${newStory}`);
-      setCurrentChapter(nextChapter);
-
+      let imageUrl: string | null = null;
       try {
-        const url = await generateImage(newStory, genres);
-        if (url) {
-          setImageSrc(url);
-        } else {
-          setImageSrc(null);
-        }
+        imageUrl = await generateImage(newStory, genres);
       } catch (err) {
         console.error('Error al generar la imagen, No se pudo generar la imagen', err);
-        setImageSrc(null);
-        //alert('No se pudo generar la imagen');
       }
+
+      setChapters((prev) => [...prev, { texto: newStory, imageUrl }]);
+      setChoices((prev) => [...prev, option]);
+      setCurrentChapter(nextChapter);
 
       let opts = newOptions.slice(0, optionsPerDecision);
       let end = false;
@@ -120,24 +134,29 @@ export default function Story({
     setHistory((prev) => {
       const last = prev[prev.length - 1];
       if (!last) return prev;
-      setStory(last.story);
+      setChapters(last.chapters);
       setOptions(last.options);
       setCurrentChapter(last.currentChapter);
+      setChoices(last.choices);
       return prev.slice(0, -1);
     });
   };
 
   return (
     <div className="space-y-4">
-      <p className="whitespace-pre-line">{story}</p>
+      {chapters.map(({ texto, imageUrl }, idx) => (
+        <div key={idx} className="space-y-4">
+          <p className="whitespace-pre-line">{texto}</p>
+          {imageUrl && (
+            <img
+              src={imageUrl}
+              alt={`Imagen generada ${idx + 1}`}
+              className="mt-4 rounded-lg border border-black/30"
+            />
+          )}
+        </div>
+      ))}
       <div className="flex flex-col gap-2 rounded-lg">
-        {imageSrc && (
-          <img
-            src={imageSrc}
-            alt="Imagen generada"
-            className="mx-auto my-4 max-w-md rounded-lg border border-black/30"
-          />
-        )}
         <button
           onClick={handleBack}
           disabled={history.length === 0 || loading}
