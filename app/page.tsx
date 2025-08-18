@@ -168,7 +168,7 @@ export default function Home() {
           <button
             onClick={handleSubmit}
             disabled={loading}
-            className="px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent-dark focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:hover:bg-accent"
+            className="px-4 py-2 rounded-lg bg-accent text-white hover:bg-accent-dark transition-colors focus:ring-2 focus:ring-accent disabled:opacity-50 disabled:hover:bg-accent"
           >
             {loading ? "Enviando..." : "Crear historia"}
           </button>

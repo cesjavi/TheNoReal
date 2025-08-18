@@ -5,11 +5,14 @@
   --background: #f5e9ff; /* soft lavender */
   --foreground: #3a2d4f; /* deep plum for readability */
   --accent: #ffd6e7; /* blush pink accent */
+  --accent-dark: #ff9fc6; /* deeper blush accent */
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --color-accent-dark: var(--accent-dark);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -20,6 +23,7 @@
     --background: #1a1622; /* midnight violet */
     --foreground: #f1e9f9; /* pale orchid text */
     --accent: #b388eb; /* muted violet accent */
+    --accent-dark: #8c62c4; /* deeper violet accent */
   }
 }
 
