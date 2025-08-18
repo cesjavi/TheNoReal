@@ -7,8 +7,8 @@ export async function generateImage(prompt: string): Promise<string> {
     body: JSON.stringify({
       prompt,
       engine: 'sdxl-turbo',
-      width: 1024,
-      height: 1024,
+      width: 128,
+      height: 128,
       steps: 2,
     }),
   });

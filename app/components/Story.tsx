@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import imageGenerator from '@/lib/imageGenerator';
 
 interface StoryProps {
   /** Texto inicial de la historia */
@@ -19,6 +20,7 @@ interface HistoryEntry {
   story: string;
   options: string[];
   currentChapter: number;
+  imageUrl: string | null;
 }
 
 /**
@@ -40,12 +42,13 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
   const handleSelect = async (option: string) => {
     setLoading(true);
     setHistory((prev) => [
       ...prev,
-      { story, options, currentChapter },
+      { story, options, currentChapter, imageUrl },
     ]);
     setStory((prev) => `${prev}\n> ${option}`);
     try {
@@ -61,9 +64,11 @@ export default function Story({
       const text = data.text || '';
       const lines = text.split('\n').filter(Boolean);
       const [newStory, ...newOptions] = lines;
+      const newImageUrl = await imageGenerator(newStory);
 
       setStory((prev) => `${prev}\n\n${newStory}`);
       setCurrentChapter(nextChapter);
+      setImageUrl(newImageUrl);
 
       let opts = newOptions.slice(0, optionsPerDecision);
       let end = false;
@@ -104,6 +109,7 @@ export default function Story({
       setStory(last.story);
       setOptions(last.options);
       setCurrentChapter(last.currentChapter);
+      setImageUrl(last.imageUrl);
       return prev.slice(0, -1);
     });
   };
@@ -111,6 +117,9 @@ export default function Story({
   return (
     <div className="space-y-4">
       <p className="whitespace-pre-line">{story}</p>
+      {imageUrl && (
+        <img src={imageUrl} alt={`Capítulo ${currentChapter}`} />
+      )}
       <div className="flex flex-col gap-2 rounded-lg">
         <button
           onClick={handleBack}
