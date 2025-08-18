@@ -2,29 +2,17 @@ const env = process.env.NEXT_PUBLIC_SD_API?.trim();
 // Si NO hay env, usamos el proxy de Next:
 const SD_API = env && env.length > 0 ? env : '/api/sd/generate';
 
-export const GENRE_STYLE: Record<string, string> = {
-  fantasy: 'fantasía épica',
-  scifi: 'ciencia ficción futurista',
-  horror: 'horror oscuro',
-  romance: 'romance suave',
-};
-
-const BASE_STYLE =
-  'tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt';
-
 export async function generateImage(
   prompt: string,
   genres: string[] = []
 ): Promise<string> {
-  const finalPromptImagen = `${prompt}. Estilo visual: ${[
-    BASE_STYLE,
-    ...genres.map((g) => GENRE_STYLE[g] ?? g),
-  ].join(', ')}`;
+  const genrePrompt = genres.length > 0 ? `\nGéneros: ${genres.join(', ')}` : '';
+  const finalPrompt = `${prompt}${genrePrompt}\n\nEstilo: tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
   const res = await fetch(SD_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      prompt: finalPromptImagen,
+      prompt: finalPrompt,
       engine: 'sdxl-turbo',
       width: 512,
       height: 512,

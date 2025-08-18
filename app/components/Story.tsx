@@ -14,7 +14,7 @@ interface StoryProps {
   endingMode: 'capitulos' | 'final_sorpresa' | 'sin_final_definido' | 'infinita';
   /** Número máximo de capítulos (opcional) */
   chaptersCount?: number;
-  /** Géneros seleccionados */
+  /** Géneros seleccionados para la historia */
   genres: string[];
 }
 
@@ -71,7 +71,7 @@ export default function Story({
       setCurrentChapter(nextChapter);
 
       try {
-        const url = await generateImage(newStory);
+        const url = await generateImage(newStory, genres);
         setImageSrc(url);
       } catch (err) {
         console.error('Error al generar la imagen, No se pudo generar la imagen', err);

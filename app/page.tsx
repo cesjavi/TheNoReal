@@ -33,6 +33,7 @@ export default function Home() {
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<Modality>("capitulos");
   const [chapters, setChapters] = useState("");
+  const [genres] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -104,7 +105,8 @@ export default function Home() {
             story: prompt,
             option: "",
             optionsPerDecision: Number(numOptions),
-            genres: selectedGenres,
+            genres//,
+            //genres: selectedGenres,
           }),
         });
         const storyData = await storyRes.json().catch(() => ({}));
@@ -244,7 +246,8 @@ export default function Home() {
           optionsPerDecision={storyConfig.optionsPerDecision}
           endingMode={storyConfig.endingMode}
           chaptersCount={storyConfig.chaptersCount}
-          genres={selectedGenres}
+          genres={genres}
+          //genres={selectedGenres}
         />
       )}
       {error && <p className="text-red-500">{error}</p>}
