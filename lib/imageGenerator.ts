@@ -8,7 +8,7 @@ export async function generateImage(
   timeoutMs: number = Number(process.env.NEXT_PUBLIC_IMAGE_TIMEOUT) || 15000
 ): Promise<string | null> {
   const genrePrompt = genres.length > 0 ? `\nGéneros: ${genres.join(', ')}` : '';
-  const finalPrompt = `${prompt}${genrePrompt}\n\nEstilo: tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
+  const finalPrompt = `${prompt}${genrePrompt}\n\nEstilo: minimalist ink, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
