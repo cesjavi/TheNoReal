@@ -4,46 +4,65 @@ const SD_API = env && env.length > 0 ? env : '/api/sd/generate';
 
 export async function generateImage(
   prompt: string,
-  genres: string[] = []
-): Promise<string> {
+  genres: string[] = [],
+  timeoutMs: number = Number(process.env.NEXT_PUBLIC_IMAGE_TIMEOUT) || 15000
+): Promise<string | null> {
   const genrePrompt = genres.length > 0 ? `\nGéneros: ${genres.join(', ')}` : '';
   const finalPrompt = `${prompt}${genrePrompt}\n\nEstilo: tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
-  const res = await fetch(SD_API, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: finalPrompt,
-      engine: 'sdxl-turbo',
-      width: 512,
-      height: 512,
-      steps: 10,
-    }),
-  });
 
-  if (!res.ok) {
-    throw new Error(`Image generation failed: ${res.status} ${res.statusText}`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(SD_API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: finalPrompt,
+        engine: 'sdxl-turbo',
+        width: 512,
+        height: 512,
+        steps: 10,
+      }),
+      signal: controller.signal,
+    });
+
+    if (!res.ok) {
+      throw new Error(`Image generation failed: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+
+    // Compat con múltiples “shapes”
+    const url =
+      data?.data?.[0]?.url || // OpenAI-style (proxy)
+      data?.image_url || // data URL directo (proxy)
+      data?.url ||
+      data?.image ||
+      (Array.isArray(data?.images)
+        ? typeof data.images[0] === 'string'
+          ? data.images[0]
+          : data.images[0]?.url
+        : undefined) ||
+      (Array.isArray(data?.output)
+        ? typeof data.output[0] === 'string'
+          ? data.output[0]
+          : data.output[0]?.url
+        : undefined) ||
+      (data?.image_base64
+        ? `data:image/png;base64,${data.image_base64}` // FastAPI directo
+        : undefined);
+
+    if (!url) throw new Error('Image URL not found in response');
+    return url;
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      return null; // Aborted by timeout
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeout);
   }
-
-  const data = await res.json();
-
-  // Compat con múltiples “shapes”
-  const url =
-    data?.data?.[0]?.url ||                // OpenAI-style (proxy)
-    data?.image_url ||                      // data URL directo (proxy)
-    data?.url ||
-    data?.image ||
-    (Array.isArray(data?.images)
-      ? (typeof data.images[0] === 'string' ? data.images[0] : data.images[0]?.url)
-      : undefined) ||
-    (Array.isArray(data?.output)
-      ? (typeof data.output[0] === 'string' ? data.output[0] : data.output[0]?.url)
-      : undefined) ||
-    (data?.image_base64
-      ? `data:image/png;base64,${data.image_base64}` // FastAPI directo
-      : undefined);
-
-  if (!url) throw new Error('Image URL not found in response');
-  return url;
 }
 
 export default generateImage;

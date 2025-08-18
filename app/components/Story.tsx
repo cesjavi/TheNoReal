@@ -72,7 +72,11 @@ export default function Story({
 
       try {
         const url = await generateImage(newStory, genres);
-        setImageSrc(url);
+        if (url) {
+          setImageSrc(url);
+        } else {
+          setImageSrc(null);
+        }
       } catch (err) {
         console.error('Error al generar la imagen, No se pudo generar la imagen', err);
         setImageSrc(null);
