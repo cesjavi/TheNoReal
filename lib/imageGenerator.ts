@@ -1,15 +1,18 @@
-const SD_API = process.env.NEXT_PUBLIC_SD_API ?? '/api/sd/generate';
+const env = process.env.NEXT_PUBLIC_SD_API?.trim();
+// Si NO hay env, usamos el proxy de Next:
+const SD_API = env && env.length > 0 ? env : '/api/sd/generate';
 
 export async function generateImage(prompt: string): Promise<string> {
+  const finalPrompt = `${prompt}\n\nEstilo: tinta minimalista, fondo blanco, el dibujo tiene que interpretar la historia relatada en el prompt`;
   const res = await fetch(SD_API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       prompt,
       engine: 'sdxl-turbo',
-      width: 128,
-      height: 128,
-      steps: 2,
+      width: 512,
+      height: 512,
+      steps: 10,
     }),
   });
 
@@ -18,23 +21,24 @@ export async function generateImage(prompt: string): Promise<string> {
   }
 
   const data = await res.json();
+
+  // Compat con múltiples “shapes”
   const url =
-    data.url ||
-    data.image ||
-    data.image_url ||
-    (Array.isArray(data.images)
-      ? typeof data.images[0] === 'string'
-        ? data.images[0]
-        : data.images[0]?.url
+    data?.data?.[0]?.url ||                // OpenAI-style (proxy)
+    data?.image_url ||                      // data URL directo (proxy)
+    data?.url ||
+    data?.image ||
+    (Array.isArray(data?.images)
+      ? (typeof data.images[0] === 'string' ? data.images[0] : data.images[0]?.url)
       : undefined) ||
-    (Array.isArray(data.output)
-      ? typeof data.output[0] === 'string'
-        ? data.output[0]
-        : data.output[0]?.url
+    (Array.isArray(data?.output)
+      ? (typeof data.output[0] === 'string' ? data.output[0] : data.output[0]?.url)
+      : undefined) ||
+    (data?.image_base64
+      ? `data:image/png;base64,${data.image_base64}` // FastAPI directo
       : undefined);
 
   if (!url) throw new Error('Image URL not found in response');
-
   return url;
 }
 
