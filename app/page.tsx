@@ -28,8 +28,18 @@ const GENRES = [
   "Comedia",
 ];
 
+const TOKEN_LIMIT = 77;
+
+function countTokens(text: string) {
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length;
+}
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
+  const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<Modality>("capitulos");
   const [chapters, setChapters] = useState("");
@@ -44,6 +54,7 @@ export default function Home() {
   } | null>(null);
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [showGenreSelector, setShowGenreSelector] = useState(false);
+  const [promptTruncated, setPromptTruncated] = useState(false);
 
   const showChapters =
     modality === "capitulos" || modality === "final_sorpresa";
@@ -64,6 +75,10 @@ export default function Home() {
     setInitialStory(null);
     setInitialOptions([]);
     try {
+      if (tokenCount > TOKEN_LIMIT) {
+        setError(`El prompt supera el límite de ${TOKEN_LIMIT} tokens`);
+        return;
+      }
       // mapear la modalidad del select al valor que espera el backend
       const final: EndingMode = (() => {
         switch (modality) {
@@ -94,6 +109,7 @@ export default function Home() {
       });
 
       const data = await res.json().catch(() => ({}));
+      if (data.truncated) setPromptTruncated(true);
       if (!res.ok) {
         setError(data.error || "Error al crear la historia");
       } else {
@@ -108,6 +124,7 @@ export default function Home() {
           }),
         });
         const storyData = await storyRes.json().catch(() => ({}));
+        if (storyData.truncated) setPromptTruncated(true);
         if (!storyRes.ok) {
           setError(storyData.error || "Error al obtener la historia inicial");
         } else {
@@ -125,6 +142,7 @@ export default function Home() {
                 : undefined,
           });
           setPrompt("");
+          setTokenCount(0);
           setNumOptions(2);
           setModality("capitulos");
           setChapters("");
@@ -142,12 +160,27 @@ export default function Home() {
     <main className="flex flex-col items-center p-8 gap-4">
       {!initialStory && (
         <>
-          <textarea
-            className="w-full max-w-xl p-2 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
-            placeholder="Escribe el inicio de la historia"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-          />
+          <div className="flex flex-col w-full max-w-xl">
+            <textarea
+              className="w-full p-2 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+              placeholder="Escribe el inicio de la historia"
+              value={prompt}
+              onChange={(e) => {
+                const value = e.target.value;
+                setPrompt(value);
+                setTokenCount(countTokens(value));
+                setPromptTruncated(false);
+              }}
+            />
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>
+                {tokenCount}/{TOKEN_LIMIT} tokens
+              </span>
+              {tokenCount >= TOKEN_LIMIT && (
+                <span className="text-red-600">Límite alcanzado</span>
+              )}
+            </div>
+          </div>
           <div className="flex items-center gap-2">
             <label htmlFor="numOptions">Opciones por decisión:</label>
             <input
@@ -230,7 +263,7 @@ export default function Home() {
           )}
           <button
             onClick={handleSubmit}
-            disabled={loading}
+            disabled={loading || tokenCount > TOKEN_LIMIT}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
           >
             {loading ? "Enviando..." : "Crear historia"}
@@ -246,6 +279,11 @@ export default function Home() {
           chaptersCount={storyConfig.chaptersCount}
           genres={selectedGenres}
         />
+      )}
+      {promptTruncated && (
+        <p className="text-yellow-600">
+          Tu prompt fue recortado al límite de {TOKEN_LIMIT} tokens.
+        </p>
       )}
       {error && <p className="text-red-500">{error}</p>}
     </main>
