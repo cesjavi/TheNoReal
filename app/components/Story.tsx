@@ -14,6 +14,8 @@ interface StoryProps {
   endingMode: 'capitulos' | 'final_sorpresa' | 'sin_final_definido' | 'infinita';
   /** Número máximo de capítulos (opcional) */
   chaptersCount?: number;
+  /** Géneros seleccionados */
+  genres: string[];
 }
 
 interface HistoryEntry {
@@ -33,6 +35,7 @@ export default function Story({
   optionsPerDecision,
   endingMode,
   chaptersCount,
+  genres,
 }: StoryProps) {
   const [story, setStory] = useState(initialStory);
   const [options, setOptions] = useState(
@@ -57,7 +60,7 @@ export default function Story({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ story, option, optionsPerDecision }),
+        body: JSON.stringify({ story, option, optionsPerDecision, genres }),
       });
       const data = await response.json();
       const text = data.text || '';
