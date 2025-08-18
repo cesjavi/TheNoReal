@@ -132,12 +132,12 @@ export default function Story({
       <p className="whitespace-pre-line">{story}</p>
       <div className="flex flex-col gap-2 rounded-lg">
         {imageSrc && (
-        <img
-          src={imageSrc}
-          alt="Imagen generada"
-          className="mt-4 rounded-lg border border-black/30"
-        />
-      )}
+          <img
+            src={imageSrc}
+            alt="Imagen generada"
+            className="mx-auto my-4 max-w-md rounded-lg border border-black/30"
+          />
+        )}
         <button
           onClick={handleBack}
           disabled={history.length === 0 || loading}
