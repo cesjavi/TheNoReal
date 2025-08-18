@@ -18,6 +18,16 @@ const MODALITY_HELP = {
 
 type Modality = keyof typeof MODALITY_HELP;
 
+const GENRES = [
+  "Aventura",
+  "Ciencia ficción",
+  "Terror",
+  "Fantasía",
+  "Misterio",
+  "Romance",
+  "Comedia",
+];
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [numOptions, setNumOptions] = useState(2);
@@ -33,9 +43,21 @@ export default function Home() {
     endingMode: EndingMode;
     chaptersCount?: number;
   } | null>(null);
+  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
+  const [showGenreSelector, setShowGenreSelector] = useState(false);
 
   const showChapters =
     modality === "capitulos" || modality === "final_sorpresa";
+
+  const toggleGenre = (genre: string) => {
+    setSelectedGenres((prev) =>
+      prev.includes(genre)
+        ? prev.filter((g) => g !== genre)
+        : [...prev, genre]
+    );
+  };
+
+  const clearGenres = () => setSelectedGenres([]);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -59,6 +81,7 @@ export default function Home() {
         prompt,
         opciones_por_decision: Number(numOptions),
         final,
+        genres: selectedGenres,
         ...((final === "capitulos" || final === "final_sorpresa") && chapters
           ? { capitulos: Number(chapters) }
           : {}),
@@ -82,7 +105,8 @@ export default function Home() {
             story: prompt,
             option: "",
             optionsPerDecision: Number(numOptions),
-            genres,
+            genres//,
+            //genres: selectedGenres,
           }),
         });
         const storyData = await storyRes.json().catch(() => ({}));
@@ -167,6 +191,46 @@ export default function Home() {
             </div>
           )}
           <button
+            type="button"
+            onClick={() => setShowGenreSelector((prev) => !prev)}
+            className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors"
+          >
+            {showGenreSelector ? "Cerrar géneros" : "Seleccionar géneros"}
+          </button>
+          {showGenreSelector && (
+            <div className="flex flex-col gap-2 p-4 border border-black/30 rounded-lg max-w-xl w-full">
+              {GENRES.map((genre) => (
+                <label key={genre} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedGenres.includes(genre)}
+                    onChange={() => toggleGenre(genre)}
+                  />
+                  {genre}
+                </label>
+              ))}
+              <button
+                type="button"
+                onClick={clearGenres}
+                className="self-start px-2 py-1 mt-2 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Limpiar
+              </button>
+            </div>
+          )}
+          {selectedGenres.length > 0 && (
+            <div className="flex flex-wrap gap-2 max-w-xl">
+              {selectedGenres.map((genre) => (
+                <span
+                  key={genre}
+                  className="px-2 py-1 text-sm rounded-full bg-accent text-black"
+                >
+                  {genre}
+                </span>
+              ))}
+            </div>
+          )}
+          <button
             onClick={handleSubmit}
             disabled={loading}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
@@ -183,6 +247,7 @@ export default function Home() {
           endingMode={storyConfig.endingMode}
           chaptersCount={storyConfig.chaptersCount}
           genres={genres}
+          //genres={selectedGenres}
         />
       )}
       {error && <p className="text-red-500">{error}</p>}

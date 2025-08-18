@@ -74,9 +74,9 @@ export default function Story({
         const url = await generateImage(newStory, genres);
         setImageSrc(url);
       } catch (err) {
-        console.error('Error al generar la imagen', err);
+        console.error('Error al generar la imagen, No se pudo generar la imagen', err);
         setImageSrc(null);
-        alert('No se pudo generar la imagen');
+        //alert('No se pudo generar la imagen');
       }
 
       let opts = newOptions.slice(0, optionsPerDecision);
