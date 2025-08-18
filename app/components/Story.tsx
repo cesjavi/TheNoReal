@@ -40,6 +40,7 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
 
   const handleSelect = async (option: string) => {
     setLoading(true);
@@ -112,6 +113,13 @@ export default function Story({
     <div className="space-y-4">
       <p className="whitespace-pre-line">{story}</p>
       <div className="flex flex-col gap-2 rounded-lg">
+        {imageSrc && (
+        <img
+          src={imageSrc}
+          alt="Imagen generada"
+          className="mt-4 rounded-lg border border-black/30"
+        />
+      )}
         <button
           onClick={handleBack}
           disabled={history.length === 0 || loading}

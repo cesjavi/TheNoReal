@@ -64,7 +64,7 @@ export default function Home() {
       };
 
       console.log("POST /api/stories payload =>", payload);
-
+      const [imageSrc, setImageSrc] = useState<string | null>(null);
       const res = await fetch("/api/stories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,6 +105,26 @@ export default function Home() {
           setNumOptions(2);
           setModality("capitulos");
           setChapters("");
+          try {
+          const imgRes = await fetch("/api/sd/generate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              prompt,                 // o un prompt resumido
+              engine: "sdxl-turbo",
+              width: 512,
+              height: 512,
+              steps: 2
+            }),
+          });
+          const imgData = await imgRes.json();
+          if (imgRes.ok) {
+            // Tu UI espera URL -> usamos data[0].url que da el proxy
+            setImageSrc(imgData?.data?.[0]?.url ?? null);
+          }
+        } catch (e) {
+          // ignorá o logueá si falla la imagen
+        }
         }
       }
     } catch {
