@@ -156,7 +156,7 @@ export default function StoryForm() {
         prompt,
         opciones_por_decision: Number(numOptions),
         final,
-        generos: config.generos,
+        genres: config.generos,
         estilo: config.estilo,
         ajustes: config.ajustes,
         ...((final === 'capitulos' || final === 'final_sorpresa') && chapters
@@ -183,7 +183,7 @@ export default function StoryForm() {
             story: prompt,
             option: '',
             optionsPerDecision: Number(numOptions),
-            generos: config.generos,
+            genres: config.generos,
             estilo: config.estilo,
             ajustes: config.ajustes,
           }),
