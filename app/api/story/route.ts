@@ -10,32 +10,64 @@ export async function POST(req: Request) {
   }
 
   try {
-    const { story, option, optionsPerDecision, genres } = await req.json();
+    const {
+      story,
+      option,
+      optionsPerDecision,
+      genres,
+      estilo = {},
+      ajustes = {},
+    } = await req.json();
 
     const genreLine =
       Array.isArray(genres) && genres.length > 0
         ? `Géneros a respetar: ${genres.join(', ')}.`
         : '';
 
+    const formatSection = (
+      title: string,
+      data: Record<string, unknown>
+    ): string => {
+      const entries = Object.entries(data)
+        .filter(([, v]) =>
+          Array.isArray(v) ? (v as unknown[]).length > 0 : v !== undefined
+        )
+        .map(([k, v]) => {
+          const key = k.replace(/([A-Z])/g, ' $1').toLowerCase();
+          const value = Array.isArray(v) ? (v as unknown[]).join(', ') : v;
+          return `${key}: ${value}`;
+        });
+      return entries.length > 0 ? `${title}: ${entries.join('; ')}.` : '';
+    };
+
+    const estiloLine = formatSection('Estilo', estilo);
+    const ajustesLine = formatSection('Ajustes', ajustes);
+
     const systemPrompt = [
       "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea separada y con un número adelante. Solo responde con las opciones, no agregues texto que no tenga que ver con las opciones.",
       genreLine,
+      estiloLine,
+      ajustesLine,
     ]
       .filter(Boolean)
       .join("\n\n");
 
+    const messages = [
+      {
+        role: "system" as const,
+        content: systemPrompt,
+      },
+      {
+        role: "user" as const,
+        content: `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`,
+      },
+    ];
+
+    console.log('Mensajes enviados a Groq:', messages);
+
     const completion = await createChatCompletion({
       model: "openai/gpt-oss-120b",
-      messages: [
-        {
-          role: "system",
-          content: systemPrompt,
-        },
-        {
-          role: "user",
-          content: `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`,
-        },
-      ],
+      messages,
     });
 
     const text =
