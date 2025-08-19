@@ -38,7 +38,31 @@ function countTokens(text: string) {
     .filter(Boolean).length;
 }
 
-const defaults: ConfigGeneracion = { estilo: {}, ajustes: {} };
+const defaults: ConfigGeneracion = {
+  generos: [],
+  estilo: {
+    tono: [],
+    ritmo: [],
+    voz: [],
+    tiempo: [],
+    formato: [],
+    descripcion: [],
+    dialogo: [],
+    matiz: [],
+  },
+  ajustes: {
+    publico: [],
+    epoca: [],
+    ambito: [],
+    estructura: [],
+    incluir: [],
+    evitar: [],
+    clasificacion: [],
+    idioma: [],
+    registro: [],
+    opcionesPorCapitulo: [],
+  },
+};
 
 export default function StoryForm() {
   const [prompt, setPrompt] = useState('');
@@ -55,7 +79,6 @@ export default function StoryForm() {
     endingMode: EndingMode;
     chaptersCount?: number;
   } | null>(null);
-  const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [promptTruncated, setPromptTruncated] = useState(false);
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [open, setOpen] = useState(false);
@@ -64,12 +87,19 @@ export default function StoryForm() {
     modality === 'capitulos' || modality === 'final_sorpresa';
 
   const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) =>
-      prev.includes(genre) ? prev.filter((g) => g !== genre) : [...prev, genre],
-    );
+    setConfig((prev) => ({
+      ...prev,
+      generos: prev.generos.includes(genre)
+        ? prev.generos.filter((g) => g !== genre)
+        : [...prev.generos, genre],
+    }));
   };
 
-  const clearGenres = () => setSelectedGenres([]);
+  const clearGenres = () =>
+    setConfig((prev) => ({
+      ...prev,
+      generos: [],
+    }));
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -97,7 +127,7 @@ export default function StoryForm() {
         prompt,
         opciones_por_decision: Number(numOptions),
         final,
-        generos: selectedGenres,
+        generos: config.generos,
         estilo: config.estilo,
         ajustes: config.ajustes,
         ...((final === 'capitulos' || final === 'final_sorpresa') && chapters
@@ -124,7 +154,7 @@ export default function StoryForm() {
             story: prompt,
             option: '',
             optionsPerDecision: Number(numOptions),
-            generos: selectedGenres,
+            generos: config.generos,
             estilo: config.estilo,
             ajustes: config.ajustes,
           }),
@@ -234,34 +264,13 @@ export default function StoryForm() {
           >
             Configuración
           </button>
-          <div className="flex flex-wrap gap-2 max-w-xl">
-            {config.estilo.tono && (
-              <span className="px-2 py-1 text-sm rounded-full bg-accent text-black">
-                {config.estilo.tono}
-              </span>
-            )}
-            {config.estilo.voz && (
-              <span className="px-2 py-1 text-sm rounded-full bg-accent text-black">
-                {config.estilo.voz}
-              </span>
-            )}
-            {config.estilo.epoca && (
-              <span className="px-2 py-1 text-sm rounded-full bg-accent text-black">
-                {config.estilo.epoca}
-              </span>
-            )}
-            {config.ajustes.longitud && (
-              <span className="px-2 py-1 text-sm rounded-full bg-accent text-black">
-                {config.ajustes.longitud}
-              </span>
-            )}
-          </div>
+          <div className="flex flex-wrap gap-2 max-w-xl" />
           <div className="flex flex-col gap-2 p-4 border border-black/30 rounded-lg max-w-xl w-full">
             {GENRES.map((genre) => (
               <label key={genre} className="flex items-center gap-2">
                 <input
                   type="checkbox"
-                  checked={selectedGenres.includes(genre)}
+                  checked={config.generos.includes(genre)}
                   onChange={() => toggleGenre(genre)}
                 />
                 {genre}
@@ -275,9 +284,9 @@ export default function StoryForm() {
               Limpiar
             </button>
           </div>
-          {selectedGenres.length > 0 && (
+          {config.generos.length > 0 && (
             <div className="flex flex-wrap gap-2 max-w-xl">
-              {selectedGenres.map((genre) => (
+              {config.generos.map((genre) => (
                 <span
                   key={genre}
                   className="px-2 py-1 text-sm rounded-full bg-accent text-black"
@@ -303,7 +312,7 @@ export default function StoryForm() {
           optionsPerDecision={storyConfig.optionsPerDecision}
           endingMode={storyConfig.endingMode}
           chaptersCount={storyConfig.chaptersCount}
-          genres={selectedGenres}
+          genres={config.generos}
         />
       )}
       {promptTruncated && (
