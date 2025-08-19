@@ -192,14 +192,7 @@ export default function Story({
             className="rounded-lg bg-accent text-white px-4 py-2 hover:bg-accent-dark transition-colors"
           >
             {isReading ? 'Parar' : 'Leer'}
-          </button>
-          {imageUrl && (
-            <img
-              src={imageUrl}
-              alt={`Imagen generada ${idx + 1}`}
-              className="mt-4 rounded-lg border border-black/30"
-            />
-          )}
+          </button>          
         </div>
       ))}
       <div className="flex flex-col gap-2 rounded-lg">

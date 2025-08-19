@@ -1,6 +1,6 @@
 'use client';
 
-import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useState } from 'react';
+import { useState } from 'react';
 import Story from './Story';
 import StorySettings, {
   ConfigGeneracion,
@@ -9,11 +9,7 @@ import StorySettings, {
 } from './StorySettings';
 import { parseStoryResponse } from '@/lib/parseStoryResponse';
 
-type EndingMode =
-  | 'capitulos'
-  | 'sin_final_definido'
-  | 'final_sorpresa'
-  | 'infinita';
+type EndingMode = 'capitulos' | 'sin_final_definido' | 'final_sorpresa' | 'infinita';
 
 const MODALITY_HELP = {
   capitulos: 'Divide la historia en capítulos.',
@@ -37,15 +33,18 @@ const GENRES = [
 const TOKEN_LIMIT = 77;
 
 function countTokens(text: string) {
-  return text
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length;
+  return text.trim().split(/\s+/).filter(Boolean).length;
 }
 
 function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
+
+/** Helpers seguros */
+const toArray = <T,>(v: T | T[] | undefined | null): T[] =>
+  Array.isArray(v) ? v : v == null ? [] : [v];
+
+const isNonEmptyArray = (v: unknown): v is unknown[] => Array.isArray(v) && v.length > 0;
 
 const defaults: ConfigGeneracion = {
   generos: [],
@@ -98,8 +97,7 @@ export default function StoryForm() {
     setStoryConfig(null);
   };
 
-  const showChapters =
-    modality === 'capitulos' || modality === 'final_sorpresa';
+  const showChapters = modality === 'capitulos' || modality === 'final_sorpresa';
 
   const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
@@ -245,6 +243,7 @@ export default function StoryForm() {
               )}
             </div>
           </div>
+
           <div className="flex items-center gap-2">
             <label htmlFor="numOptions">Opciones por decisión:</label>
             <input
@@ -256,6 +255,7 @@ export default function StoryForm() {
               className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
             />
           </div>
+
           <div className="flex flex-col w-full max-w-xl gap-2">
             <label htmlFor="modality">Modalidad de final:</label>
             <select
@@ -271,6 +271,7 @@ export default function StoryForm() {
             </select>
             <p className="text-sm text-gray-600">{MODALITY_HELP[modality]}</p>
           </div>
+
           {showChapters && (
             <div className="flex items-center gap-2">
               <label htmlFor="chapters">Capítulos:</label>
@@ -285,6 +286,7 @@ export default function StoryForm() {
               />
             </div>
           )}
+
           <button
             type="button"
             data-testid="btn-configuracion"
@@ -293,7 +295,9 @@ export default function StoryForm() {
           >
             Configuración
           </button>
+
           <div className="flex flex-wrap gap-2 max-w-xl" />
+
           <div className="flex flex-col gap-2 p-4 border border-black/30 rounded-lg max-w-xl w-full">
             {GENRES.map((genre) => (
               <label key={genre} className="flex items-center gap-2">
@@ -322,11 +326,10 @@ export default function StoryForm() {
               </button>
             </div>
           </div>
+
           {(config.generos.length > 0 ||
-            Object.values(config.estilo).some((v) => v.length > 0) ||
-            Object.values(config.ajustes).some(
-              (v) => Array.isArray(v) && v.length > 0,
-            )) && (
+            Object.values(config.estilo).some(isNonEmptyArray) ||
+            Object.values(config.ajustes).some(isNonEmptyArray)) && (
             <div className="flex flex-wrap gap-2 max-w-xl">
               {config.generos.map((genre) => (
                 <span
@@ -336,8 +339,9 @@ export default function StoryForm() {
                   {genre}
                 </span>
               ))}
+
               {Object.entries(config.estilo).flatMap(([key, values]) =>
-                values.map((v: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined) => (
+                toArray(values as string[]).map((v) => (
                   <span
                     key={`estilo-${key}-${v}`}
                     className="px-2 py-1 text-sm rounded-full bg-accent text-black"
@@ -346,18 +350,20 @@ export default function StoryForm() {
                   </span>
                 )),
               )}
+
               {Object.entries(config.ajustes).flatMap(([key, values]) =>
-                (values as string[] | undefined)?.map((v) => (
+                toArray(values as string[]).map((v) => (
                   <span
                     key={`ajuste-${key}-${v}`}
                     className="px-2 py-1 text-sm rounded-full bg-accent text-black"
                   >
                     {v}
                   </span>
-                )) || [],
+                )),
               )}
             </div>
           )}
+
           <button
             onClick={handleSubmit}
             disabled={loading || tokenCount > TOKEN_LIMIT}
@@ -367,6 +373,7 @@ export default function StoryForm() {
           </button>
         </>
       )}
+
       {initialStory && storyConfig && (
         <Story
           initialStory={initialStory}
@@ -380,22 +387,59 @@ export default function StoryForm() {
           onBack={resetStory}
         />
       )}
+
       {promptTruncated && (
         <p className="text-yellow-600">
           Tu prompt fue recortado al límite de {TOKEN_LIMIT} tokens.
         </p>
       )}
+
       {error && <p className="text-red-500">{error}</p>}
+
       <StorySettings
         open={open}
         config={config}
         onClose={() => setOpen(false)}
         onSave={(cfg) => {
-          setConfig(cfg);
+          // Normalización al guardar: arrays garantizados donde corresponde
+          const normalized: ConfigGeneracion = {
+            generos: Array.isArray(cfg.generos) ? cfg.generos : [],
+            estilo: {
+              tono: cfg.estilo.tono ?? [],
+              ritmo: cfg.estilo.ritmo ?? [],
+              voz: cfg.estilo.voz ?? [],
+              tiempo: cfg.estilo.tiempo ?? [],
+              formato: cfg.estilo.formato ?? [],
+              descripcion: cfg.estilo.descripcion ?? [],
+              dialogo: cfg.estilo.dialogo ?? [],
+              matiz: cfg.estilo.matiz ?? [],
+            },
+            ajustes: {
+              publico: cfg.ajustes.publico ?? [],
+              epoca: cfg.ajustes.epoca ?? [],
+              ambito: cfg.ajustes.ambito ?? [],
+              estructura: cfg.ajustes.estructura ?? [],
+              incluir: cfg.ajustes.incluir ?? [],
+              evitar: cfg.ajustes.evitar ?? [],
+              clasificacion: cfg.ajustes.clasificacion ?? [],
+              idioma: cfg.ajustes.idioma ?? [],
+              registro: cfg.ajustes.registro ?? [],
+              opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
+              // Escalares se copian tal cual:
+              lugar: cfg.ajustes.lugar,
+              longitudPalabras: cfg.ajustes.longitudPalabras,
+              creatividad: cfg.ajustes.creatividad,
+              topP: cfg.ajustes.topP,
+              semilla: cfg.ajustes.semilla,
+              consistenciaSaga: cfg.ajustes.consistenciaSaga,
+              estiloVisual: cfg.ajustes.estiloVisual,
+              paleta: cfg.ajustes.paleta,
+            },
+          };
+          setConfig(normalized);
           setOpen(false);
         }}
       />
     </main>
   );
 }
-
