@@ -129,9 +129,11 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
   const currentMode: CreativeMode =
     (Object.keys(CREATIVE_MODES) as CreativeMode[]).find(
       m =>
-        CREATIVE_MODES[m].temperature === (local.ajustes.creatividad ?? 0.7) &&
-        CREATIVE_MODES[m].topP === (local.ajustes.topP ?? 0.7)
-    ) ?? 'classic';
+        CREATIVE_MODES[m].temperature ===
+          (local.ajustes.creatividad ?? CREATIVE_MODES.creative.temperature) &&
+        CREATIVE_MODES[m].topP ===
+          (local.ajustes.topP ?? CREATIVE_MODES.creative.topP)
+    ) ?? 'creative';
 
   const setCreativeMode = (mode: CreativeMode) => {
     const cfg = CREATIVE_MODES[mode];

@@ -68,6 +68,8 @@ const defaults: ConfigGeneracion = {
     clasificacion: [],
     idioma: [],
     registro: [],
+    creatividad: 0.9,
+    topP: 0.9,
     opcionesPorCapitulo: [],
   },
 };
