@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { generateImage } from '@/lib/imageGenerator';
+import { useRouter } from 'next/router';
 
 interface StoryProps {
   /** Texto inicial de la historia */
@@ -17,6 +17,8 @@ interface StoryProps {
   chaptersCount?: number;
   /** Géneros seleccionados para la historia */
   genres: string[];
+  /** Acción a ejecutar al volver al formulario inicial */
+  onBack: () => void;
 }
 
 interface Chapter {
@@ -43,6 +45,7 @@ export default function Story({
   endingMode,
   chaptersCount,
   genres,
+  onBack,
 }: StoryProps) {
   const [chapters, setChapters] = useState<Chapter[]>([
     { texto: initialStory, imageUrl: null },
@@ -58,9 +61,15 @@ export default function Story({
   const [isReading, setIsReading] = useState(false);
 
   const handleSpeak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    if (isReading || window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsReading(false);
+    } else {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => setIsReading(false);
+      window.speechSynthesis.speak(utterance);
+      setIsReading(true);
+    }
   };
 
   const handleSelect = async (option: string) => {
@@ -152,7 +161,7 @@ export default function Story({
     setOptions(initialOptions.slice(0, optionsPerDecision));
     setCurrentChapter(1);
     setHistory([]);
-    router.push('/');
+    onBack();
   };
 
   return (
@@ -164,7 +173,7 @@ export default function Story({
             onClick={() => handleSpeak(texto)}
             className="rounded-lg bg-accent text-white px-4 py-2 hover:bg-accent-dark transition-colors"
           >
-            Leer
+            {isReading ? 'Parar' : 'Leer'}
           </button>
           {imageUrl && (
             <img

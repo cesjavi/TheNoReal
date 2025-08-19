@@ -83,6 +83,12 @@ export default function StoryForm() {
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [open, setOpen] = useState(false);
 
+  const resetStory = () => {
+    setInitialStory(null);
+    setInitialOptions([]);
+    setStoryConfig(null);
+  };
+
   const showChapters =
     modality === 'capitulos' || modality === 'final_sorpresa';
 
@@ -313,6 +319,7 @@ export default function StoryForm() {
           endingMode={storyConfig.endingMode}
           chaptersCount={storyConfig.chaptersCount}
           genres={config.generos}
+          onBack={resetStory}
         />
       )}
       {promptTruncated && (
