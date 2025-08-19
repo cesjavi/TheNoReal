@@ -44,7 +44,7 @@ export async function POST(req: Request) {
     const ajustesLine = formatSection('Ajustes', ajustes);
 
     const systemPrompt = [
-      "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea separada y con un número adelante. Solo responde con las opciones, no agregues texto que no tenga que ver con las opciones.",
+      "Eres un generador de historias ramificadas. Responde primero con el siguiente capítulo, luego una línea que contenga solo '---', y después las opciones numeradas, cada una en una línea separada. No añadas texto adicional fuera de la historia y las opciones.",
       genreLine,
       estiloLine,
       ajustesLine,
