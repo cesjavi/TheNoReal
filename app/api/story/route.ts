@@ -18,7 +18,7 @@ export async function POST(req: Request) {
         : '';
 
     const systemPrompt = [
-      "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea.",
+      "Eres un generador de historias ramificadas. Responde con el siguiente capítulo seguido de las opciones solicitadas, cada una en una línea separada y con un número adelante. Solo responde con las opciones, no agregues texto que no tenga que ver con las opciones.",
       genreLine,
     ]
       .filter(Boolean)

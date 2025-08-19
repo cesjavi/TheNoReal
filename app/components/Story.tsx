@@ -52,7 +52,7 @@ export default function Story({
   ]);
   const [choices, setChoices] = useState<string[]>([]);
   const [options, setOptions] = useState(
-    initialOptions.slice(0, optionsPerDecision)
+    Array.from(new Set(initialOptions)).slice(0, optionsPerDecision)
   );
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
@@ -122,7 +122,8 @@ export default function Story({
       setChoices((prev) => [...prev, option]);
       setCurrentChapter(nextChapter);
 
-      let opts = newOptions.slice(0, optionsPerDecision);
+      let opts = Array.from(new Set(newOptions.filter(Boolean)))
+        .slice(0, optionsPerDecision);
       let end = false;
       if (endingMode === 'capitulos') {
         if (chaptersCount && nextChapter > chaptersCount) {
@@ -146,7 +147,7 @@ export default function Story({
         opts = [];
       }
 
-      setOptions(opts);
+      setOptions(opts as string[]);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
     } finally {
@@ -192,16 +193,16 @@ export default function Story({
         >
           Volver al inicio
         </button>
-        {options.map((opt) => (
-          <button
-            key={opt}
-            onClick={() => handleSelect(opt)}
-            disabled={loading}
-            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-          >
-            {opt}
-          </button>
-        ))}
+       {options.map((opt, idx) => (
+        <button
+          key={`${idx}-${opt}`}               // <- clave única
+          onClick={() => handleSelect(opt)}
+          disabled={loading}
+          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+        >
+          {opt}
+        </button>
+      ))}
       </div>
     </div>
   );
