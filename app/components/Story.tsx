@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { generateImage } from '@/lib/imageGenerator';
 
 interface StoryProps {
@@ -17,6 +16,8 @@ interface StoryProps {
   chaptersCount?: number;
   /** Géneros seleccionados para la historia */
   genres: string[];
+  /** Acción a ejecutar al volver al formulario inicial */
+  onBack: () => void;
 }
 
 interface Chapter {
@@ -43,6 +44,7 @@ export default function Story({
   endingMode,
   chaptersCount,
   genres,
+  onBack,
 }: StoryProps) {
   const [chapters, setChapters] = useState<Chapter[]>([
     { texto: initialStory, imageUrl: null },
@@ -54,7 +56,6 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const router = useRouter();
 
   const handleSpeak = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
@@ -151,7 +152,7 @@ export default function Story({
     setOptions(initialOptions.slice(0, optionsPerDecision));
     setCurrentChapter(1);
     setHistory([]);
-    router.push('/');
+    onBack();
   };
 
   return (
