@@ -2,7 +2,11 @@
 
 import { useState } from 'react';
 import Story from './Story';
-import StorySettings, { ConfigGeneracion } from './StorySettings';
+import StorySettings, {
+  ConfigGeneracion,
+  ESTILO_SECTIONS,
+  AJUSTES_SECTIONS,
+} from './StorySettings';
 
 type EndingMode =
   | 'capitulos'
@@ -36,6 +40,10 @@ function countTokens(text: string) {
     .trim()
     .split(/\s+/)
     .filter(Boolean).length;
+}
+
+function randomPick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
 }
 
 const defaults: ConfigGeneracion = {
@@ -106,6 +114,21 @@ export default function StoryForm() {
       ...prev,
       generos: [],
     }));
+
+  const randomizeConfig = () => {
+    const genero = randomPick(GENRES);
+    const estilo = ESTILO_SECTIONS.reduce((acc, { key, options }) => {
+      acc[key] = [randomPick(options)];
+      return acc;
+    }, {} as ConfigGeneracion['estilo']);
+
+    const ajustes = AJUSTES_SECTIONS.reduce((acc, { key, options }) => {
+      (acc as any)[key] = [randomPick(options)];
+      return acc;
+    }, {} as ConfigGeneracion['ajustes']);
+
+    setConfig({ generos: [genero], estilo, ajustes });
+  };
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -282,24 +305,57 @@ export default function StoryForm() {
                 {genre}
               </label>
             ))}
-            <button
-              type="button"
-              onClick={clearGenres}
-              className="self-start px-2 py-1 mt-2 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-            >
-              Limpiar
-            </button>
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={clearGenres}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Limpiar
+              </button>
+              <button
+                type="button"
+                onClick={randomizeConfig}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Randomizar
+              </button>
+            </div>
           </div>
-          {config.generos.length > 0 && (
+          {(config.generos.length > 0 ||
+            Object.values(config.estilo).some((v) => v.length > 0) ||
+            Object.values(config.ajustes).some(
+              (v) => Array.isArray(v) && v.length > 0,
+            )) && (
             <div className="flex flex-wrap gap-2 max-w-xl">
               {config.generos.map((genre) => (
                 <span
-                  key={genre}
+                  key={`genero-${genre}`}
                   className="px-2 py-1 text-sm rounded-full bg-accent text-black"
                 >
                   {genre}
                 </span>
               ))}
+              {Object.entries(config.estilo).flatMap(([key, values]) =>
+                values.map((v) => (
+                  <span
+                    key={`estilo-${key}-${v}`}
+                    className="px-2 py-1 text-sm rounded-full bg-accent text-black"
+                  >
+                    {v}
+                  </span>
+                )),
+              )}
+              {Object.entries(config.ajustes).flatMap(([key, values]) =>
+                (values as string[] | undefined)?.map((v) => (
+                  <span
+                    key={`ajuste-${key}-${v}`}
+                    className="px-2 py-1 text-sm rounded-full bg-accent text-black"
+                  >
+                    {v}
+                  </span>
+                )) || [],
+              )}
             </div>
           )}
           <button

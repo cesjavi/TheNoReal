@@ -87,7 +87,7 @@ const REGISTROS = ['formal', 'informal'];
 const OPCIONES_POR_CAPITULO = ['2', '3', '4'];
 
 /** Config de secciones fuertemente tipadas */
-const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[] = [
+export const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[] = [
   { key: 'tono', label: 'Tono', options: TONOS },
   { key: 'ritmo', label: 'Ritmo/Pacing', options: RITMOS },
   { key: 'voz', label: 'Voz/Punto de vista', options: VOCES },
@@ -98,7 +98,7 @@ const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[]
   { key: 'matiz', label: 'Matiz estilístico', options: MATICES },
 ];
 
-const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: string[] }[] = [
+export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: string[] }[] = [
   { key: 'publico', label: 'Público objetivo', options: PUBLICO },
   { key: 'epoca', label: 'Época', options: EPOCAS },
   { key: 'ambito', label: 'Ámbito', options: AMBITOS },
