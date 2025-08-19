@@ -54,6 +54,12 @@ export default function Story({
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
+  const handleSpeak = (text: string) => {
+    const utterance = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  };
+
   const handleSelect = async (option: string) => {
     setLoading(true);
     setHistory((prev) => [
@@ -153,6 +159,12 @@ export default function Story({
       {chapters.map(({ texto, imageUrl }, idx) => (
         <div key={idx} className="space-y-4">
           <p className="whitespace-pre-line">{texto}</p>
+          <button
+            onClick={() => handleSpeak(texto)}
+            className="rounded-lg bg-accent text-white px-4 py-2 hover:bg-accent-dark transition-colors"
+          >
+            Leer
+          </button>
           {imageUrl && (
             <img
               src={imageUrl}
