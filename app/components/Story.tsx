@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { generateImage } from '@/lib/imageGenerator';
 
 interface StoryProps {
@@ -53,6 +54,7 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const router = useRouter();
 
   const handleSelect = async (option: string) => {
     setLoading(true);
@@ -137,15 +139,13 @@ export default function Story({
   };
 
   const handleBack = () => {
-    setHistory((prev) => {
-      const last = prev[prev.length - 1];
-      if (!last) return prev;
-      setChapters(last.chapters);
-      setOptions(last.options);
-      setCurrentChapter(last.currentChapter);
-      setChoices(last.choices);
-      return prev.slice(0, -1);
-    });
+    // Limpieza de estado antes de redirigir
+    setChapters([{ texto: initialStory, imageUrl: null }]);
+    setChoices([]);
+    setOptions(initialOptions.slice(0, optionsPerDecision));
+    setCurrentChapter(1);
+    setHistory([]);
+    router.push('/');
   };
 
   return (
@@ -165,10 +165,10 @@ export default function Story({
       <div className="flex flex-col gap-2 rounded-lg">
         <button
           onClick={handleBack}
-          disabled={history.length === 0 || loading}
+          disabled={loading}
           className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
         >
-          Volver
+          Volver al inicio
         </button>
         {options.map((opt) => (
           <button
