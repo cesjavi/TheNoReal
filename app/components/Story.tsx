@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { generateImage } from '@/lib/imageGenerator';
-import { useRouter } from 'next/router';
+//import { useRouter } from 'next/router';
 
 interface StoryProps {
   /** Texto inicial de la historia */
@@ -57,7 +57,7 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  const router = useRouter();
+  //const router = useRouter();
   const [isReading, setIsReading] = useState(false);
 
   const handleSpeak = (text: string) => {
