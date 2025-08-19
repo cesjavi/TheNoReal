@@ -6,4 +6,7 @@ module.exports = {
       { jsc: { transform: { react: { runtime: 'automatic' } } } },
     ],
   },
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1',
+  },
 };

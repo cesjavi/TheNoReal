@@ -7,6 +7,7 @@ import StorySettings, {
   ESTILO_SECTIONS,
   AJUSTES_SECTIONS,
 } from './StorySettings';
+import { parseStoryResponse } from '@/lib/parseStoryResponse';
 
 type EndingMode =
   | 'capitulos'
@@ -194,10 +195,9 @@ export default function StoryForm() {
           setError((storyData as { error?: string }).error || 'Error al obtener la historia inicial');
         } else {
           const text: string = (storyData as { text?: string }).text || '';
-          const lines = text.split('\n').filter(Boolean);
-          const [first, ...opts] = lines;
-          setInitialStory(first || '');
-          setInitialOptions(opts.slice(0, Number(numOptions)));
+          const { story, options } = parseStoryResponse(text, Number(numOptions));
+          setInitialStory(story);
+          setInitialOptions(options);
           setStoryConfig({
             optionsPerDecision: Number(numOptions),
             endingMode: final,
