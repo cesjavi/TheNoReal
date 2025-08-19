@@ -2,140 +2,93 @@
 
 import { useEffect, useState } from 'react';
 
-export interface StorySettingsConfig {
-  tono: string;
-  ritmo: number;
-  voz: string;
-  publico: string;
-  ambientacion: string;
-  creatividad: number;
-  coherencia: number;
-}
+export interface ConfigGeneracion {
+  estilo: {
+    tono?: string;
+    voz?: string;
+    epoca?: string;
+  };
+  ajustes: {
+    longitud?: string;
+  };
 
 interface StorySettingsProps {
   open: boolean;
-  config: StorySettingsConfig;
-  onSave: (cfg: StorySettingsConfig) => void;
-  onCancel: () => void;
+  config: ConfigGeneracion;
+  onClose: () => void;
+  onSave: (cfg: ConfigGeneracion) => void;
 }
 
-export default function StorySettings({ open, config, onSave, onCancel }: StorySettingsProps) {
-  const [form, setForm] = useState<StorySettingsConfig>(config);
+export default function StorySettings({ open, config, onClose, onSave }: StorySettingsProps) {
+  const [local, setLocal] = useState<ConfigGeneracion>(config);
 
   useEffect(() => {
-    setForm(config);
-  }, [config]);
+    if (open) setLocal(config);
+  }, [open, config]);
 
-  const handleChange = (key: keyof StorySettingsConfig, value: string | number) => {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  if (!open) return null;
+
+  const handleChange = (
+    section: 'estilo' | 'ajustes',
+    key: string,
+    value: string,
+  ) => {
+    setLocal((prev) => ({
+      ...prev,
+      [section]: {
+        ...(prev[section] as Record<string, string | undefined>),
+        [key]: value,
+      },
+    }));
   };
 
   const handleSave = () => {
-    const { ritmo, creatividad, coherencia } = form;
-    const nums = { ritmo, creatividad, coherencia };
-    for (const [k, v] of Object.entries(nums)) {
-      if (typeof v !== 'number' || v < 0.1 || v > 1.0) {
-        return;
-      }
-    }
-    onSave(form);
+    onSave(local);
   };
 
   return (
-    <div
-      data-testid="drawer-configuracion"
-      className={`fixed inset-y-0 right-0 w-80 max-w-full bg-background shadow-lg transform transition-transform duration-300 overflow-y-auto ${open ? 'translate-x-0' : 'translate-x-full'}`}
-    >
-      <div className="p-4 flex flex-col h-full">
-        <h2 className="text-lg font-semibold mb-4">Estilos (literarios)</h2>
-        <div className="flex flex-col gap-2">
-          <label className="flex flex-col gap-1">
-            <span>Tono</span>
-            <input
-              type="text"
-              value={form.tono}
-              onChange={(e) => handleChange('tono', e.target.value)}
-              className="p-2 border border-black/30 rounded-lg"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Ritmo</span>
-            <input
-              type="number"
-              min={0.1}
-              max={1}
-              step={0.1}
-              value={form.ritmo}
-              onChange={(e) => handleChange('ritmo', parseFloat(e.target.value))}
-              className="p-2 border border-black/30 rounded-lg"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Voz</span>
-            <input
-              type="text"
-              value={form.voz}
-              onChange={(e) => handleChange('voz', e.target.value)}
-              className="p-2 border border-black/30 rounded-lg"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Público</span>
-            <input
-              type="text"
-              value={form.publico}
-              onChange={(e) => handleChange('publico', e.target.value)}
-              className="p-2 border border-black/30 rounded-lg"
-            />
-          </label>
-          <label className="flex flex-col gap-1">
-            <span>Ambientación</span>
-            <input
-              type="text"
-              value={form.ambientacion}
-              onChange={(e) => handleChange('ambientacion', e.target.value)}
-              className="p-2 border border-black/30 rounded-lg"
-            />
-          </label>
-        </div>
-        <h2 className="text-lg font-semibold mt-6 mb-4">Ajustes extra</h2>
-        <div className="flex flex-col gap-4">
-          <label className="flex flex-col">
-            <span>Creatividad: {form.creatividad.toFixed(1)}</span>
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.1}
-              value={form.creatividad}
-              onChange={(e) => handleChange('creatividad', parseFloat(e.target.value))}
-            />
-          </label>
-          <label className="flex flex-col">
-            <span>Coherencia: {form.coherencia.toFixed(1)}</span>
-            <input
-              type="range"
-              min={0.1}
-              max={1}
-              step={0.1}
-              value={form.coherencia}
-              onChange={(e) => handleChange('coherencia', parseFloat(e.target.value))}
-            />
-          </label>
-        </div>
-        <div className="mt-auto flex justify-end gap-2 pt-4">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center">
+      <div className="bg-white p-4 rounded-lg space-y-2 w-full max-w-sm">
+        <input
+          type="text"
+          placeholder="Tono"
+          value={local.estilo.tono ?? ''}
+          onChange={(e) => handleChange('estilo', 'tono', e.target.value)}
+          className="w-full p-1 border border-black/30 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Voz"
+          value={local.estilo.voz ?? ''}
+          onChange={(e) => handleChange('estilo', 'voz', e.target.value)}
+          className="w-full p-1 border border-black/30 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Época"
+          value={local.estilo.epoca ?? ''}
+          onChange={(e) => handleChange('estilo', 'epoca', e.target.value)}
+          className="w-full p-1 border border-black/30 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Longitud"
+          value={local.ajustes.longitud ?? ''}
+          onChange={(e) => handleChange('ajustes', 'longitud', e.target.value)}
+          className="w-full p-1 border border-black/30 rounded"
+        />
+        <div className="flex justify-end gap-2 pt-2">
           <button
             type="button"
-            onClick={onCancel}
-            className="px-4 py-2 rounded-lg border border-black/30 hover:border-black/60"
+            onClick={onClose}
+            className="px-2 py-1 text-sm rounded-lg border border-black/30"
           >
             Cancelar
           </button>
           <button
             type="button"
-            data-testid="save-configuracion"
             onClick={handleSave}
-            className="px-4 py-2 rounded-lg bg-accent text-black hover:bg-accent-dark transition-colors"
+            className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
           >
             Guardar
           </button>
