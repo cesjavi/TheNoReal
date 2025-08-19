@@ -11,7 +11,6 @@ export interface ConfigGeneracion {
   ajustes: {
     longitud?: string;
   };
-}
 
 interface StorySettingsProps {
   open: boolean;
