@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { generateImage } from '@/lib/imageGenerator';
+import type { Estilo, Ajustes } from '@/types/story';
 //import { useRouter } from 'next/router';
 
 interface StoryProps {
@@ -17,6 +18,10 @@ interface StoryProps {
   chaptersCount?: number;
   /** Géneros seleccionados para la historia */
   genres: string[];
+  /** Estilo deseado para la historia */
+  estilo: Estilo;
+  /** Ajustes adicionales de generación */
+  ajustes: Ajustes;
   /** Acción a ejecutar al volver al formulario inicial */
   onBack: () => void;
 }
@@ -45,6 +50,8 @@ export default function Story({
   endingMode,
   chaptersCount,
   genres,
+  estilo,
+  ajustes,
   onBack,
 }: StoryProps) {
   const [chapters, setChapters] = useState<Chapter[]>([
@@ -98,7 +105,14 @@ export default function Story({
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ story: nextStory, option, optionsPerDecision, genres }),
+        body: JSON.stringify({
+          story: nextStory,
+          option,
+          optionsPerDecision,
+          genres,
+          estilo,
+          ajustes,
+        }),
       });
       const data = await response.json();
       const text = data.text || '';

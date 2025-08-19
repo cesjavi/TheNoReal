@@ -375,6 +375,8 @@ export default function StoryForm() {
           endingMode={storyConfig.endingMode}
           chaptersCount={storyConfig.chaptersCount}
           genres={config.generos}
+          estilo={config.estilo}
+          ajustes={config.ajustes}
           onBack={resetStory}
         />
       )}
