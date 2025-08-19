@@ -144,6 +144,11 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
   }
 
   const handleField = (key: keyof Ajustes, value: string | number | boolean) => {
+    if (key === 'longitudPalabras') {
+      const num = Number(value);
+      if (!Number.isFinite(num) || num <= 0 || num > 10000) return;
+      value = num;
+    }
     setLocal(prev => ({
       ...prev,
       ajustes: {
@@ -233,12 +238,18 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
           <p className="font-semibold">Longitud objetivo (palabras)</p>
           <input
             type="number"
+            list="sugerencias-longitud"
             value={local.ajustes.longitudPalabras ?? ''}
             onChange={e => handleField('longitudPalabras', Number(e.target.value))}
             className="w-full p-1 border border-black/30 rounded"
-            title="Longitud objetivo en palabras"
-            placeholder="Ingrese la cantidad de palabras"
+            title="Sugerencias: 200, 500, 1000; puedes ingresar otro valor"
+            placeholder="Ej: 200, 500, 1000 o ingresa otro valor"
           />
+          <datalist id="sugerencias-longitud">
+            <option value="200" />
+            <option value="500" />
+            <option value="1000" />
+          </datalist>
         </div>
 
         <div className="mb-4">
