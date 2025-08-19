@@ -55,6 +55,7 @@ export default function Story({
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const router = useRouter();
+  const [isReading, setIsReading] = useState(false);
 
   const handleSpeak = (text: string) => {
     const utterance = new SpeechSynthesisUtterance(text);
