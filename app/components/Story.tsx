@@ -54,12 +54,19 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
+  const [isReading, setIsReading] = useState(false);
   const router = useRouter();
 
   const handleSpeak = (text: string) => {
-    const utterance = new SpeechSynthesisUtterance(text);
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
+    if (isReading || window.speechSynthesis.speaking) {
+      window.speechSynthesis.cancel();
+      setIsReading(false);
+    } else {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.onend = () => setIsReading(false);
+      window.speechSynthesis.speak(utterance);
+      setIsReading(true);
+    }
   };
 
   const handleSelect = async (option: string) => {
@@ -163,7 +170,7 @@ export default function Story({
             onClick={() => handleSpeak(texto)}
             className="rounded-lg bg-accent text-white px-4 py-2 hover:bg-accent-dark transition-colors"
           >
-            Leer
+            {isReading ? 'Parar' : 'Leer'}
           </button>
           {imageUrl && (
             <img
