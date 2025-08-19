@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { JSXElementConstructor, ReactElement, ReactNode, ReactPortal, useState } from 'react';
 import Story from './Story';
 import StorySettings, {
   ConfigGeneracion,
@@ -337,7 +337,7 @@ export default function StoryForm() {
                 </span>
               ))}
               {Object.entries(config.estilo).flatMap(([key, values]) =>
-                values.map((v) => (
+                values.map((v: string | number | bigint | boolean | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<string | number | bigint | boolean | ReactPortal | ReactElement<unknown, string | JSXElementConstructor<any>> | Iterable<ReactNode> | null | undefined> | null | undefined) => (
                   <span
                     key={`estilo-${key}-${v}`}
                     className="px-2 py-1 text-sm rounded-full bg-accent text-black"
