@@ -151,13 +151,18 @@ export default function StoryForm() {
         }
       })();
 
+      const ajustesPayload = (() => {
+        const { creatividad, topP, ...rest } = config.ajustes;
+        return { ...rest, temperature: creatividad, top_p: topP };
+      })();
+
       const payload: Record<string, unknown> = {
         prompt,
         opciones_por_decision: Number(numOptions),
         final,
         genres: config.generos,
         estilo: config.estilo,
-        ajustes: config.ajustes,
+        ajustes: ajustesPayload,
         ...((final === 'capitulos' || final === 'final_sorpresa') && chapters
           ? { capitulos: Number(chapters) }
           : {}),
@@ -184,7 +189,7 @@ export default function StoryForm() {
             optionsPerDecision: Number(numOptions),
             genres: config.generos,
             estilo: config.estilo,
-            ajustes: config.ajustes,
+            ajustes: ajustesPayload,
           }),
         });
         const storyData = await storyRes.json().catch(() => ({}));
