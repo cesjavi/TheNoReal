@@ -86,6 +86,14 @@ const IDIOMAS = ['es-AR', 'es-MX', 'neutral'];
 const REGISTROS = ['formal', 'informal'];
 const OPCIONES_POR_CAPITULO = ['2', '3', '4'];
 
+type CreativeMode = 'classic' | 'creative' | 'crazy';
+
+const CREATIVE_MODES: Record<CreativeMode, { label: string; temperature: number; topP: number }> = {
+  classic: { label: 'Modo clásico', temperature: 0.7, topP: 0.7 },
+  creative: { label: 'Modo creativo', temperature: 0.9, topP: 0.9 },
+  crazy: { label: 'Modo loco', temperature: 1, topP: 1 },
+};
+
 /** Config de secciones fuertemente tipadas */
 export const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[] = [
   { key: 'tono', label: 'Tono', options: TONOS },
@@ -117,6 +125,21 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
   useEffect(() => {
     if (open) setLocal(config);
   }, [open, config]);
+
+  const currentMode: CreativeMode =
+    (Object.keys(CREATIVE_MODES) as CreativeMode[]).find(
+      m =>
+        CREATIVE_MODES[m].temperature === (local.ajustes.creatividad ?? 0.7) &&
+        CREATIVE_MODES[m].topP === (local.ajustes.topP ?? 0.7)
+    ) ?? 'classic';
+
+  const setCreativeMode = (mode: CreativeMode) => {
+    const cfg = CREATIVE_MODES[mode];
+    setLocal(prev => ({
+      ...prev,
+      ajustes: { ...prev.ajustes, creatividad: cfg.temperature, topP: cfg.topP },
+    }));
+  };
 
   if (!open) return null;
 
@@ -303,34 +326,18 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
         </div>
 
         <div className="mb-4">
-          <p className="font-semibold">Creatividad</p>
-          <input
-            type="range"
-            min={0.1}
-            max={1}
-            step={0.1}
-            value={local.ajustes.creatividad ?? 0.7}
-            onChange={e => handleField('creatividad', parseFloat(e.target.value))}
-            className="w-full"
-            title="Ajuste de creatividad"
-            placeholder="Ajuste de creatividad"
-          />
-          <span>{(local.ajustes.creatividad ?? 0.7).toFixed(1)}</span>
-        </div>
-
-        <div className="mb-4">
-          <p className="font-semibold">top_p</p>
-          <input
-            type="range"
-            min={0.1}
-            max={1}
-            step={0.1}
-            value={local.ajustes.topP ?? 0.7}
-            onChange={e => handleField('topP', parseFloat(e.target.value))}
-            className="w-full"
-            placeholder="range"
-          />
-          <span>{(local.ajustes.topP ?? 0.7).toFixed(1)}</span>
+          <p className="font-semibold">Modo de creatividad</p>
+          <select
+            value={currentMode}
+            onChange={e => setCreativeMode(e.target.value as CreativeMode)}
+            className="w-full p-1 border border-black/30 rounded"
+          >
+            {Object.entries(CREATIVE_MODES).map(([key, { label }]) => (
+              <option key={key} value={key}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mb-4">

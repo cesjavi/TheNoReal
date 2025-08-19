@@ -100,6 +100,12 @@ export default function Story({
 
     try {
       const nextChapter = currentChapter + 1;
+      const { creatividad, topP, ...restAjustes } = ajustes;
+      const ajustesPayload = {
+        ...restAjustes,
+        temperature: creatividad,
+        top_p: topP,
+      };
       const response = await fetch('/api/story', {
         method: 'POST',
         headers: {
@@ -111,7 +117,7 @@ export default function Story({
           optionsPerDecision,
           genres,
           estilo,
-          ajustes,
+          ajustes: ajustesPayload,
         }),
       });
       const data = await response.json();

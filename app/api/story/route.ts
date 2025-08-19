@@ -70,9 +70,16 @@ export async function POST(req: Request) {
 
     console.log('Mensajes enviados a Groq:', messages);
 
+    const { temperature, top_p } = ajustes as {
+      temperature?: number;
+      top_p?: number;
+    };
+
     const completion = await createChatCompletion({
       model: "openai/gpt-oss-120b",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
       messages,
+      temperature,
+      top_p,
     });
 
     const text =
