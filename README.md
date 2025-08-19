@@ -38,6 +38,16 @@ You can also define `NEXT_PUBLIC_IMAGE_TIMEOUT` (in milliseconds) to control how
 
 Next.js will load variables from `.env.local` in development. For deployments, configure these environment variables through your hosting provider.
 
+## Límite de tokens de CLIP
+
+CLIP admite un máximo de 77 tokens por prompt. Si el texto supera este límite, será truncado y parte del mensaje se perderá.
+
+Para mantenerte dentro del límite:
+
+- Resume tus ideas y concéntrate en lo esencial.
+- Usa frases cortas y claras.
+- Evita palabras de relleno o redundantes.
+
 ## Cargar la PWA en React Native/Expo
 
 Para empaquetar esta PWA dentro de una app móvil:
