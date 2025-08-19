@@ -44,7 +44,12 @@ export async function POST(req: Request) {
     const ajustesLine = formatSection('Ajustes', ajustes);
 
     const systemPrompt = [
-      "Eres un generador de historias ramificadas. Responde primero con el siguiente capítulo, luego una línea que contenga solo '---', y después las opciones numeradas, cada una en una línea separada. No añadas texto adicional fuera de la historia y las opciones.",
+       "Eres un generador de historias ramificadas y únicas, que nunca deben repetirse.",
+  "Si el capítulo actual coincide con el número máximo de capítulos configurado, debes generar un FINAL en lugar de un capítulo nuevo.",
+  "Si la modalidad de final es 'sorpresa' o 'cerrado', puedes elegir aleatoriamente en qué capítulo terminar, pero siempre generando un FINAL.",
+  "Cuando sea un FINAL, escribe únicamente el texto del desenlace sin generar opciones y muestra la palabra FINALIZADO o similar.",
+  "Cuando NO sea el final: responde con el texto del siguiente capítulo, luego una línea que contenga solo '---', y después las opciones numeradas, cada una en una línea separada.",
+  "No añadas texto adicional fuera de la historia y las opciones.",
       genreLine,
       estiloLine,
       ajustesLine,
@@ -66,7 +71,7 @@ export async function POST(req: Request) {
     console.log('Mensajes enviados a Groq:', messages);
 
     const completion = await createChatCompletion({
-      model: "openai/gpt-oss-120b",
+      model: "openai/gpt-oss-120b",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
       messages,
     });
 
