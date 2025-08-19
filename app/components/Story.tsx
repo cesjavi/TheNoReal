@@ -183,6 +183,9 @@ export default function Story({
     <div className="space-y-4">
       {chapters.map(({ texto, imageUrl }, idx) => (
         <div key={idx} className="space-y-4">
+          {idx > 0 && (
+            <p className="whitespace-pre-line">&gt; {choices[idx - 1]}</p>
+          )}
           <p className="whitespace-pre-line">{texto}</p>
           <button
             onClick={() => handleSpeak(texto)}
