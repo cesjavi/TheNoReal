@@ -79,7 +79,7 @@ export default function StoryForm() {
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<Modality>('capitulos');
-  const [chapters, setChapters] = useState('');
+  const [chapters, setChapters] = useState('3');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -289,7 +289,8 @@ export default function StoryForm() {
                 required={modality === 'capitulos'}
                 value={chapters}
                 onChange={(e) => setChapters(e.target.value)}
-                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"                
+                
               />
             </div>
           )}
