@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import createChatCompletion from "@/lib/groqClient";
+import fs from "fs";
+import path from "path";
 
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
@@ -18,11 +20,25 @@ export async function POST(req: Request) {
       estilo = {},
       ajustes = {},
       finalize = false,
+      language = "es",
     } = await req.json();
+
+    const messagesPath = path.join(process.cwd(), "public", "locales", language, "api.json");
+    const messages = JSON.parse(fs.readFileSync(messagesPath, "utf-8"));
+
+    const t = (key: string, params: Record<string, any> = {}) => {
+      const parts = key.split(".");
+      let result: any = messages;
+      for (const p of parts) result = result?.[p];
+      if (typeof result === "string") {
+        return result.replace(/\{(\w+)\}/g, (_, k) => params[k]);
+      }
+      return "";
+    };
 
     const genreLine =
       Array.isArray(genres) && genres.length > 0
-        ? `Géneros a respetar: ${genres.join(', ')}.`
+        ? t("genreLine", { genres: genres.join(', ') })
         : '';
 
     const formatSection = (
@@ -41,16 +57,16 @@ export async function POST(req: Request) {
       return entries.length > 0 ? `${title}: ${entries.join('; ')}.` : '';
     };
 
-    const estiloLine = formatSection('Estilo', estilo);
-    const ajustesLine = formatSection('Ajustes', ajustes);
+    const estiloLine = formatSection(t('styleTitle'), estilo);
+    const ajustesLine = formatSection(t('settingsTitle'), ajustes);
 
     const systemPrompt = [
-       "Eres un generador de historias ramificadas y únicas, que nunca deben repetirse.",
-  "Si el capítulo actual coincide con el número máximo de capítulos configurado, debes generar un FINAL en lugar de un capítulo nuevo.",
-  "Si la modalidad de final es 'sorpresa' o 'cerrado', puedes elegir aleatoriamente en qué capítulo terminar, pero siempre generando un FINAL.",
-  "Cuando sea un FINAL, escribe únicamente el texto del desenlace sin generar opciones y muestra la palabra FINALIZADO o similar.",
-  "Cuando NO sea el final: responde con el texto del siguiente capítulo, luego una línea que contenga solo '---', y después las opciones numeradas, cada una en una línea separada.",
-  "No añadas texto adicional fuera de la historia y las opciones.",
+      t('system.intro'),
+      t('system.chapterLimit'),
+      t('system.finalMode'),
+      t('system.finalText'),
+      t('system.nonFinal'),
+      t('system.noExtra'),
       genreLine,
       estiloLine,
       ajustesLine,
@@ -59,8 +75,8 @@ export async function POST(req: Request) {
       .join("\n\n");
 
     const userPrompt = finalize
-      ? `${story}\n\nGenera el final de la historia.`
-      : `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`;
+      ? `${story}\n\n${t('user.final')}`
+      : `${story}\n\n${t('user.continue', { option, options: optionsPerDecision })}`;
 
     const messages = [
       {
