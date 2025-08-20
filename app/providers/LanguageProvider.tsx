@@ -34,6 +34,9 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
     return null;
   }
 
+  // Get the user's time zone or use a default
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+
   return (
     <LanguageContext.Provider value={{ locale, setLocale }}>
       <NextIntlClientProvider
