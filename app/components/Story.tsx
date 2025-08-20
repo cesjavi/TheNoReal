@@ -313,7 +313,6 @@ export default function Story({
             {opt}
           </button>
         ))}
-      </div>
     </div>
   );
 }
