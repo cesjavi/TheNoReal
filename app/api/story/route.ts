@@ -97,7 +97,7 @@ export async function POST(req: Request) {
     };
 
     const completion = await createChatCompletion({
-      model: "openai/gpt-oss-120b",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
+      model: "moonshotai/kimi-k2-instruct",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
       messages: chatMessages,
       temperature,
       top_p,
