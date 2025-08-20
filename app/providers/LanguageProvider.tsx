@@ -14,6 +14,9 @@ export const useLanguage = () => useContext(LanguageContext);
 export default function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState('es');
   const [messages, setMessages] = useState<Record<string, any>>({});
+  const [timeZone] = useState(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
+  );
 
   useEffect(() => {
     const initial = navigator.language?.split('-')[0] || 'es';
@@ -29,7 +32,11 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={messages}
+        timeZone={timeZone}
+      >
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>
