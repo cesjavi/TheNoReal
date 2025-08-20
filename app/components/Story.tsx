@@ -185,6 +185,23 @@ export default function Story({
     onBack();
   };
 
+  const handleDownload = () => {
+    const fullStory = chapters
+      .map((c, idx) =>
+        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
+      )
+      .join('\n\n');
+    const blob = new Blob([fullStory], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'historia.txt';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-4">
       {chapters.map(({ texto, imageUrl }, idx) => (
@@ -202,23 +219,32 @@ export default function Story({
         </div>
       ))}
       <div className="flex flex-col gap-2 rounded-lg">
-        <button
-          onClick={handleBack}
-          disabled={loading}
-          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-        >
-          Volver al inicio
-        </button>
-       {options.map((opt, idx) => (
-        <button
-          key={`${idx}-${opt}`}               // <- clave única
-          onClick={() => handleSelect(opt)}
-          disabled={loading}
-          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-        >
-          {opt}
-        </button>
-      ))}
+        <div className="flex gap-2">
+          <button
+            onClick={handleBack}
+            disabled={loading}
+            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+          >
+            Finalizar
+          </button>
+          <button
+            onClick={handleDownload}
+            disabled={loading}
+            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+          >
+            Descargar historia
+          </button>
+        </div>
+        {options.map((opt, idx) => (
+          <button
+            key={`${idx}-${opt}`} // <- clave única
+            onClick={() => handleSelect(opt)}
+            disabled={loading}
+            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+          >
+            {opt}
+          </button>
+        ))}
       </div>
     </div>
   );
