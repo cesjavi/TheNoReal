@@ -32,7 +32,7 @@ const GENRES = [
   'Comedia',
 ];
 
-const TOKEN_LIMIT = 77;
+const TOKEN_LIMIT = 500;
 
 function countTokens(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;

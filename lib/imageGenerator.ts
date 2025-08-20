@@ -4,7 +4,7 @@ const SD_API = env && env.length > 0 ? env : '/api/sd/generate';
 
 export function truncatePrompt(
   prompt: string,
-  maxTokens: number = 77
+  maxTokens: number = 500
 ): { text: string; truncated: boolean } {
   const tokens = prompt.trim().split(/\s+/);
   const truncated = tokens.length > maxTokens;
@@ -77,6 +77,8 @@ export async function generateImage(
   } finally {
     clearTimeout(timeout);
   }*/
+  // Temporary fallback to satisfy return type while implementation is commented out
+  return { url: null, truncated: false };
 }
 
 export default generateImage;
