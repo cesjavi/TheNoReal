@@ -134,7 +134,13 @@ export default function Story({
       setChoices((prev) => [...prev, option]);
       setCurrentChapter(nextChapter);
 
-      let opts = Array.from(new Set(newOptions));
+      let opts = Array.from(new Set(newOptions.filter(Boolean)));
+      if (opts.length < optionsPerDecision) {
+        console.error(
+          'La API devolvió menos opciones de las esperadas'
+        );
+      }
+      opts = opts.slice(0, optionsPerDecision);
 
       let end = false;
       if (endingMode === 'capitulos') {
