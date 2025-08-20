@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { generateImage } from '@/lib/imageGenerator';
+import { parseStoryResponse } from '@/lib/parseStoryResponse';
 import type { Estilo, Ajustes } from '@/types/story';
 import { useLanguage } from '../providers/LanguageProvider';
 
@@ -116,8 +117,10 @@ export default function Story({
 
       const data = await response.json();
       const text = (data.text as string) || '';
-      const lines = text.split('\n').filter(Boolean);
-      const [newStory, ...newOptions] = lines;
+      const { story: newStory, options: newOptions } = parseStoryResponse(
+        text,
+        optionsPerDecision
+      );
 
       let imageUrl: string | null = null;
       /*try {
@@ -131,10 +134,7 @@ export default function Story({
       setChoices((prev) => [...prev, option]);
       setCurrentChapter(nextChapter);
 
-      let opts = Array.from(new Set(newOptions.filter(Boolean))).slice(
-        0,
-        optionsPerDecision
-      );
+      let opts = Array.from(new Set(newOptions));
 
       let end = false;
       if (endingMode === 'capitulos') {
