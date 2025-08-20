@@ -1,28 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { generateImage } from '@/lib/imageGenerator';
 import type { Estilo, Ajustes } from '@/types/story';
-//import { useRouter } from 'next/router';
 
 interface StoryProps {
-  /** Texto inicial de la historia */
   initialStory: string;
-  /** Opciones iniciales para continuar la historia */
   initialOptions: string[];
-  /** Número de opciones a generar por decisión */
   optionsPerDecision: number;
-  /** Modo de finalización de la historia */
   endingMode: 'capitulos' | 'final_sorpresa' | 'sin_final_definido' | 'infinita';
-  /** Número máximo de capítulos (opcional) */
   chaptersCount?: number;
-  /** Géneros seleccionados para la historia */
   genres: string[];
-  /** Estilo deseado para la historia */
   estilo: Estilo;
-  /** Ajustes adicionales de generación */
   ajustes: Ajustes;
-  /** Acción a ejecutar al volver al formulario inicial */
   onBack: () => void;
 }
 
@@ -38,11 +28,6 @@ interface HistoryEntry {
   choices: string[];
 }
 
-/**
- * Componente que renderiza una historia interactiva.
- * Muestra el texto actual y un conjunto de botones para continuarla.
- * Al seleccionar una opción se consulta la API de Groq y se actualiza el estado.
- */
 export default function Story({
   initialStory,
   initialOptions,
@@ -64,9 +49,15 @@ export default function Story({
   const [loading, setLoading] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
-  //const router = useRouter();
   const [isReading, setIsReading] = useState(false);
   const [finalized, setFinalized] = useState(false);
+
+  const totalPlanned = chaptersCount ?? Math.max(chapters.length, 3);
+  const progress = useMemo(() => {
+    // Progreso aproximado (si no hay chaptersCount, usa longitud actual)
+    const denom = chaptersCount ? chaptersCount : Math.max(chapters.length, 1);
+    return Math.min(100, Math.round((chapters.length / denom) * 100));
+  }, [chapters.length, chaptersCount]);
 
   const handleSpeak = (text: string) => {
     if (isReading || window.speechSynthesis.speaking) {
@@ -74,6 +65,8 @@ export default function Story({
       setIsReading(false);
     } else {
       const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = 'es-AR'; // ajustá si querés forzar voz
+      utterance.rate = 1.0;
       utterance.onend = () => setIsReading(false);
       window.speechSynthesis.speak(utterance);
       setIsReading(true);
@@ -94,25 +87,18 @@ export default function Story({
     ]);
 
     const currentStory = chapters
-      .map((c, idx) =>
-        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
-      )
+      .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
       .join('\n\n');
     const nextStory = `${currentStory}\n> ${option}`;
 
     try {
       const nextChapter = currentChapter + 1;
       const { creatividad, topP, ...restAjustes } = ajustes;
-      const ajustesPayload = {
-        ...restAjustes,
-        temperature: creatividad,
-        top_p: topP,
-      };
+      const ajustesPayload = { ...restAjustes, temperature: creatividad, top_p: topP };
+
       const response = await fetch('/api/story', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           story: nextStory,
           option,
@@ -122,47 +108,41 @@ export default function Story({
           ajustes: ajustesPayload,
         }),
       });
+
       const data = await response.json();
-      const text = data.text || '';
+      const text = (data.text as string) || '';
       const lines = text.split('\n').filter(Boolean);
       const [newStory, ...newOptions] = lines;
 
       let imageUrl: string | null = null;
-      let promptTruncated = false;
       try {
-        const { url, truncated } = await generateImage(newStory, genres);
+        const { url } = await generateImage(newStory, genres);
         imageUrl = url;
-        promptTruncated = truncated;
-        if (promptTruncated) {
-          console.warn('El prompt para la imagen fue truncado a 77 tokens');
-        }
       } catch (err) {
-        console.error('Error al generar la imagen, No se pudo generar la imagen', err);
+        console.error('No se pudo generar la imagen', err);
       }
 
       setChapters((prev) => [...prev, { texto: newStory, imageUrl }]);
       setChoices((prev) => [...prev, option]);
       setCurrentChapter(nextChapter);
 
-      let opts = Array.from(new Set(newOptions.filter(Boolean)))
-        .slice(0, optionsPerDecision);
+      let opts = Array.from(new Set(newOptions.filter(Boolean))).slice(
+        0,
+        optionsPerDecision
+      );
+
       let end = false;
       if (endingMode === 'capitulos') {
-        if (chaptersCount && nextChapter > chaptersCount) {
-          end = true;
-        }
+        if (chaptersCount && nextChapter > chaptersCount) end = true;
       } else if (endingMode === 'final_sorpresa') {
         const SURPRISE_ENDING_PROBABILITY = 0.1;
-        if (
-          (chaptersCount && nextChapter > chaptersCount) ||
-          Math.random() < SURPRISE_ENDING_PROBABILITY
-        ) {
+        if ((chaptersCount && nextChapter > chaptersCount) || Math.random() < SURPRISE_ENDING_PROBABILITY) {
           end = true;
         }
       } else if (endingMode === 'infinita') {
-        // nunca termina por contador
+        // no termina por contador
       } else if (endingMode === 'sin_final_definido') {
-        // se permite que la historia termine de forma variable
+        // termina de forma variable (se respeta la salida del modelo)
       }
 
       if (end) {
@@ -183,23 +163,16 @@ export default function Story({
     setLoading(true);
 
     const currentStory = chapters
-      .map((c, idx) =>
-        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
-      )
+      .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
       .join('\n\n');
 
     try {
       const { creatividad, topP, ...restAjustes } = ajustes;
-      const ajustesPayload = {
-        ...restAjustes,
-        temperature: creatividad,
-        top_p: topP,
-      };
+      const ajustesPayload = { ...restAjustes, temperature: creatividad, top_p: topP };
+
       const response = await fetch('/api/story', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           story: currentStory,
           option: '',
@@ -211,19 +184,14 @@ export default function Story({
         }),
       });
       const data = await response.json();
-      const text = data.text || '';
+      const text = (data.text as string) || '';
 
       let imageUrl: string | null = null;
-      let promptTruncated = false;
       try {
-        const { url, truncated } = await generateImage(text, genres);
+        const { url } = await generateImage(text, genres);
         imageUrl = url;
-        promptTruncated = truncated;
-        if (promptTruncated) {
-          console.warn('El prompt para la imagen fue truncado a 77 tokens');
-        }
       } catch (err) {
-        console.error('Error al generar la imagen, No se pudo generar la imagen', err);
+        console.error('No se pudo generar la imagen', err);
       }
 
       setChapters((prev) => [...prev, { texto: text, imageUrl }]);
@@ -237,7 +205,6 @@ export default function Story({
   };
 
   const handleBack = () => {
-    // Limpieza de estado antes de redirigir
     setChapters([{ texto: initialStory, imageUrl: null }]);
     setChoices([]);
     setOptions(initialOptions.slice(0, optionsPerDecision));
@@ -249,9 +216,7 @@ export default function Story({
 
   const handleDownload = () => {
     const fullStory = chapters
-      .map((c, idx) =>
-        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
-      )
+      .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
       .join('\n\n');
     const blob = new Blob([fullStory], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
@@ -265,55 +230,153 @@ export default function Story({
   };
 
   return (
-    <div className="space-y-4">
-      {chapters.map(({ texto, imageUrl }, idx) => (
-        <div key={idx} className="space-y-4">
-          {idx > 0 && (
-            <p className="whitespace-pre-line">&gt; {choices[idx - 1]}</p>
-          )}
-          <p className="whitespace-pre-line">{texto}</p>
-          <button
-            onClick={() => handleSpeak(texto)}
-            className="rounded-lg bg-accent text-white px-4 py-2 hover:bg-accent-dark transition-colors"
-          >
-            {isReading ? 'Parar' : 'Leer'}
-          </button>          
+    <div className="mx-auto max-w-2xl px-4 py-6">
+      {/* Header */}
+      <div className="mb-6 flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold tracking-tight">
+            Historia interactiva
+          </h1>
+          <span className="text-xs text-muted-foreground">
+            Cap. {chapters.length}{chaptersCount ? ` / ${chaptersCount}` : ''}
+          </span>
         </div>
-      ))}
-      <div className="flex flex-col gap-2 rounded-lg">
-        <button
-          onClick={handleBack}
-          disabled={loading}
-          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-        >
-          Volver al inicio
-        </button>
-        <button
-          onClick={handleFinalize}
-          disabled={loading || finalized}
-          className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-        >
-          Finalizar historia
-        </button>
-        <button
-            onClick={handleDownload}
-            disabled={loading}
-            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
-          >
-            Descargar historia
-          </button>
+
+        {/* Progress */}
+        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-accent transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-        {options.map((opt, idx) => (
-          <button
-            key={`${idx}-${opt}`}               // <- clave única
-            onClick={() => handleSelect(opt)}
-            disabled={loading || finalized}
-            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+
+        {/* Genres */}
+        {genres?.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {genres.map((g) => (
+              <span
+                key={g}
+                className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted/60"
+              >
+                {g}
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Chapters */}
+      <div className="space-y-6">
+        {chapters.map(({ texto, imageUrl }, idx) => (
+          <article
+            key={idx}
+            className="rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md"
           >
-            {opt}
-          </button>
+            {imageUrl && (
+              <div className="overflow-hidden rounded-t-2xl">
+                <img
+                  src={imageUrl}
+                  alt={`Ilustración capítulo ${idx + 1}`}
+                  className="h-56 w-full object-cover"
+                />
+              </div>
+            )}
+
+            <div className="space-y-4 p-5">
+              {idx > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  <span className="mr-2 select-none text-muted-foreground/70">↳</span>
+                  <span className="italic">“{choices[idx - 1]}”</span>
+                </p>
+              )}
+
+              {/* Texto del capítulo */}
+              <div className="leading-relaxed prose prose-invert max-w-none">
+                <p className="whitespace-pre-line">{texto}</p>
+              </div>
+
+              <div className="flex flex-wrap gap-2 pt-1">
+                <button
+                  onClick={() => handleSpeak(texto)}
+                  className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                  aria-label={isReading ? 'Parar lectura' : 'Leer capítulo'}
+                >
+                  {isReading ? 'Parar lectura' : 'Leer en voz alta'}
+                </button>
+              </div>
+            </div>
+          </article>
         ))}
+      </div>
+
+      {/* Opciones */}
+      {options.length > 0 && (
+        <div className="mt-8">
+          <h2 className="mb-3 text-sm font-medium text-muted-foreground">
+            Elegí cómo continúa:
+          </h2>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {options.map((opt, idx) => (
+              <button
+                key={`${idx}-${opt}`}
+                onClick={() => handleSelect(opt)}
+                disabled={loading || finalized}
+                className="group rounded-xl border px-4 py-3 text-left text-sm shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+              >
+                <span className="block font-medium">{opt}</span>
+                <span className="mt-0.5 block text-xs text-muted-foreground">
+                  Sugerencia #{idx + 1}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Estado finalizado */}
+      {finalized && (
+        <div className="mt-6 rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+          La historia ha finalizado. Podés descargarla o volver al inicio.
+        </div>
+      )}
+
+      {/* Barra de acciones sticky */}
+      <div className="sticky bottom-4 mt-10">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-2 rounded-2xl border bg-background/80 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <button
+            onClick={handleBack}
+            disabled={loading}
+            className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+          >
+            Volver al inicio
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleDownload}
+              disabled={loading}
+              className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
+            >
+              Descargar
+            </button>
+            <button
+              onClick={handleFinalize}
+              disabled={loading || finalized}
+              className="rounded-xl bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accent/90 disabled:opacity-50"
+            >
+              Finalizar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Overlay de carga (sutil) */}
+      {loading && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-24 flex justify-center">
+          <div className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow backdrop-blur">
+            Generando contenido…
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
