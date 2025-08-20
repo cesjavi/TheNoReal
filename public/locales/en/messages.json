@@ -1,0 +1,25 @@
+{
+  "StoryForm": {
+    "randomize": "Randomize",
+    "createStory": "Create story",
+    "sending": "Sending...",
+    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens."
+  },
+  "StorySettings": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "Story": {
+    "chooseContinuation": "Choose how it continues:",
+    "suggestion": "Suggestion #{index}",
+    "finalized": "The story has finished. You can download it or return to the start.",
+    "back": "Go back",
+    "download": "Download",
+    "finalize": "Finish",
+    "reading": {
+      "stop": "Stop reading",
+      "read": "Read aloud"
+    },
+    "generating": "Generating content…"
+  }
+}

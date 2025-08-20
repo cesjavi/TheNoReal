@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useTranslations } from 'next-intl';
 import { generateImage } from '@/lib/imageGenerator';
 import type { Estilo, Ajustes } from '@/types/story';
+import { useLanguage } from '../providers/LanguageProvider';
 
 interface StoryProps {
   initialStory: string;
@@ -39,6 +41,8 @@ export default function Story({
   ajustes,
   onBack,
 }: StoryProps) {
+  const t = useTranslations('Story');
+  const { locale } = useLanguage();
   const [chapters, setChapters] = useState<Chapter[]>([
     { texto: initialStory, imageUrl: null },
   ]);
@@ -106,6 +110,7 @@ export default function Story({
           genres,
           estilo,
           ajustes: ajustesPayload,
+          language: locale,
         }),
       });
 
@@ -299,9 +304,9 @@ export default function Story({
                 <button
                   onClick={() => handleSpeak(texto)}
                   className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                  aria-label={isReading ? 'Parar lectura' : 'Leer capítulo'}
+                  aria-label={isReading ? t('reading.stop') : t('reading.read')}
                 >
-                  {isReading ? 'Parar lectura' : 'Leer en voz alta'}
+                  {isReading ? t('reading.stop') : t('reading.read')}
                 </button>
               </div>
             </div>
@@ -313,7 +318,7 @@ export default function Story({
       {options.length > 0 && (
         <div className="mt-8">
           <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-            Elegí cómo continúa:
+            {t('chooseContinuation')}
           </h2>
           <div className="grid gap-2 sm:grid-cols-2">
             {options.map((opt, idx) => (
@@ -325,7 +330,7 @@ export default function Story({
               >
                 <span className="block font-medium">{opt}</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
-                  Sugerencia #{idx + 1}
+                  {t('suggestion', { index: idx + 1 })}
                 </span>
               </button>
             ))}
@@ -336,7 +341,7 @@ export default function Story({
       {/* Estado finalizado */}
       {finalized && (
         <div className="mt-6 rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-          La historia ha finalizado. Podés descargarla o volver al inicio.
+          {t('finalized')}
         </div>
       )}
 
@@ -346,24 +351,21 @@ export default function Story({
           <button
             onClick={handleBack}
             disabled={loading}
-            className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
-          >
-            Volver al inicio
+            className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
+            {t('back')}
           </button>
           <div className="flex items-center gap-2">
             <button
               onClick={handleDownload}
               disabled={loading}
-              className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50"
-            >
-              Descargar
+              className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
+              {t('download')}
             </button>
             <button
               onClick={handleFinalize}
               disabled={loading || finalized}
-              className="rounded-xl bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accent/90 disabled:opacity-50"
-            >
-              Finalizar
+              className="rounded-xl bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accent/90 disabled:opacity-50">
+              {t('finalize')}
             </button>
           </div>
         </div>
@@ -373,7 +375,7 @@ export default function Story({
       {loading && (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 flex justify-center">
           <div className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow backdrop-blur">
-            Generando contenido…
+            {t('generating')}
           </div>
         </div>
       )}

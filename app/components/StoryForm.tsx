@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '../providers/LanguageProvider';
 import Story from './Story';
 import StorySettings, {
   ConfigGeneracion,
@@ -75,6 +77,8 @@ const defaults: ConfigGeneracion = {
 };
 
 export default function StoryForm() {
+  const t = useTranslations('StoryForm');
+  const { locale } = useLanguage();
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
@@ -192,6 +196,7 @@ export default function StoryForm() {
             genres: config.generos,
             estilo: config.estilo,
             ajustes: ajustesPayload,
+            language: locale,
           }),
         });
         const storyData = await storyRes.json().catch(() => ({}));
@@ -330,7 +335,7 @@ export default function StoryForm() {
                 onClick={randomizeConfig}
                 className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
               >
-                Randomizar
+                {t('randomize')}
               </button>
             </div>
           </div>
@@ -377,7 +382,7 @@ export default function StoryForm() {
             disabled={loading || tokenCount > TOKEN_LIMIT}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
           >
-            {loading ? 'Enviando...' : 'Crear historia'}
+            {loading ? t('sending') : t('createStory')}
           </button>
         </>
       )}
@@ -398,7 +403,7 @@ export default function StoryForm() {
 
       {promptTruncated && (
         <p className="text-yellow-600">
-          Tu prompt fue recortado al límite de {TOKEN_LIMIT} tokens.
+          {t('promptTruncated', { limit: TOKEN_LIMIT })}
         </p>
       )}
 

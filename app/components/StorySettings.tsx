@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useTranslations } from 'next-intl';
 
 export interface Estilo {
   tono: string[];
@@ -82,7 +83,7 @@ const EPOCAS = ['prehistoria', 'medieval', 'victoriana', 'contemporánea', 'futu
 const AMBITOS = ['urbano', 'rural'];
 const ESTRUCTURAS = ['3 actos', 'en media res', 'viaje del héroe', 'con cliffhanger final'];
 const CLASIFICACION = ['PG', '+13', '+16'];
-const IDIOMAS = ['es-AR', 'es-MX', 'neutral'];
+export const IDIOMAS = ['es-AR', 'es-MX', 'en-US', 'fr-FR', 'neutral'];
 const REGISTROS = ['formal', 'informal'];
 const OPCIONES_POR_CAPITULO = ['2', '3', '4'];
 
@@ -118,6 +119,7 @@ export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: 
 ];
 
 export default function StorySettings({ open, config, onClose, onSave }: StorySettingsProps) {
+  const t = useTranslations('StorySettings');
   const [local, setLocal] = useState<ConfigGeneracion>(config);
   const [incluirInput, setIncluirInput] = useState('');
   const [evitarInput, setEvitarInput] = useState('');
@@ -390,14 +392,14 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
 
         <div className="flex justify-end gap-2 pb-4">
           <button type="button" onClick={onClose} className="px-2 py-1 text-sm rounded-lg border border-black/30">
-            Cancelar
+            {t('cancel')}
           </button>
           <button
             type="button"
             onClick={handleSave}
             className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
           >
-            Guardar
+            {t('save')}
           </button>
         </div>
       </div>
