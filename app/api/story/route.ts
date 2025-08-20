@@ -17,6 +17,7 @@ export async function POST(req: Request) {
       genres,
       estilo = {},
       ajustes = {},
+      finalize = false,
     } = await req.json();
 
     const genreLine =
@@ -57,6 +58,10 @@ export async function POST(req: Request) {
       .filter(Boolean)
       .join("\n\n");
 
+    const userPrompt = finalize
+      ? `${story}\n\nGenera el final de la historia.`
+      : `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`;
+
     const messages = [
       {
         role: "system" as const,
@@ -64,7 +69,7 @@ export async function POST(req: Request) {
       },
       {
         role: "user" as const,
-        content: `${story}\n\nOpción elegida: ${option}\n\nGenera ${optionsPerDecision} opciones para continuar la historia.`,
+        content: userPrompt,
       },
     ];
 
