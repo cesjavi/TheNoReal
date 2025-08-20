@@ -14,9 +14,7 @@ export const useLanguage = () => useContext(LanguageContext);
 export default function LanguageProvider({ children }: { children: ReactNode }) {
   const [locale, setLocale] = useState('es');
   const [messages, setMessages] = useState<Record<string, any>>({});
-  const [timeZone] = useState(
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC'
-  );
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     const initial = navigator.language?.split('-')[0] || 'es';
@@ -24,11 +22,17 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
   }, []);
 
   useEffect(() => {
+    setLoaded(false);
     fetch(`/locales/${locale}/messages.json`)
       .then(res => res.json())
       .then(setMessages)
-      .catch(() => setMessages({}));
+      .catch(() => setMessages({}))
+      .finally(() => setLoaded(true));
   }, [locale]);
+
+  if (!loaded || Object.keys(messages).length === 0) {
+    return null;
+  }
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale }}>
