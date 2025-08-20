@@ -36,7 +36,11 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider locale={locale} messages={messages}>
+      <NextIntlClientProvider
+        locale={locale}
+        messages={messages}
+        timeZone={timeZone}
+      >
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>
