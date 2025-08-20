@@ -69,7 +69,7 @@ const defaults: ConfigGeneracion = {
     idioma: [],
     registro: [],
     creatividad: 0.9,
-    topP: 0.9,
+    topP: 0.95,
     opcionesPorCapitulo: [],
   },
 };
