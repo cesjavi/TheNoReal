@@ -66,6 +66,7 @@ export default function Story({
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   //const router = useRouter();
   const [isReading, setIsReading] = useState(false);
+  const [finalized, setFinalized] = useState(false);
 
   const handleSpeak = (text: string) => {
     if (isReading || window.speechSynthesis.speaking) {
@@ -80,6 +81,7 @@ export default function Story({
   };
 
   const handleSelect = async (option: string) => {
+    if (loading || finalized) return;
     setLoading(true);
     setHistory((prev) => [
       ...prev,
@@ -165,9 +167,68 @@ export default function Story({
 
       if (end) {
         opts = [];
+        setFinalized(true);
       }
 
       setOptions(opts as string[]);
+    } catch (error) {
+      console.error('Error al consultar la API de Groq', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFinalize = async () => {
+    if (loading || finalized) return;
+    setLoading(true);
+
+    const currentStory = chapters
+      .map((c, idx) =>
+        idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`
+      )
+      .join('\n\n');
+
+    try {
+      const { creatividad, topP, ...restAjustes } = ajustes;
+      const ajustesPayload = {
+        ...restAjustes,
+        temperature: creatividad,
+        top_p: topP,
+      };
+      const response = await fetch('/api/story', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          story: currentStory,
+          option: '',
+          optionsPerDecision: 0,
+          finalize: true,
+          genres,
+          estilo,
+          ajustes: ajustesPayload,
+        }),
+      });
+      const data = await response.json();
+      const text = data.text || '';
+
+      let imageUrl: string | null = null;
+      let promptTruncated = false;
+      try {
+        const { url, truncated } = await generateImage(text, genres);
+        imageUrl = url;
+        promptTruncated = truncated;
+        if (promptTruncated) {
+          console.warn('El prompt para la imagen fue truncado a 77 tokens');
+        }
+      } catch (err) {
+        console.error('Error al generar la imagen, No se pudo generar la imagen', err);
+      }
+
+      setChapters((prev) => [...prev, { texto: text, imageUrl }]);
+      setOptions([]);
+      setFinalized(true);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
     } finally {
@@ -182,6 +243,7 @@ export default function Story({
     setOptions(initialOptions.slice(0, optionsPerDecision));
     setCurrentChapter(1);
     setHistory([]);
+    setFinalized(false);
     onBack();
   };
 
@@ -209,16 +271,23 @@ export default function Story({
         >
           Volver al inicio
         </button>
-       {options.map((opt, idx) => (
         <button
-          key={`${idx}-${opt}`}               // <- clave única
-          onClick={() => handleSelect(opt)}
-          disabled={loading}
+          onClick={handleFinalize}
+          disabled={loading || finalized}
           className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
         >
-          {opt}
+          Finalizar historia
         </button>
-      ))}
+        {options.map((opt, idx) => (
+          <button
+            key={`${idx}-${opt}`}               // <- clave única
+            onClick={() => handleSelect(opt)}
+            disabled={loading || finalized}
+            className="rounded-lg bg-accent text-white px-4 py-2 disabled:opacity-50 hover:bg-accent-dark transition-colors"
+          >
+            {opt}
+          </button>
+        ))}
       </div>
     </div>
   );
