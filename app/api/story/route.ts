@@ -78,7 +78,7 @@ export async function POST(req: Request) {
       ? `${story}\n\n${t('user.final')}`
       : `${story}\n\n${t('user.continue', { option, options: optionsPerDecision })}`;
 
-    const messages = [
+    const chatMessages = [
       {
         role: "system" as const,
         content: systemPrompt,
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       },
     ];
 
-    console.log('Mensajes enviados a Groq:', messages);
+    console.log('Mensajes enviados a Groq:', chatMessages);
 
     const { temperature, top_p } = ajustes as {
       temperature?: number;
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
 
     const completion = await createChatCompletion({
       model: "openai/gpt-oss-120b",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
-      messages,
+      messages: chatMessages,
       temperature,
       top_p,
     });
