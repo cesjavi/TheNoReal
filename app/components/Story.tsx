@@ -290,7 +290,8 @@ export default function Story({
         {chapters.map(({ texto, imageUrl }, idx) => (
           <article
             key={idx}
-            className="rounded-2xl border bg-card shadow-sm transition-shadow hover:shadow-md"
+            className="rounded-2xl border bg-card transition-shadow hover:[box-shadow:0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
+            style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
           >
             {imageUrl && (
               <div className="overflow-hidden rounded-t-2xl">
@@ -341,7 +342,8 @@ export default function Story({
                 key={`${idx}-${opt}`}
                 onClick={() => handleSelect(opt)}
                 disabled={loading || finalized}
-                className="group rounded-xl border px-4 py-3 text-left text-sm shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md disabled:opacity-50"
+                className="group rounded-xl border px-4 py-3 text-left text-sm transition-all hover:-translate-y-0.5 hover:[box-shadow:0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] disabled:opacity-50"
+                style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
               >
                 <span className="block font-medium">{opt}</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
@@ -362,7 +364,13 @@ export default function Story({
 
       {/* Barra de acciones sticky */}
       <div className="sticky bottom-4 mt-10">
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-2 rounded-2xl border bg-background/80 p-2 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div
+          className="mx-auto flex max-w-2xl items-center justify-between gap-2 rounded-2xl border bg-background/80 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          style={{
+            boxShadow:
+              '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)',
+          }}
+        >
           <button
             onClick={handleBack}
             disabled={loading}
@@ -379,7 +387,12 @@ export default function Story({
             <button
               onClick={handleFinalize}
               disabled={loading || finalized}
-              className="rounded-xl bg-accent px-4 py-2 text-sm text-white shadow hover:bg-accent/90 disabled:opacity-50">
+              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50"
+              style={{
+                boxShadow:
+                  '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
+              }}
+            >
               {t('finalize')}
             </button>
           </div>
@@ -389,7 +402,13 @@ export default function Story({
       {/* Overlay de carga (sutil) */}
       {loading && (
         <div className="pointer-events-none fixed inset-x-0 bottom-24 flex justify-center">
-          <div className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow backdrop-blur">
+          <div
+            className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
+            style={{
+              boxShadow:
+                '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
+            }}
+          >
             {t('generating')}
           </div>
         </div>
