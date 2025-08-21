@@ -4,8 +4,8 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
 
-import { useColorScheme } from '@/hooks/useColorScheme';
-import { SettingsProvider } from '@/context/SettingsContext';
+import { useColorScheme } from '../hooks/useColorScheme';
+import { SettingsProvider } from '../context/SettingsContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();

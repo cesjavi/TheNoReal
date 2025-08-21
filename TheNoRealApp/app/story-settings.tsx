@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { useSettings } from '@/context/SettingsContext';
+import { useSettings } from '../context/SettingsContext';
 
 export default function StorySettings() {
   const navigation = useNavigation<any>();

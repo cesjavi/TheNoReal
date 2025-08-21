@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
-import { useSettings } from '@/context/SettingsContext';
+import { useSettings } from '../context/SettingsContext';
 
 export default function StoryForm() {
   const navigation = useNavigation<any>();

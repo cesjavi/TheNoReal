@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useMemo, useState, ReactNode } from 'react';
 import { IntlProvider } from 'react-intl';
-import en from '../../../public/locales/en/messages.json';
-import es from '../../../public/locales/es/messages.json';
+//import en from '../../../public/locales/en/messages.json';
+//import es from '../public/locales/es/messages.json';
 import en from '../locales/en/messages.json';
 import es from '../locales/es/messages.json';
 
