@@ -16,3 +16,7 @@ export const DEFAULT_CONFIG: ConfigGeneracion = {
     registro: ['neutral']
   },
 };
+
+export default function Placeholder() {
+  return null;
+}
