@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -132,6 +132,10 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
   const [config, setConfig] = useState<ConfigGeneracion>(defaultConfig);
   const [incluirInput, setIncluirInput] = useState('');
   const [evitarInput, setEvitarInput] = useState('');
+
+  useEffect(() => {
+    setConfig(initialConfig);
+  }, [initialConfig]);
 
   function toggleItem(section: 'estilo', key: keyof Estilo, value: string): void;
   function toggleItem(section: 'ajustes', key: AjustesArrayKeys, value: string): void;
