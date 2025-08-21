@@ -1,63 +1,28 @@
-import { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, Button, StyleSheet } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
-interface StoryResponse {
-  text: string;
-  options: string[];
-}
+import { useSettings } from '@/context/SettingsContext';
 
-export default function Story() {
-  const [story, setStory] = useState('');
-  const [options, setOptions] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchStory = async (option?: string) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const res = await fetch('/api/story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ option }),
-      });
-      const data: StoryResponse = await res.json();
-      setStory((prev) => (prev ? prev + '\n\n' : '') + data.text);
-      setOptions(data.options);
-    } catch (e) {
-      console.error(e);
-      setError('Failed to load story');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStory();
-  }, []);
+export default function StoryScreen() {
+  const navigation = useNavigation<any>();
+  const route = useRoute<any>();
+  const { language, tokenCount } = useSettings();
+  const content = route.params?.content ?? '';
 
   return (
     <View style={styles.container}>
-      <Text>{story}</Text>
-      {loading && <Text>Loading...</Text>}
-      {error && <Text>{error}</Text>}
-      {options.map((opt, idx) => (
-        <Button
-          key={idx}
-          title={opt}
-          onPress={() => fetchStory(opt)}
-          disabled={loading}
-        />
-      ))}
+      <Text style={styles.title}>Story ({language})</Text>
+      <Text style={styles.content}>{content}</Text>
+      <Text style={styles.tokens}>Tokens: {tokenCount}</Text>
+      <Button title="Go Back" onPress={() => navigation.goBack()} />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    gap: 8,
-  },
+  container: { flex: 1, justifyContent: 'center', padding: 16 },
+  title: { fontSize: 24, marginBottom: 12 },
+  content: { marginBottom: 12 },
+  tokens: { marginBottom: 12 },
 });
-
