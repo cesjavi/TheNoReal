@@ -6,6 +6,7 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
+import { StoryProvider } from '../context/StoryContext';
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -20,15 +21,17 @@ export default function RootLayout() {
 
   return (
     <SettingsProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ title: 'Home' }} />
-          <Stack.Screen name="story" options={{ title: 'Story' }} />
-          <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+      <StoryProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="index" options={{ title: 'Home' }} />
+            <Stack.Screen name="story" options={{ title: 'Story' }} />
+            <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </StoryProvider>
     </SettingsProvider>
   );
 }
