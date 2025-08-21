@@ -23,7 +23,7 @@ export default function RootLayout() {
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
           <Stack.Screen name="index" options={{ title: 'Home' }} />
-          <Stack.Screen name="story" options={{ title: 'Story' }} />
+          <Stack.Screen name="Story" options={{ title: 'Story' }} />
           <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="+not-found" />
         </Stack>

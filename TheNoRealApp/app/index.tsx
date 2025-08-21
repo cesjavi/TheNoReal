@@ -20,7 +20,7 @@ export default function StoryForm() {
       />
       <Button
         title="Go to Story"
-        onPress={() => navigation.navigate('story', { content: story })}
+        onPress={() => navigation.navigate('Story', { content: story })}
       />
       <Button
         title="Settings"
