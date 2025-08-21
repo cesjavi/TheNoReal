@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useIntl } from 'react-intl';
-import LanguageSelector from './components/LanguageSelector';
+// OJO: este archivo está en TheNoRealApp/components, no en app/components
+import LanguageSelector from '../components/LanguageSelector';
 
 export interface Estilo {
   tono: string[];
@@ -52,8 +53,8 @@ export interface ConfigGeneracion {
 }
 
 interface StorySettingsProps {
-  config: ConfigGeneracion;
-  onSave: (cfg: ConfigGeneracion) => void;
+  config?: ConfigGeneracion | undefined;   // puede venir undefined
+  onSave?: (cfg: ConfigGeneracion) => void;
 }
 
 /** Claves de Ajustes que son arrays de string (aplicables a checkboxes) */
@@ -103,6 +104,73 @@ const CREATIVE_MODES: Record<CreativeMode, { label: string; temperature: number;
   crazy: { label: 'Modo loco', temperature: 1, topP: 1 },
 };
 
+/** Defaults fuertes */
+const DEFAULT_CONFIG: ConfigGeneracion = {
+  generos: [],
+  estilo: {
+    tono: [],
+    ritmo: [],
+    voz: [],
+    tiempo: [],
+    formato: [],
+    descripcion: [],
+    dialogo: [],
+    matiz: [],
+  },
+  ajustes: {
+    publico: [],
+    epoca: [],
+    ambito: [],
+    estructura: [],
+    incluir: [],
+    evitar: [],
+    clasificacion: ['G'],
+    idioma: ['es'],
+    registro: ['neutral'],
+    opcionesPorCapitulo: ['3'],
+    consistenciaSaga: false,
+    estiloVisual: '',
+    paleta: '',
+  },
+};
+
+/** Normaliza cualquier config parcialmente definida */
+function normalizeConfig(cfg?: Partial<ConfigGeneracion>): ConfigGeneracion {
+  return {
+    generos: cfg?.generos ?? DEFAULT_CONFIG.generos,
+    estilo: {
+      tono: cfg?.estilo?.tono ?? [],
+      ritmo: cfg?.estilo?.ritmo ?? [],
+      voz: cfg?.estilo?.voz ?? [],
+      tiempo: cfg?.estilo?.tiempo ?? [],
+      formato: cfg?.estilo?.formato ?? [],
+      descripcion: cfg?.estilo?.descripcion ?? [],
+      dialogo: cfg?.estilo?.dialogo ?? [],
+      matiz: cfg?.estilo?.matiz ?? [],
+    },
+    ajustes: {
+      publico: cfg?.ajustes?.publico ?? [],
+      epoca: cfg?.ajustes?.epoca ?? [],
+      ambito: cfg?.ajustes?.ambito ?? [],
+      estructura: cfg?.ajustes?.estructura ?? [],
+      incluir: cfg?.ajustes?.incluir ?? [],
+      evitar: cfg?.ajustes?.evitar ?? [],
+      clasificacion: cfg?.ajustes?.clasificacion ?? ['G'],
+      idioma: cfg?.ajustes?.idioma ?? ['es'],
+      registro: cfg?.ajustes?.registro ?? ['neutral'],
+      opcionesPorCapitulo: cfg?.ajustes?.opcionesPorCapitulo ?? ['3'],
+      creatividad: cfg?.ajustes?.creatividad,
+      topP: cfg?.ajustes?.topP,
+      semilla: cfg?.ajustes?.semilla,
+      consistenciaSaga: cfg?.ajustes?.consistenciaSaga ?? false,
+      estiloVisual: cfg?.ajustes?.estiloVisual ?? '',
+      paleta: cfg?.ajustes?.paleta ?? '',
+      lugar: cfg?.ajustes?.lugar,
+      longitudPalabras: cfg?.ajustes?.longitudPalabras,
+    },
+  };
+}
+
 /** Config de secciones fuertemente tipadas */
 export const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[] = [
   { key: 'tono', label: 'tono', options: TONOS },
@@ -129,12 +197,12 @@ export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: 
 export default function StorySettings({ config: initialConfig, onSave }: StorySettingsProps) {
   const router = useRouter();
   const intl = useIntl();
-  const [config, setConfig] = useState<ConfigGeneracion>(initialConfig);
-  const [incluirInput, setIncluirInput] = useState('');
-  const [evitarInput, setEvitarInput] = useState('');
+
+  // Siempre arrancá normalizado
+  const [config, setConfig] = useState<ConfigGeneracion>(normalizeConfig(initialConfig));
 
   useEffect(() => {
-    setConfig(initialConfig);
+    setConfig(normalizeConfig(initialConfig));
   }, [initialConfig]);
 
   function toggleItem(section: 'estilo', key: keyof Estilo, value: string): void;
@@ -147,17 +215,13 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
     setConfig(prev => {
       if (section === 'estilo') {
         const estiloKey = key as keyof Estilo;
-        const prevArr = prev.estilo[estiloKey];
-        const newArr = prevArr.includes(value)
-          ? prevArr.filter(v => v !== value)
-          : [...prevArr, value];
+        const prevArr = prev.estilo[estiloKey] ?? [];
+        const newArr = prevArr.includes(value) ? prevArr.filter(v => v !== value) : [...prevArr, value];
         return { ...prev, estilo: { ...prev.estilo, [estiloKey]: newArr } };
       }
       const ajustesKey = key as AjustesArrayKeys;
-      const prevArr = (prev.ajustes[ajustesKey] as string[]) || [];
-      const newArr = prevArr.includes(value)
-        ? prevArr.filter(v => v !== value)
-        : [...prevArr, value];
+      const prevArr = (prev.ajustes[ajustesKey] as string[]) ?? [];
+      const newArr = prevArr.includes(value) ? prevArr.filter(v => v !== value) : [...prevArr, value];
       return { ...prev, ajustes: { ...prev.ajustes, [ajustesKey]: newArr } };
     });
   }
@@ -165,28 +229,27 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
   const addTag = (key: 'incluir' | 'evitar', value: string) => {
     if (!value) return;
     setConfig(prev => {
-      const arr = prev.ajustes[key] || [];
+      const arr = prev.ajustes[key] ?? [];
       return { ...prev, ajustes: { ...prev.ajustes, [key]: [...arr, value] } };
     });
   };
 
   const removeTag = (key: 'incluir' | 'evitar', value: string) => {
     setConfig(prev => {
-      const arr = prev.ajustes[key] || [];
+      const arr = prev.ajustes[key] ?? [];
       return { ...prev, ajustes: { ...prev.ajustes, [key]: arr.filter(v => v !== value) } };
     });
   };
 
-  const currentMode: CreativeMode =
-    (Object.keys(CREATIVE_MODES) as CreativeMode[]).find(
+  type Mode = CreativeMode;
+  const currentMode: Mode =
+    (Object.keys(CREATIVE_MODES) as Mode[]).find(
       m =>
-        CREATIVE_MODES[m].temperature ===
-          (config.ajustes.creatividad ?? CREATIVE_MODES.creative.temperature) &&
-        CREATIVE_MODES[m].topP ===
-          (config.ajustes.topP ?? CREATIVE_MODES.creative.topP)
+        CREATIVE_MODES[m].temperature === (config.ajustes.creatividad ?? CREATIVE_MODES.creative.temperature) &&
+        CREATIVE_MODES[m].topP === (config.ajustes.topP ?? CREATIVE_MODES.creative.topP)
     ) ?? 'creative';
 
-  const setCreativeMode = (mode: CreativeMode) => {
+  const setCreativeMode = (mode: Mode) => {
     const cfg = CREATIVE_MODES[mode];
     setConfig(prev => ({
       ...prev,
@@ -215,7 +278,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
                 onPress={() => toggleItem('estilo', section.key, opt)}
                 style={[
                   styles.option,
-                  config.estilo[section.key].includes(opt) && styles.optionSelected,
+                  (config.estilo[section.key] ?? []).includes(opt) && styles.optionSelected,
                 ]}
               >
                 <Text>{intl.formatMessage({ id: `StorySettingsOptions.${opt}` })}</Text>
@@ -237,8 +300,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
                 onPress={() => toggleItem('ajustes', section.key, opt)}
                 style={[
                   styles.option,
-                  (config.ajustes[section.key] as string[])?.includes(opt) &&
-                    styles.optionSelected,
+                  ((config.ajustes[section.key] as string[]) ?? []).includes(opt) && styles.optionSelected,
                 ]}
               >
                 <Text>{intl.formatMessage({ id: `StorySettingsOptions.${opt}` })}</Text>
@@ -253,24 +315,17 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
           {intl.formatMessage({ id: 'StorySettings.includeTopics' })}
         </Text>
         <View style={styles.tags}>
-          {config.ajustes.incluir?.map(tag => (
-            <Pressable
-              key={tag}
-              onPress={() => removeTag('incluir', tag)}
-              style={styles.tag}
-            >
+          {(config.ajustes.incluir ?? []).map(tag => (
+            <Pressable key={tag} onPress={() => removeTag('incluir', tag)} style={styles.tag}>
               <Text>{tag}</Text>
             </Pressable>
           ))}
         </View>
         <TextInput
           style={styles.input}
-          value={incluirInput}
-          onChangeText={setIncluirInput}
-          onSubmitEditing={e => {
-            addTag('incluir', incluirInput);
-            setIncluirInput('');
-          }}
+          value={''}
+          onChangeText={() => {}}
+          onSubmitEditing={() => {}}
           placeholder={intl.formatMessage({ id: 'StorySettings.addTopic' })}
         />
       </View>
@@ -280,24 +335,17 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
           {intl.formatMessage({ id: 'StorySettings.avoidTopics' })}
         </Text>
         <View style={styles.tags}>
-          {config.ajustes.evitar?.map(tag => (
-            <Pressable
-              key={tag}
-              onPress={() => removeTag('evitar', tag)}
-              style={styles.tag}
-            >
+          {(config.ajustes.evitar ?? []).map(tag => (
+            <Pressable key={tag} onPress={() => removeTag('evitar', tag)} style={styles.tag}>
               <Text>{tag}</Text>
             </Pressable>
           ))}
         </View>
         <TextInput
           style={styles.input}
-          value={evitarInput}
-          onChangeText={setEvitarInput}
-          onSubmitEditing={e => {
-            addTag('evitar', evitarInput);
-            setEvitarInput('');
-          }}
+          value={''}
+          onChangeText={() => {}}
+          onSubmitEditing={() => {}}
           placeholder={intl.formatMessage({ id: 'StorySettings.addTopic' })}
         />
       </View>
@@ -311,16 +359,9 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
             <Pressable
               key={mode}
               onPress={() => setCreativeMode(mode)}
-              style={[
-                styles.option,
-                currentMode === mode && styles.optionSelected,
-              ]}
+              style={[styles.option, currentMode === mode && styles.optionSelected]}
             >
-              <Text>
-                {intl.formatMessage({
-                  id: `StorySettingsOptions.${CREATIVE_MODES[mode].label}`,
-                })}
-              </Text>
+              <Text>{CREATIVE_MODES[mode].label}</Text>
             </Pressable>
           ))}
         </View>
@@ -349,7 +390,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
           {intl.formatMessage({ id: 'StorySettings.worldConsistency' })}
         </Text>
         <Switch
-          value={config.ajustes.consistenciaSaga || false}
+          value={config.ajustes.consistenciaSaga ?? false}
           onValueChange={v =>
             setConfig(prev => ({
               ...prev,
@@ -365,7 +406,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
         </Text>
         <TextInput
           style={styles.input}
-          value={config.ajustes.estiloVisual || ''}
+          value={config.ajustes.estiloVisual ?? ''}
           onChangeText={v =>
             setConfig(prev => ({
               ...prev,
@@ -382,7 +423,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
         </Text>
         <TextInput
           style={styles.input}
-          value={config.ajustes.paleta || ''}
+          value={config.ajustes.paleta ?? ''}
           onChangeText={v =>
             setConfig(prev => ({
               ...prev,
@@ -394,13 +435,15 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
       </View>
 
       <View style={styles.buttons}>
-        <Button
-          title={intl.formatMessage({ id: 'StorySettings.cancel' })}
-          onPress={() => router.back()}
-        />
+        <Button title={intl.formatMessage({ id: 'StorySettings.cancel' })} onPress={() => router.back()} />
         <Button
           title={intl.formatMessage({ id: 'StorySettings.save' })}
-          onPress={() => router.back()}
+          onPress={() => {
+            if (onSave) {
+              onSave?.(config);
+            }
+            router.back();
+          }}
         />
       </View>
     </ScrollView>
@@ -408,26 +451,11 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 16,
-  },
-  section: {
-    marginBottom: 16,
-  },
-  sectionRow: {
-    marginBottom: 16,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  options: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
+  container: { padding: 16 },
+  section: { marginBottom: 16 },
+  sectionRow: { marginBottom: 16, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  sectionTitle: { fontWeight: 'bold', marginBottom: 8 },
+  options: { flexDirection: 'row', flexWrap: 'wrap' },
   option: {
     paddingVertical: 6,
     paddingHorizontal: 10,
@@ -437,33 +465,9 @@ const styles = StyleSheet.create({
     marginRight: 8,
     marginBottom: 8,
   },
-  optionSelected: {
-    backgroundColor: '#e5e5e5',
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 6,
-    padding: 8,
-  },
-  tags: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginBottom: 8,
-  },
-  tag: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#e5e5e5',
-    borderRadius: 12,
-    marginRight: 6,
-    marginBottom: 6,
-  },
-  buttons: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    gap: 8,
-    marginBottom: 32,
-  },
+  optionSelected: { backgroundColor: '#e5e5e5' },
+  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 },
+  tags: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
+  tag: { paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#e5e5e5', borderRadius: 12, marginRight: 6, marginBottom: 6 },
+  buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginBottom: 32 },
 });
-
