@@ -412,7 +412,13 @@ export default function StoryForm() {
         </p>
       )}
 
-      {error && <p className="text-red-500">{error}</p>}
+      {error && (
+        <p className="text-red-500">
+          {error === 'GROQ_API_KEY no configurada'
+            ? 'La clave de la API de Groq no está configurada.'
+            : error}
+        </p>
+      )}
 
       <StorySettings
         open={open}
