@@ -9,7 +9,10 @@ import { Colors } from '../../constants/Colors';
 export default function HomeScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: Colors.light.homeHeader, dark: Colors.dark.homeHeader }}
+      headerBackgroundColor={{
+        light: Colors.light.accent,
+        dark: Colors.dark.accentDark,
+      }}
       headerImage={
         <Image
           source={require('../../assets/images/partial-react-logo.png')}
@@ -17,7 +20,12 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
+        <ThemedText
+          type="title"
+          lightColor={Colors.light.text}
+          darkColor={Colors.dark.text}>
+          Welcome!
+        </ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>

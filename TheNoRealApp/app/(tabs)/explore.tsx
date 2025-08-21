@@ -11,7 +11,10 @@ import { Colors } from '../../constants/Colors';
 export default function TabTwoScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: Colors.light.exploreHeader, dark: Colors.dark.exploreHeader }}
+      headerBackgroundColor={{
+        light: Colors.light.accent,
+        dark: Colors.dark.accentDark,
+      }}
       headerImage={
         <IconSymbol
           size={310}
@@ -21,7 +24,12 @@ export default function TabTwoScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+        <ThemedText
+          type="title"
+          lightColor={Colors.light.text}
+          darkColor={Colors.dark.text}>
+          Explore
+        </ThemedText>
       </ThemedView>
       <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
