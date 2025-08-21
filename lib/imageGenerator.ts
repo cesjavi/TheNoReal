@@ -26,7 +26,7 @@ export async function generateImage(
 
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
-/*
+
   try {
     const res = await fetch(SD_API, {
       method: 'POST',
@@ -76,9 +76,10 @@ export async function generateImage(
     throw error;
   } finally {
     clearTimeout(timeout);
-  }*/
+  }
+
   // Temporary fallback to satisfy return type while implementation is commented out
-  return { url: null, truncated: false };
+  return { url: null, truncated };
 }
 
 export default generateImage;
