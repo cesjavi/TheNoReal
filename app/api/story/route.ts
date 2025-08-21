@@ -23,8 +23,24 @@ export async function POST(req: Request) {
       language = "es",
     } = await req.json();
 
-    const messagesPath = path.join(process.cwd(), "public", "locales", language, "api.json");
-    const messages = JSON.parse(fs.readFileSync(messagesPath, "utf-8"));
+    const localesPath = path.join(process.cwd(), "public", "locales");
+    let messages;
+    try {
+      const messagesPath = path.join(localesPath, language, "api.json");
+      messages = JSON.parse(fs.readFileSync(messagesPath, "utf-8"));
+    } catch (err) {
+      console.warn(`Locale '${language}' not found, falling back to 'es'`, err);
+      try {
+        const fallbackPath = path.join(localesPath, "es", "api.json");
+        messages = JSON.parse(fs.readFileSync(fallbackPath, "utf-8"));
+      } catch (fallbackErr) {
+        console.error("Fallback locale 'es' not found", fallbackErr);
+        return NextResponse.json(
+          { error: `Locale '${language}' not supported` },
+          { status: 400 }
+        );
+      }
+    }
 
     const t = (key: string, params: Record<string, any> = {}) => {
       const parts = key.split(".");
