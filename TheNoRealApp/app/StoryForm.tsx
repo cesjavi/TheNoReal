@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, Switch, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { useIntl } from 'react-intl';
+
+import { useLanguage } from './providers/LanguageProvider';
+import { parseStoryResponse } from '../lib/parseStoryResponse';
 
 const GENRES = [
   'Aventura',
@@ -138,6 +143,10 @@ export default function StoryForm() {
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [loading, setLoading] = useState(false);
 
+  const navigation = useNavigation<any>();
+  const intl = useIntl();
+  const { locale } = useLanguage();
+
   const showChapters = modality === 'capitulos' || modality === 'final_sorpresa';
 
   const toggleGenre = (genre: string) => {
@@ -209,6 +218,7 @@ export default function StoryForm() {
         genres: config.generos,
         estilo: config.estilo,
         ajustes: { ...restAjustes, temperature: creatividad, top_p: topP },
+        language: locale,
         ...((final === 'capitulos' || final === 'final_sorpresa') && chapters
           ? { capitulos: Number(chapters) }
           : {}),
@@ -221,7 +231,14 @@ export default function StoryForm() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      console.log('Story response', await res.json());
+      const data = await res.json();
+      const text = typeof data === 'string' ? data : data.text || '';
+      const { story, options } = parseStoryResponse(text, Number(numOptions));
+      navigation.navigate('story', {
+        initialStory: story,
+        initialOptions: options,
+        config,
+      });
     } catch (err) {
       console.error('Error al enviar la historia', err);
     } finally {
@@ -286,6 +303,11 @@ export default function StoryForm() {
         </View>
       )}
 
+      <Button
+        title={intl.formatMessage({ id: 'StoryForm.settings' })}
+        onPress={() => navigation.navigate('story-settings', { config, setConfig })}
+      />
+
       <View style={styles.genresContainer}>
         {GENRES.map(g => (
           <View key={g} style={styles.genreItem}>
@@ -299,12 +321,19 @@ export default function StoryForm() {
         <View style={styles.row}>
           <Button title="Limpiar" onPress={clearGenres} />
           <View style={styles.spacer} />
-          <Button title="Aleatorio" onPress={randomizeConfig} />
+          <Button
+            title={intl.formatMessage({ id: 'StoryForm.randomize' })}
+            onPress={randomizeConfig}
+          />
         </View>
       </View>
 
       <Button
-        title={loading ? 'Enviando...' : 'Crear historia'}
+        title={
+          loading
+            ? intl.formatMessage({ id: 'StoryForm.sending' })
+            : intl.formatMessage({ id: 'StoryForm.createStory' })
+        }
         onPress={handleSubmit}
         disabled={loading || tokenCount > TOKEN_LIMIT}
       />

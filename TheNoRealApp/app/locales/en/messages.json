@@ -3,7 +3,8 @@
     "randomize": "Randomize",
     "createStory": "Create story",
     "sending": "Sending...",
-    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens."
+    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens.",
+    "settings": "Settings"
   },
   "StorySettings": {
     "save": "Save",
