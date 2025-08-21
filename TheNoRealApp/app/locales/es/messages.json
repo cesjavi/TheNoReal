@@ -3,7 +3,8 @@
     "randomize": "Randomizar",
     "createStory": "Crear historia",
     "sending": "Enviando...",
-    "promptTruncated": "Tu prompt fue recortado al límite de {limit} tokens."
+    "promptTruncated": "Tu prompt fue recortado al límite de {limit} tokens.",
+    "settings": "Configuración"
   },
   "StorySettings": {
     "save": "Guardar",

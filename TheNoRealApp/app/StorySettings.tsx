@@ -10,6 +10,7 @@ import {
   StyleSheet,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useIntl } from 'react-intl';
 
 export interface Estilo {
   tono: string[];
@@ -47,6 +48,11 @@ export interface ConfigGeneracion {
   generos: string[];
   estilo: Estilo;
   ajustes: Ajustes;
+}
+
+interface StorySettingsProps {
+  config: ConfigGeneracion;
+  onSave: (cfg: ConfigGeneracion) => void;
 }
 
 /** Claves de Ajustes que son arrays de string (aplicables a checkboxes) */
@@ -119,41 +125,10 @@ export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: 
   { key: 'opcionesPorCapitulo', label: 'Interactividad: opciones por capítulo', options: OPCIONES_POR_CAPITULO },
 ];
 
-const defaultConfig: ConfigGeneracion = {
-  generos: [],
-  estilo: {
-    tono: [],
-    ritmo: [],
-    voz: [],
-    tiempo: [],
-    formato: [],
-    descripcion: [],
-    dialogo: [],
-    matiz: [],
-  },
-  ajustes: {
-    publico: [],
-    epoca: [],
-    ambito: [],
-    estructura: [],
-    incluir: [],
-    evitar: [],
-    clasificacion: [],
-    idioma: [],
-    registro: [],
-    creatividad: CREATIVE_MODES.creative.temperature,
-    topP: CREATIVE_MODES.creative.topP,
-    semilla: undefined,
-    opcionesPorCapitulo: [],
-    consistenciaSaga: false,
-    estiloVisual: '',
-    paleta: '',
-  },
-};
-
-export default function StorySettings() {
+export default function StorySettings({ config: initialConfig, onSave }: StorySettingsProps) {
   const router = useRouter();
-  const [config, setConfig] = useState<ConfigGeneracion>(defaultConfig);
+  const intl = useIntl();
+  const [config, setConfig] = useState<ConfigGeneracion>(initialConfig);
   const [incluirInput, setIncluirInput] = useState('');
   const [evitarInput, setEvitarInput] = useState('');
 
@@ -385,8 +360,17 @@ export default function StorySettings() {
       </View>
 
       <View style={styles.buttons}>
-        <Button title="Cancelar" onPress={() => router.back()} />
-        <Button title="Guardar" onPress={() => router.back()} />
+        <Button
+          title={intl.formatMessage({ id: 'StorySettings.cancel' })}
+          onPress={() => router.back()}
+        />
+        <Button
+          title={intl.formatMessage({ id: 'StorySettings.save' })}
+          onPress={() => {
+            onSave(config);
+            router.back();
+          }}
+        />
       </View>
     </ScrollView>
   );
