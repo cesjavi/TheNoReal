@@ -6,8 +6,8 @@ import path from "path";
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
-      { error: "GROQ_API_KEY is not defined" },
-      { status: 500 }
+      { error: "GROQ_API_KEY no configurada" },
+      { status: 400 }
     );
   }
 
