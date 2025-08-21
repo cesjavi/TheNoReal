@@ -2,6 +2,7 @@ import { StyleSheet, Text, type TextProps } from 'react-native';
 
 import { Colors } from '../constants/Colors';
 import { useThemeColor } from '../hooks/useThemeColor';
+import { Colors } from '../constants/Colors';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -29,8 +30,9 @@ export function ThemedText({
   return (
     <Text
       style={[
-        { color },
-        type === 'default' ? styles.default : undefined,
+        { color, fontFamily: 'Geist' },
+        type === 'default' || type === 'code' ? styles.default : undefined,
+        type === 'code' ? styles.code : undefined,
         type === 'title' ? styles.title : undefined,
         type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
         type === 'subtitle' ? styles.subtitle : undefined,

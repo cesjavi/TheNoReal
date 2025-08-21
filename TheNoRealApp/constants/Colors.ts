@@ -7,6 +7,16 @@
 const accentLight = '#c3f0ca';
 const accentDark = '#5dbb63';
 
+const linkColor = '#0a7ea4';
+const primaryBlue = '#2563eb';
+const borderGray = '#ccc';
+const mutedGray = '#808080';
+const surfaceGray = '#e5e5e5';
+const homeHeaderLight = '#A1CEDC';
+const homeHeaderDark = '#1D3D47';
+const exploreHeaderLight = '#D0D0D0';
+const exploreHeaderDark = '#353636';
+
 export const Colors = {
   light: {
     text: '#3a2d4f',
@@ -17,6 +27,13 @@ export const Colors = {
     tabIconSelected: accentDark,
     accent: accentLight,
     accentDark,
+    link: linkColor,
+    primary: primaryBlue,
+    border: borderGray,
+    muted: mutedGray,
+    surface: surfaceGray,
+    homeHeader: homeHeaderLight,
+    exploreHeader: exploreHeaderLight,
   },
   dark: {
     text: '#f1e9f9',
@@ -27,5 +44,12 @@ export const Colors = {
     tabIconSelected: '#2f855a',
     accent: accentDark,
     accentDark: '#2f855a',
+    link: linkColor,
+    primary: primaryBlue,
+    border: borderGray,
+    muted: mutedGray,
+    surface: surfaceGray,
+    homeHeader: homeHeaderDark,
+    exploreHeader: exploreHeaderDark,
   },
 };
