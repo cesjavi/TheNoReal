@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Button, Text } from 'react-native';
 import { useIntl } from 'react-intl';
-import { useLanguage } from '@/app/providers/LanguageProvider';
+import { useLanguage } from '../app/providers/LanguageProvider';
 
 const LanguageSelector = () => {
   const { locale, setLocale } = useLanguage();
