@@ -1,0 +1,17 @@
+{
+  "system": {
+    "intro": "You are a generator of branching and unique stories that must never repeat.",
+    "chapterLimit": "If the current chapter matches the configured maximum, you must generate an END instead of a new chapter.",
+    "finalMode": "If the ending mode is 'surprise' or 'closed', you may randomly choose in which chapter to finish, but always generate an END.",
+    "finalText": "When it is an END, write only the ending text without generating options and display the word FINISHED or similar.",
+    "nonFinal": "When it is NOT the end: respond with the text of the next chapter, then a line containing only '---', and then the numbered options, each on a separate line.",
+    "noExtra": "Do not add additional text outside the story and the options."
+  },
+  "user": {
+    "final": "Generate the ending of the story.",
+    "continue": "Chosen option: {option}\n\nGenerate {options} options to continue the story."
+  },
+  "genreLine": "Genres to respect: {genres}.",
+  "styleTitle": "Style",
+  "settingsTitle": "Settings"
+}

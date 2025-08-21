@@ -1,0 +1,30 @@
+{
+  "StoryForm": {
+    "randomize": "Randomizar",
+    "createStory": "Crear historia",
+    "sending": "Enviando...",
+    "promptTruncated": "Tu prompt fue recortado al límite de {limit} tokens."
+  },
+  "StorySettings": {
+    "save": "Guardar",
+    "cancel": "Cancelar"
+  },
+  "Story": {
+    "chooseContinuation": "Elegí cómo continúa:",
+    "suggestion": "Sugerencia #{index}",
+    "finalized": "La historia ha finalizado. Podés descargarla o volver al inicio.",
+    "back": "Volver al inicio",
+    "download": "Descargar",
+    "finalize": "Finalizar",
+    "reading": {
+      "stop": "Parar lectura",
+      "read": "Leer en voz alta"
+    },
+    "generating": "Generando contenido…"
+  },
+  "LanguageSelector": {
+    "selectLanguage": "Seleccionar idioma",
+    "english": "Inglés",
+    "spanish": "Español"
+  }
+}
