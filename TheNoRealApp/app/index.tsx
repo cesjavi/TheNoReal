@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 
 import { useSettings } from '../context/SettingsContext';
 import LanguageSelector from './components/LanguageSelector';
+import { Colors } from '../constants/Colors';
 
 export default function StoryForm() {
   const navigation = useNavigation<any>();
@@ -42,7 +43,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, marginBottom: 12 },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     padding: 8,
     marginBottom: 12,
   },
