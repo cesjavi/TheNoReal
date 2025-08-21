@@ -1,0 +1,17 @@
+{
+  "system": {
+    "intro": "Eres un generador de historias ramificadas y únicas, que nunca deben repetirse.",
+    "chapterLimit": "Si el capítulo actual coincide con el número máximo de capítulos configurado, debes generar un FINAL en lugar de un capítulo nuevo.",
+    "finalMode": "Si la modalidad de final es 'sorpresa' o 'cerrado', puedes elegir aleatoriamente en qué capítulo terminar, pero siempre generando un FINAL.",
+    "finalText": "Cuando sea un FINAL, escribe únicamente el texto del desenlace sin generar opciones y muestra la palabra FINALIZADO o similar.",
+    "nonFinal": "Cuando NO sea el final: responde con el texto del siguiente capítulo, luego una línea que contenga solo '---', y después las opciones numeradas, cada una en una línea separada.",
+    "noExtra": "No añadas texto adicional fuera de la historia y las opciones."
+  },
+  "user": {
+    "final": "Genera el final de la historia.",
+    "continue": "Opción elegida: {option}\n\nGenera {options} opciones para continuar la historia."
+  },
+  "genreLine": "Géneros a respetar: {genres}.",
+  "styleTitle": "Estilo",
+  "settingsTitle": "Ajustes"
+}

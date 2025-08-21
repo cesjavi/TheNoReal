@@ -17,7 +17,7 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const initial = navigator.language?.split('-')[0] || 'es';
+    const initial = navigator.language || 'es';
     setLocale(initial);
   }, []);
 
