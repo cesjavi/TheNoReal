@@ -388,7 +388,10 @@ export default function Story({
 
       {/* Overlay de carga (sutil) */}
       {loading && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-24 flex justify-center">
+        <div
+          className="fixed inset-x-0 bottom-24 flex justify-center"
+          style={{ pointerEvents: 'none' }}
+        >
           <div className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground shadow backdrop-blur">
             {t('generating')}
           </div>
