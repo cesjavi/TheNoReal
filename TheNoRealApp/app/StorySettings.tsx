@@ -13,6 +13,7 @@ import { useRouter } from 'expo-router';
 import { useIntl } from 'react-intl';
 // OJO: este archivo está en TheNoRealApp/components, no en app/components
 import LanguageSelector from '../components/LanguageSelector';
+import { Colors } from '../constants/Colors';
 
 export interface Estilo {
   tono: string[];
@@ -460,14 +461,14 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 10,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     borderRadius: 6,
     marginRight: 8,
     marginBottom: 8,
   },
-  optionSelected: { backgroundColor: '#e5e5e5' },
-  input: { borderWidth: 1, borderColor: '#ccc', borderRadius: 6, padding: 8 },
+  optionSelected: { backgroundColor: Colors.light.surface },
+  input: { borderWidth: 1, borderColor: Colors.light.border, borderRadius: 6, padding: 8 },
   tags: { flexDirection: 'row', flexWrap: 'wrap', marginBottom: 8 },
-  tag: { paddingVertical: 4, paddingHorizontal: 8, backgroundColor: '#e5e5e5', borderRadius: 12, marginRight: 6, marginBottom: 6 },
+  tag: { paddingVertical: 4, paddingHorizontal: 8, backgroundColor: Colors.light.surface, borderRadius: 12, marginRight: 6, marginBottom: 6 },
   buttons: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8, marginBottom: 32 },
 });

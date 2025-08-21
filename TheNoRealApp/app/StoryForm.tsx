@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 
 import { useLanguage } from './providers/LanguageProvider';
 import { parseStoryResponse } from '../lib/parseStoryResponse';
+import { Colors } from '../constants/Colors';
 
 const GENRES = [
   'Aventura',
@@ -285,7 +286,7 @@ export default function StoryForm() {
             <Button
               title={m.label}
               onPress={() => setModality(m.key)}
-              color={modality === m.key ? '#2563eb' : undefined}
+              color={modality === m.key ? Colors.light.primary : undefined}
             />
           </View>
         ))}
@@ -349,7 +350,7 @@ const styles = StyleSheet.create({
   textarea: {
     height: 120,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     padding: 8,
     marginBottom: 4,
@@ -375,7 +376,7 @@ const styles = StyleSheet.create({
   inputSmall: {
     width: 60,
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: Colors.light.border,
     borderRadius: 8,
     padding: 4,
     marginLeft: 8,
