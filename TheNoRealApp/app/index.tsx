@@ -1,20 +1,24 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useIntl } from 'react-intl';
 
 import { useSettings } from '../context/SettingsContext';
+import LanguageSelector from './components/LanguageSelector';
 
 export default function StoryForm() {
   const navigation = useNavigation<any>();
   const { tokenCount } = useSettings();
+  const intl = useIntl();
   const [story, setStory] = useState('');
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Story Form</Text>
+      <LanguageSelector />
+      <Text style={styles.title}>{intl.formatMessage({ id: 'StoryForm.title' })}</Text>
       <TextInput
         style={styles.input}
-        placeholder="Write a story..."
+        placeholder={intl.formatMessage({ id: 'StoryForm.placeholder' })}
         value={story}
         onChangeText={setStory}
       />
@@ -23,10 +27,12 @@ export default function StoryForm() {
         onPress={() => navigation.navigate('Story', { content: story })}
       />
       <Button
-        title="Settings"
+        title={intl.formatMessage({ id: 'StoryForm.settings' })}
         onPress={() => navigation.navigate('story-settings')}
       />
-      <Text style={styles.tokens}>Tokens: {tokenCount}</Text>
+      <Text style={styles.tokens}>
+        {intl.formatMessage({ id: 'StoryForm.tokens' }, { count: tokenCount })}
+      </Text>
     </View>
   );
 }

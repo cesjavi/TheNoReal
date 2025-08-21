@@ -6,9 +6,12 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
+import LanguageProvider from './providers/LanguageProvider';
+import { useIntl } from 'react-intl';
 
-export default function RootLayout() {
+function LayoutInner() {
   const colorScheme = useColorScheme();
+  const intl = useIntl();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -30,5 +33,13 @@ export default function RootLayout() {
         <StatusBar style="auto" />
       </ThemeProvider>
     </SettingsProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <LanguageProvider>
+      <LayoutInner />
+    </LanguageProvider>
   );
 }
