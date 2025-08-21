@@ -1,22 +1,31 @@
 import { StyleSheet, Text, type TextProps } from 'react-native';
 
+import { Colors } from '../constants/Colors';
 import { useThemeColor } from '../hooks/useThemeColor';
 import { Colors } from '../constants/Colors';
 
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link' | 'code';
+  /**
+   * Override the text color using a key from {@link Colors}.
+   */
+  color?: keyof typeof Colors.light & keyof typeof Colors.dark;
+  type?: 'default' | 'title' | 'defaultSemiBold' | 'subtitle' | 'link';
 };
 
 export function ThemedText({
   style,
   lightColor,
   darkColor,
+  color: colorName,
   type = 'default',
   ...rest
 }: ThemedTextProps) {
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const color = useThemeColor(
+    { light: lightColor, dark: darkColor },
+    colorName ?? (type === 'link' ? 'accentDark' : 'text')
+  );
 
   return (
     <Text
@@ -57,9 +66,5 @@ const styles = StyleSheet.create({
   link: {
     lineHeight: 30,
     fontSize: 16,
-    color: Colors.light.link,
-  },
-  code: {
-    fontFamily: 'GeistMono',
   },
 });
