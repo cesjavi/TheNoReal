@@ -6,10 +6,12 @@ import 'react-native-reanimated';
 
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
-import { StoryProvider } from '../context/StoryContext';
+import LanguageProvider from './providers/LanguageProvider';
+import { useIntl } from 'react-intl';
 
-export default function RootLayout() {
+function LayoutInner() {
   const colorScheme = useColorScheme();
+  const intl = useIntl();
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -21,17 +23,29 @@ export default function RootLayout() {
 
   return (
     <SettingsProvider>
-      <StoryProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <Stack>
-            <Stack.Screen name="index" options={{ title: 'Home' }} />
-            <Stack.Screen name="story" options={{ title: 'Story' }} />
-            <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </ThemeProvider>
-      </StoryProvider>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <Stack>
+          <Stack.Screen name="index" options={{ title: intl.formatMessage({ id: 'Navigation.home' }) }} />
+          <Stack.Screen
+            name="story"
+            options={{ title: intl.formatMessage({ id: 'Navigation.story' }) }}
+          />
+          <Stack.Screen
+            name="story-settings"
+            options={{ title: intl.formatMessage({ id: 'Navigation.settings' }) }}
+          />
+          <Stack.Screen name="+not-found" />
+        </Stack>
+        <StatusBar style="auto" />
+      </ThemeProvider>
     </SettingsProvider>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <LanguageProvider>
+      <LayoutInner />
+    </LanguageProvider>
   );
 }

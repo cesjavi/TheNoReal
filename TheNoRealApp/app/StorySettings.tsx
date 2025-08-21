@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useIntl } from 'react-intl';
+import LanguageSelector from './components/LanguageSelector';
 
 export interface Estilo {
   tono: string[];
@@ -48,11 +49,6 @@ export interface ConfigGeneracion {
   generos: string[];
   estilo: Estilo;
   ajustes: Ajustes;
-}
-
-interface StorySettingsProps {
-  config: ConfigGeneracion;
-  onSave: (cfg: ConfigGeneracion) => void;
 }
 
 /** Claves de Ajustes que son arrays de string (aplicables a checkboxes) */
@@ -104,31 +100,63 @@ const CREATIVE_MODES: Record<CreativeMode, { label: string; temperature: number;
 
 /** Config de secciones fuertemente tipadas */
 export const ESTILO_SECTIONS: { key: keyof Estilo; label: string; options: string[] }[] = [
-  { key: 'tono', label: 'Tono', options: TONOS },
-  { key: 'ritmo', label: 'Ritmo/Pacing', options: RITMOS },
-  { key: 'voz', label: 'Voz/Punto de vista', options: VOCES },
-  { key: 'tiempo', label: 'Tiempo verbal', options: TIEMPOS },
-  { key: 'formato', label: 'Formato', options: FORMATOS },
-  { key: 'descripcion', label: 'Densidad descriptiva', options: DENSIDADES },
-  { key: 'dialogo', label: 'Diálogo vs. narración', options: DIALOGO },
-  { key: 'matiz', label: 'Matiz estilístico', options: MATICES },
+  { key: 'tono', label: 'tono', options: TONOS },
+  { key: 'ritmo', label: 'ritmo', options: RITMOS },
+  { key: 'voz', label: 'voz', options: VOCES },
+  { key: 'tiempo', label: 'tiempo', options: TIEMPOS },
+  { key: 'formato', label: 'formato', options: FORMATOS },
+  { key: 'descripcion', label: 'descripcion', options: DENSIDADES },
+  { key: 'dialogo', label: 'dialogo', options: DIALOGO },
+  { key: 'matiz', label: 'matiz', options: MATICES },
 ];
 
 export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: string[] }[] = [
-  { key: 'publico', label: 'Público objetivo', options: PUBLICO },
-  { key: 'epoca', label: 'Época', options: EPOCAS },
-  { key: 'ambito', label: 'Ámbito', options: AMBITOS },
-  { key: 'estructura', label: 'Estructura', options: ESTRUCTURAS },
-  { key: 'clasificacion', label: 'Clasificación', options: CLASIFICACION },
-  { key: 'idioma', label: 'Idioma', options: IDIOMAS },
-  { key: 'registro', label: 'Registro', options: REGISTROS },
-  { key: 'opcionesPorCapitulo', label: 'Interactividad: opciones por capítulo', options: OPCIONES_POR_CAPITULO },
+  { key: 'publico', label: 'publico', options: PUBLICO },
+  { key: 'epoca', label: 'epoca', options: EPOCAS },
+  { key: 'ambito', label: 'ambito', options: AMBITOS },
+  { key: 'estructura', label: 'estructura', options: ESTRUCTURAS },
+  { key: 'clasificacion', label: 'clasificacion', options: CLASIFICACION },
+  { key: 'idioma', label: 'idioma', options: IDIOMAS },
+  { key: 'registro', label: 'registro', options: REGISTROS },
+  { key: 'opcionesPorCapitulo', label: 'opcionesPorCapitulo', options: OPCIONES_POR_CAPITULO },
 ];
 
-export default function StorySettings({ config: initialConfig, onSave }: StorySettingsProps) {
+const defaultConfig: ConfigGeneracion = {
+  generos: [],
+  estilo: {
+    tono: [],
+    ritmo: [],
+    voz: [],
+    tiempo: [],
+    formato: [],
+    descripcion: [],
+    dialogo: [],
+    matiz: [],
+  },
+  ajustes: {
+    publico: [],
+    epoca: [],
+    ambito: [],
+    estructura: [],
+    incluir: [],
+    evitar: [],
+    clasificacion: [],
+    idioma: [],
+    registro: [],
+    creatividad: CREATIVE_MODES.creative.temperature,
+    topP: CREATIVE_MODES.creative.topP,
+    semilla: undefined,
+    opcionesPorCapitulo: [],
+    consistenciaSaga: false,
+    estiloVisual: '',
+    paleta: '',
+  },
+};
+
+export default function StorySettings() {
   const router = useRouter();
   const intl = useIntl();
-  const [config, setConfig] = useState<ConfigGeneracion>(initialConfig);
+  const [config, setConfig] = useState<ConfigGeneracion>(defaultConfig);
   const [incluirInput, setIncluirInput] = useState('');
   const [evitarInput, setEvitarInput] = useState('');
 
@@ -191,9 +219,18 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.languageSection' })}
+        </Text>
+        <LanguageSelector />
+      </View>
+
       {ESTILO_SECTIONS.map(section => (
         <View key={section.key} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.label}</Text>
+          <Text style={styles.sectionTitle}>
+            {intl.formatMessage({ id: `StorySettings.sections.${section.label}` })}
+          </Text>
           <View style={styles.options}>
             {section.options.map(opt => (
               <Pressable
@@ -204,7 +241,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
                   config.estilo[section.key].includes(opt) && styles.optionSelected,
                 ]}
               >
-                <Text>{opt}</Text>
+                <Text>{intl.formatMessage({ id: `StorySettingsOptions.${opt}` })}</Text>
               </Pressable>
             ))}
           </View>
@@ -213,7 +250,9 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
 
       {AJUSTES_SECTIONS.map(section => (
         <View key={section.key} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.label}</Text>
+          <Text style={styles.sectionTitle}>
+            {intl.formatMessage({ id: `StorySettings.sections.${section.label}` })}
+          </Text>
           <View style={styles.options}>
             {section.options.map(opt => (
               <Pressable
@@ -225,7 +264,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
                     styles.optionSelected,
                 ]}
               >
-                <Text>{opt}</Text>
+                <Text>{intl.formatMessage({ id: `StorySettingsOptions.${opt}` })}</Text>
               </Pressable>
             ))}
           </View>
@@ -233,7 +272,9 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
       ))}
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Incluir temas</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.includeTopics' })}
+        </Text>
         <View style={styles.tags}>
           {config.ajustes.incluir?.map(tag => (
             <Pressable
@@ -253,12 +294,14 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
             addTag('incluir', incluirInput);
             setIncluirInput('');
           }}
-          placeholder="Agregar tema"
+          placeholder={intl.formatMessage({ id: 'StorySettings.addTopic' })}
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Evitar temas</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.avoidTopics' })}
+        </Text>
         <View style={styles.tags}>
           {config.ajustes.evitar?.map(tag => (
             <Pressable
@@ -278,12 +321,14 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
             addTag('evitar', evitarInput);
             setEvitarInput('');
           }}
-          placeholder="Agregar tema"
+          placeholder={intl.formatMessage({ id: 'StorySettings.addTopic' })}
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Modo de creatividad</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.creativeMode' })}
+        </Text>
         <View style={styles.options}>
           {(Object.keys(CREATIVE_MODES) as CreativeMode[]).map(mode => (
             <Pressable
@@ -294,14 +339,20 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
                 currentMode === mode && styles.optionSelected,
               ]}
             >
-              <Text>{CREATIVE_MODES[mode].label}</Text>
+              <Text>
+                {intl.formatMessage({
+                  id: `StorySettingsOptions.${CREATIVE_MODES[mode].label}`,
+                })}
+              </Text>
             </Pressable>
           ))}
         </View>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Semilla aleatoria</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.randomSeed' })}
+        </Text>
         <TextInput
           style={styles.input}
           keyboardType="numeric"
@@ -312,12 +363,14 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
               ajustes: { ...prev.ajustes, semilla: Number(v) || undefined },
             }))
           }
-          placeholder="Ingrese una semilla"
+          placeholder={intl.formatMessage({ id: 'StorySettings.randomSeedPlaceholder' })}
         />
       </View>
 
       <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>Consistencia de mundo (sagas)</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.worldConsistency' })}
+        </Text>
         <Switch
           value={config.ajustes.consistenciaSaga || false}
           onValueChange={v =>
@@ -330,7 +383,9 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Estilo visual</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.visualStyle' })}
+        </Text>
         <TextInput
           style={styles.input}
           value={config.ajustes.estiloVisual || ''}
@@ -340,12 +395,14 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
               ajustes: { ...prev.ajustes, estiloVisual: v },
             }))
           }
-          placeholder="Ej: realista, cartoon..."
+          placeholder={intl.formatMessage({ id: 'StorySettings.visualStylePlaceholder' })}
         />
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Paleta</Text>
+        <Text style={styles.sectionTitle}>
+          {intl.formatMessage({ id: 'StorySettings.palette' })}
+        </Text>
         <TextInput
           style={styles.input}
           value={config.ajustes.paleta || ''}
@@ -355,7 +412,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
               ajustes: { ...prev.ajustes, paleta: v },
             }))
           }
-          placeholder="Ej: colores, tonos, etc."
+          placeholder={intl.formatMessage({ id: 'StorySettings.palettePlaceholder' })}
         />
       </View>
 
@@ -366,10 +423,7 @@ export default function StorySettings({ config: initialConfig, onSave }: StorySe
         />
         <Button
           title={intl.formatMessage({ id: 'StorySettings.save' })}
-          onPress={() => {
-            onSave(config);
-            router.back();
-          }}
+          onPress={() => router.back()}
         />
       </View>
     </ScrollView>
