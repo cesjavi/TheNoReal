@@ -129,7 +129,7 @@ export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: 
 export default function StorySettings({ config: initialConfig, onSave }: StorySettingsProps) {
   const router = useRouter();
   const intl = useIntl();
-  const [config, setConfig] = useState<ConfigGeneracion>(defaultConfig);
+  const [config, setConfig] = useState<ConfigGeneracion>(initialConfig);
   const [incluirInput, setIncluirInput] = useState('');
   const [evitarInput, setEvitarInput] = useState('');
 
