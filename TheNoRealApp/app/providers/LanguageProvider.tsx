@@ -2,6 +2,10 @@ import React, { createContext, useContext, useMemo, useState, ReactNode } from '
 import { IntlProvider } from 'react-intl';
 import en from '../../../public/locales/en/messages.json';
 import es from '../../../public/locales/es/messages.json';
+import en from '../locales/en/messages.json';
+import es from '../locales/es/messages.json';
+
+const MESSAGES: Record<string, any> = { en, es };
 
 type Locale = 'en' | 'es';
 type Messages = Record<string, string>;
