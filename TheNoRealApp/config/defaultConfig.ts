@@ -1,5 +1,5 @@
 // ajustá el import del tipo si difiere
-import type { ConfigGeneracion } from '../StorySettings';
+import type { ConfigGeneracion } from '../app/StorySettings';
 
 export const DEFAULT_CONFIG: ConfigGeneracion = {
   generos: [],
