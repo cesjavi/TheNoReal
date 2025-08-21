@@ -23,8 +23,8 @@ export default function StoryForm() {
         onChangeText={setStory}
       />
       <Button
-        title={intl.formatMessage({ id: 'StoryForm.goStory' })}
-        onPress={() => navigation.navigate('story', { content: story })}
+        title="Go to Story"
+        onPress={() => navigation.navigate('Story', { content: story })}
       />
       <Button
         title={intl.formatMessage({ id: 'StoryForm.settings' })}

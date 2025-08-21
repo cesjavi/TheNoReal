@@ -25,15 +25,9 @@ function LayoutInner() {
     <SettingsProvider>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
         <Stack>
-          <Stack.Screen name="index" options={{ title: intl.formatMessage({ id: 'Navigation.home' }) }} />
-          <Stack.Screen
-            name="story"
-            options={{ title: intl.formatMessage({ id: 'Navigation.story' }) }}
-          />
-          <Stack.Screen
-            name="story-settings"
-            options={{ title: intl.formatMessage({ id: 'Navigation.settings' }) }}
-          />
+          <Stack.Screen name="index" options={{ title: 'Home' }} />
+          <Stack.Screen name="Story" options={{ title: 'Story' }} />
+          <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
