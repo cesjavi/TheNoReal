@@ -8,14 +8,12 @@ import { StyleSheet, View } from 'react-native';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
 import LanguageProvider from './providers/LanguageProvider';
-import { useIntl } from 'react-intl';
-import { Colors } from '../constants/Colors';
 
 function LayoutInner() {
   const colorScheme = useColorScheme();
-  const intl = useIntl();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    Geist: require('../assets/fonts/Geist-Regular.ttf'),
+    GeistMono: require('../assets/fonts/GeistMono-Regular.ttf'),
   });
 
   if (!loaded) {
