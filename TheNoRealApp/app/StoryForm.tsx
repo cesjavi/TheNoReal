@@ -227,7 +227,7 @@ export default function StoryForm() {
 
       const backendUrl =
         process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-      const res = await fetch(`${backendUrl}/api/stories`, {
+      const res = await fetch(`${backendUrl}/api/story`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

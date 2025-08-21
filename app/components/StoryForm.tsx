@@ -167,66 +167,45 @@ export default function StoryForm() {
         return { ...rest, temperature: creatividad, top_p: topP };
       })();
 
-      const payload: Record<string, unknown> = {
-        prompt,
-        opciones_por_decision: Number(numOptions),
-        final,
-        genres: config.generos,
-        estilo: config.estilo,
-        ajustes: ajustesPayload,
-        ...((final === 'capitulos' || final === 'final_sorpresa') && chapters
-          ? { capitulos: Number(chapters) }
-          : {}),
-      };
-
-      console.log('POST /api/stories payload =>', payload);
-      const res = await fetch('/api/stories', {
+      const response = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          story: prompt,
+          option: '',
+          optionsPerDecision: Number(numOptions),
+          genres: config.generos,
+          estilo: config.estilo,
+          ajustes: ajustesPayload,
+          language: locale,
+        }),
       });
 
-      const data = await res.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
       if ((data as { truncated?: boolean }).truncated) setPromptTruncated(true);
-      if (!res.ok) {
-        setError((data as { error?: string }).error || 'Error al crear la historia');
+      if (!response.ok) {
+        setError(
+          (data as { error?: string }).error ||
+            'Error al obtener la historia inicial'
+        );
       } else {
-        const storyRes = await fetch('/api/story', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            story: prompt,
-            option: '',
-            optionsPerDecision: Number(numOptions),
-            genres: config.generos,
-            estilo: config.estilo,
-            ajustes: ajustesPayload,
-            language: locale,
-          }),
+        const text: string = (data as { text?: string }).text || '';
+        const { story, options } = parseStoryResponse(text, Number(numOptions));
+        setInitialStory(story);
+        setInitialOptions(options);
+        setStoryConfig({
+          optionsPerDecision: Number(numOptions),
+          endingMode: final,
+          chaptersCount:
+            (final === 'capitulos' || final === 'final_sorpresa') && chapters
+              ? Number(chapters)
+              : undefined,
         });
-        const storyData = await storyRes.json().catch(() => ({}));
-        if ((storyData as { truncated?: boolean }).truncated) setPromptTruncated(true);
-        if (!storyRes.ok) {
-          setError((storyData as { error?: string }).error || 'Error al obtener la historia inicial');
-        } else {
-          const text: string = (storyData as { text?: string }).text || '';
-          const { story, options } = parseStoryResponse(text, Number(numOptions));
-          setInitialStory(story);
-          setInitialOptions(options);
-          setStoryConfig({
-            optionsPerDecision: Number(numOptions),
-            endingMode: final,
-            chaptersCount:
-              (final === 'capitulos' || final === 'final_sorpresa') && chapters
-                ? Number(chapters)
-                : undefined,
-          });
-          setPrompt('');
-          setTokenCount(0);
-          setNumOptions(2);
-          setModality('capitulos');
-          setChapters('');
-        }
+        setPrompt('');
+        setTokenCount(0);
+        setNumOptions(2);
+        setModality('capitulos');
+        setChapters('');
       }
     } catch {
       setError('Error al conectar con el servidor');
