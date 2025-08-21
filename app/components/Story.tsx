@@ -70,7 +70,16 @@ export default function Story({
       setIsReading(false);
     } else {
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.lang = 'es-AR'; // ajustá si querés forzar voz
+      const voices = window.speechSynthesis.getVoices();
+      const voice = voices.find((v) => v.lang === locale) ?? voices[0];
+
+      if (voice) {
+        utterance.voice = voice;
+        utterance.lang = voice.lang;
+      } else {
+        utterance.lang = locale;
+      }
+
       utterance.rate = 1.0;
       utterance.onend = () => setIsReading(false);
       window.speechSynthesis.speak(utterance);
