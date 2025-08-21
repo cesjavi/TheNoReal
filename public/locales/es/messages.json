@@ -21,5 +21,10 @@
       "read": "Leer en voz alta"
     },
     "generating": "Generando contenido…"
+  },
+  "LanguageSelector": {
+    "selectLanguage": "Seleccionar idioma",
+    "english": "Inglés",
+    "spanish": "Español"
   }
 }
