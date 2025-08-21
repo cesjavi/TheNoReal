@@ -141,6 +141,11 @@ export default function StoryForm() {
     setInitialStory(null);
     setInitialOptions([]);
     try {
+      if (!prompt.trim()) {
+        setError('El inicio no puede estar vacío');
+        setLoading(false);
+        return;
+      }
       if (tokenCount > TOKEN_LIMIT) {
         setError(`El prompt supera el límite de ${TOKEN_LIMIT} tokens`);
         return;
@@ -379,7 +384,7 @@ export default function StoryForm() {
 
           <button
             onClick={handleSubmit}
-            disabled={loading || tokenCount > TOKEN_LIMIT}
+            disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
           >
             {loading ? t('sending') : t('createStory')}
