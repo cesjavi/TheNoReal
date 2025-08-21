@@ -51,6 +51,11 @@ export interface ConfigGeneracion {
   ajustes: Ajustes;
 }
 
+interface StorySettingsProps {
+  config: ConfigGeneracion;
+  onSave: (cfg: ConfigGeneracion) => void;
+}
+
 /** Claves de Ajustes que son arrays de string (aplicables a checkboxes) */
 type AjustesArrayKeys =
   | 'publico'
@@ -121,39 +126,7 @@ export const AJUSTES_SECTIONS: { key: AjustesArrayKeys; label: string; options: 
   { key: 'opcionesPorCapitulo', label: 'opcionesPorCapitulo', options: OPCIONES_POR_CAPITULO },
 ];
 
-const defaultConfig: ConfigGeneracion = {
-  generos: [],
-  estilo: {
-    tono: [],
-    ritmo: [],
-    voz: [],
-    tiempo: [],
-    formato: [],
-    descripcion: [],
-    dialogo: [],
-    matiz: [],
-  },
-  ajustes: {
-    publico: [],
-    epoca: [],
-    ambito: [],
-    estructura: [],
-    incluir: [],
-    evitar: [],
-    clasificacion: [],
-    idioma: [],
-    registro: [],
-    creatividad: CREATIVE_MODES.creative.temperature,
-    topP: CREATIVE_MODES.creative.topP,
-    semilla: undefined,
-    opcionesPorCapitulo: [],
-    consistenciaSaga: false,
-    estiloVisual: '',
-    paleta: '',
-  },
-};
-
-export default function StorySettings() {
+export default function StorySettings({ config: initialConfig, onSave }: StorySettingsProps) {
   const router = useRouter();
   const intl = useIntl();
   const [config, setConfig] = useState<ConfigGeneracion>(defaultConfig);

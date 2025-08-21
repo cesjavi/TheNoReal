@@ -3,6 +3,7 @@ import { View, Text, Button, StyleSheet } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useIntl } from 'react-intl';
 
+import { useLanguage } from './providers/LanguageProvider';
 import { useSettings } from '../context/SettingsContext';
 import { useLanguage } from './providers/LanguageProvider';
 
