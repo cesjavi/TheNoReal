@@ -8,6 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
 import LanguageProvider from './providers/LanguageProvider';
+import { Colors } from '../constants/Colors';
 
 function LayoutInner() {
   const colorScheme = useColorScheme();
@@ -53,10 +54,10 @@ export default function RootLayout() {
 const styles = StyleSheet.create({
   lightContainer: {
     flex: 1,
-    background: `linear-gradient(135deg, ${Colors.light.background}, ${Colors.light.accent})`,
+    backgroundColor: `linear-gradient(135deg, ${Colors.light.background}, ${Colors.light.accent})`,
   },
   darkContainer: {
     flex: 1,
-    background: `linear-gradient(135deg, ${Colors.dark.background}, ${Colors.dark.accent})`,
+    backgroundColor: `linear-gradient(135deg, ${Colors.dark.background}, ${Colors.dark.accent})`,
   },
 });
