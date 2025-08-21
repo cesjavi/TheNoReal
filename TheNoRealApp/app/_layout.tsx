@@ -3,6 +3,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
+import { StyleSheet, View } from 'react-native';
 
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
@@ -21,17 +22,23 @@ function LayoutInner() {
   }
 
   return (
-    <SettingsProvider>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <Stack>
-          <Stack.Screen name="index" options={{ title: 'Home' }} />
-          <Stack.Screen name="Story" options={{ title: 'Story' }} />
-          <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
-        <StatusBar style="auto" />
-      </ThemeProvider>
-    </SettingsProvider>
+    <View
+      style={
+        colorScheme === 'dark' ? styles.darkContainer : styles.lightContainer
+      }
+    >
+      <SettingsProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <Stack>
+            <Stack.Screen name="index" options={{ title: 'Home' }} />
+            <Stack.Screen name="Story" options={{ title: 'Story' }} />
+            <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </SettingsProvider>
+    </View>
   );
 }
 
@@ -42,3 +49,14 @@ export default function RootLayout() {
     </LanguageProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  lightContainer: {
+    flex: 1,
+    background: `linear-gradient(135deg, ${Colors.light.background}, ${Colors.light.accent})`,
+  },
+  darkContainer: {
+    flex: 1,
+    background: `linear-gradient(135deg, ${Colors.dark.background}, ${Colors.dark.accent})`,
+  },
+});

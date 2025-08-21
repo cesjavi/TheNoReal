@@ -6,21 +6,30 @@ import ParallaxScrollView from '../../components/ParallaxScrollView';
 import { ThemedText } from '../../components/ThemedText';
 import { ThemedView } from '../../components/ThemedView';
 import { IconSymbol } from '../../components/ui/IconSymbol';
+import { Colors } from '../../constants/Colors';
 
 export default function TabTwoScreen() {
   return (
     <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
+      headerBackgroundColor={{
+        light: Colors.light.accent,
+        dark: Colors.dark.accentDark,
+      }}
       headerImage={
         <IconSymbol
           size={310}
-          color="#808080"
+          color={Colors.light.muted}
           name="chevron.left.forwardslash.chevron.right"
           style={styles.headerImage}
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Explore</ThemedText>
+        <ThemedText
+          type="title"
+          lightColor={Colors.light.text}
+          darkColor={Colors.dark.text}>
+          Explore
+        </ThemedText>
       </ThemedView>
       <ThemedText>This app includes example code to help you get started.</ThemedText>
       <Collapsible title="File-based routing">
@@ -97,7 +106,7 @@ export default function TabTwoScreen() {
 
 const styles = StyleSheet.create({
   headerImage: {
-    color: '#808080',
+    color: Colors.light.muted,
     bottom: -90,
     left: -35,
     position: 'absolute',
