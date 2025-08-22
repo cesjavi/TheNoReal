@@ -3,7 +3,8 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useColorScheme } from '../hooks/useColorScheme';
 import { SettingsProvider } from '../context/SettingsContext';
@@ -22,11 +23,20 @@ function LayoutInner() {
     return null;
   }
 
+  const gradientColors =
+    colorScheme === 'dark'
+      ? [Colors.dark.background, Colors.dark.accent]
+      : [Colors.light.background, Colors.light.accent];
+
+  const fallbackColor =
+    colorScheme === 'dark' ? Colors.dark.background : Colors.light.background;
+
   return (
-    <View
-      style={
-        colorScheme === 'dark' ? styles.darkContainer : styles.lightContainer
-      }
+    <LinearGradient
+      colors={gradientColors}
+      start={{ x: 0, y: 1 }}
+      end={{ x: 1, y: 0 }}
+      style={[styles.container, { backgroundColor: fallbackColor }]}
     >
       <SettingsProvider>
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -39,7 +49,7 @@ function LayoutInner() {
           <StatusBar style="auto" />
         </ThemeProvider>
       </SettingsProvider>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -52,12 +62,7 @@ export default function RootLayout() {
 }
 
 const styles = StyleSheet.create({
-  lightContainer: {
+  container: {
     flex: 1,
-    backgroundColor: `linear-gradient(135deg, ${Colors.light.background}, ${Colors.light.accent})`,
-  },
-  darkContainer: {
-    flex: 1,
-    backgroundColor: `linear-gradient(135deg, ${Colors.dark.background}, ${Colors.dark.accent})`,
   },
 });
