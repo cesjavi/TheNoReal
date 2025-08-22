@@ -5,6 +5,7 @@ import { useIntl } from 'react-intl';
 
 import { useLanguage } from './providers/LanguageProvider';
 import { parseStoryResponse } from '../lib/parseStoryResponse';
+import { postStory } from '../lib/api';
 import { Colors } from '../constants/Colors';
 
 const GENRES = [
@@ -143,6 +144,7 @@ export default function StoryForm() {
   const [chapters, setChapters] = useState('3');
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const navigation = useNavigation<any>();
   const intl = useIntl();
@@ -199,6 +201,7 @@ export default function StoryForm() {
   const handleSubmit = async () => {
     if (tokenCount > TOKEN_LIMIT) return;
     setLoading(true);
+    setError(null);
     try {
       const final = (() => {
         switch (modality) {
@@ -225,15 +228,8 @@ export default function StoryForm() {
           : {}),
       };
 
-      const backendUrl =
-        process.env.EXPO_PUBLIC_BACKEND_URL || 'http://localhost:3000';
-      const res = await fetch(`${backendUrl}/api/story`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      const text = typeof data === 'string' ? data : data.text || '';
+      const data = await postStory(payload);
+      const text = typeof data === 'string' ? data : data?.text || '';
       const { story, options } = parseStoryResponse(text, Number(numOptions));
       navigation.navigate('story', {
         initialStory: story,
@@ -242,6 +238,7 @@ export default function StoryForm() {
       });
     } catch (err) {
       console.error('Error al enviar la historia', err);
+      setError('Error al enviar la historia. Intente nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -329,6 +326,8 @@ export default function StoryForm() {
         </View>
       </View>
 
+      {error && <Text style={styles.error}>{error}</Text>}
+
       <Button
         title={
           loading
@@ -397,6 +396,10 @@ const styles = StyleSheet.create({
   },
   spacer: {
     width: 8,
+  },
+  error: {
+    color: 'red',
+    marginBottom: 8,
   },
 });
 
