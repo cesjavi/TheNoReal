@@ -29,7 +29,7 @@ export default function StoryForm() {
       />
       <Button
         title={intl.formatMessage({ id: 'StoryForm.settings' })}
-        onPress={() => navigation.navigate('story-settings')}
+        onPress={() => navigation.navigate('StorySettings')}
       />
       <Text style={styles.tokens}>
         {intl.formatMessage({ id: 'StoryForm.tokens' }, { count: tokenCount })}

@@ -33,7 +33,7 @@ function LayoutInner() {
           <Stack>
             <Stack.Screen name="index" options={{ title: 'Home' }} />
             <Stack.Screen name="Story" options={{ title: 'Story' }} />
-            <Stack.Screen name="story-settings" options={{ title: 'Settings' }} />
+            <Stack.Screen name="StorySettings" options={{ title: 'Settings' }} />
             <Stack.Screen name="+not-found" />
           </Stack>
           <StatusBar style="auto" />

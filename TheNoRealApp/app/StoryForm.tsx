@@ -306,7 +306,7 @@ export default function StoryForm() {
 
       <Button
         title={intl.formatMessage({ id: 'StoryForm.settings' })}
-        onPress={() => navigation.navigate('story-settings', { config, setConfig })}
+        onPress={() => navigation.navigate('StorySettings', { config, setConfig })}
       />
 
       <View style={styles.genresContainer}>
