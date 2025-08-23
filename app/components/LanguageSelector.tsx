@@ -1,9 +1,8 @@
 'use client';
 
-import { useLanguage } from '../providers/LanguageProvider';
-import { IDIOMAS } from './StorySettings';
+import { useLanguage, SUPPORTED } from '../providers/LanguageProvider';
 
-const LANGS = IDIOMAS.map(code => ({ code, label: code }));
+const LANGS = SUPPORTED.map(code => ({ code, label: code }));
 
 export default function LanguageSelector() {
   const { locale, setLocale } = useLanguage();
