@@ -8,42 +8,82 @@ interface LangContext {
   setLocale: (locale: string) => void;
 }
 
-const LanguageContext = createContext<LangContext>({ locale: 'es', setLocale: () => {} });
+const SUPPORTED = ['es', 'en'] as const;
+const DEFAULT_LOCALE = 'es';
+
+const LanguageContext = createContext<LangContext>({ locale: DEFAULT_LOCALE, setLocale: () => {} });
 export const useLanguage = () => useContext(LanguageContext);
 
+function baseOf(tag: string) {
+  return (tag || '').toLowerCase().split('-')[0];
+}
+
+function normalizeLocale(tag: string) {
+  const base = baseOf(tag);
+  return SUPPORTED.includes(base as (typeof SUPPORTED)[number]) ? base : DEFAULT_LOCALE;
+}
+
 export default function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState('es');
+  const [locale, setLocale] = useState<string>(DEFAULT_LOCALE);
   const [messages, setMessages] = useState<Record<string, any>>({});
   const [loaded, setLoaded] = useState(false);
 
+  // Pick initial locale from the browser but normalize it
   useEffect(() => {
-    const initial = navigator.language || 'es';
-    setLocale(initial);
+    const initial = typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
+    setLocale(normalizeLocale(initial));
   }, []);
 
   useEffect(() => {
-    setLoaded(false);
-    fetch(`/locales/${locale}/messages.json`)
-      .then(res => res.json())
-      .then(setMessages)
-      .catch(() => setMessages({}))
-      .finally(() => setLoaded(true));
+    let cancelled = false;
+    (async () => {
+      setLoaded(false);
+
+      // Try: full tag -> base -> default
+      const full = locale;
+      const base = baseOf(locale);
+      const candidates = Array.from(new Set([full, base, DEFAULT_LOCALE]));
+
+      async function tryFetch(loc: string) {
+        const res = await fetch(`/locales/${loc}/messages.json`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`Missing messages for ${loc}`);
+        return res.json();
+      }
+
+      for (const candidate of candidates) {
+        try {
+          const data = await tryFetch(candidate);
+          if (!cancelled) {
+            setMessages(data);
+            setLoaded(true);
+            // ensure state locale is normalized
+            if (!cancelled) setLocale(normalizeLocale(candidate));
+          }
+          return;
+        } catch {
+          // continue to next candidate
+        }
+      }
+
+      if (!cancelled) {
+        setMessages({});
+        setLoaded(true);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [locale]);
 
-  if (!loaded || Object.keys(messages).length === 0) {
-    return null;
-  }
+  if (!loaded) return null;
 
-  // Get the user's time zone or use a default
-  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const timeZone =
+    (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
 
   return (
     <LanguageContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider
-        locale={locale}
-        messages={messages}
-        timeZone={timeZone}
-      >
+      <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>
