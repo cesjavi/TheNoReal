@@ -78,11 +78,15 @@ export async function POST(req: Request) {
 
     const systemPrompt = [
       t('system.intro'),
+      t('system.language'),
       t('system.chapterLimit'),
       t('system.finalMode'),
       t('system.finalText'),
       t('system.nonFinal'),
+      t('system.optionsFormat'),
+      t('system.separator'),
       t('system.noExtra'),
+      t('system.uniqueness'),
       genreLine,
       estiloLine,
       ajustesLine,
