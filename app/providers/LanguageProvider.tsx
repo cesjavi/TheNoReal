@@ -8,7 +8,17 @@ interface LangContext {
   setLocale: (locale: string) => void;
 }
 
-const SUPPORTED = ['es', 'en'] as const;
+// Locales with available message bundles
+export const SUPPORTED = [
+  'es',
+  'es-AR',
+  'es-MX',
+  'en',
+  'en-US',
+  'fr-FR',
+  'neutral',
+] as const;
+
 const DEFAULT_LOCALE = 'es';
 
 const LanguageContext = createContext<LangContext>({ locale: DEFAULT_LOCALE, setLocale: () => {} });
@@ -19,8 +29,12 @@ function baseOf(tag: string) {
 }
 
 function normalizeLocale(tag: string) {
-  const base = baseOf(tag);
-  return SUPPORTED.includes(base as (typeof SUPPORTED)[number]) ? base : DEFAULT_LOCALE;
+  const lower = (tag || '').toLowerCase();
+  const full = SUPPORTED.find(l => l.toLowerCase() === lower);
+  if (full) return full;
+  const base = baseOf(lower);
+  const baseMatch = SUPPORTED.find(l => l.toLowerCase() === base);
+  return baseMatch || DEFAULT_LOCALE;
 }
 
 export default function LanguageProvider({ children }: { children: ReactNode }) {
@@ -56,8 +70,8 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
           if (!cancelled) {
             setMessages(data);
             setLoaded(true);
-            // ensure state locale is normalized
-            if (!cancelled) setLocale(normalizeLocale(candidate));
+            // keep user's selected locale
+            if (!cancelled) setLocale(candidate);
           }
           return;
         } catch {
