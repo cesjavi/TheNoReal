@@ -11,7 +11,11 @@ import StorySettings, {
 } from './StorySettings';
 import { parseStoryResponse } from '@/lib/parseStoryResponse';
 
-type EndingMode = 'capitulos' | 'sin_final_definido' | 'final_sorpresa' | 'infinita';
+type EndingMode =
+  | 'capitulos'
+  | 'sin_final_definido'
+  | 'final_sorpresa'
+  | 'infinita';
 
 const MODALITY_HELP = {
   capitulos: 'Divide la historia en capítulos.',
@@ -34,19 +38,21 @@ const GENRES = [
 
 const TOKEN_LIMIT = 500;
 
+/** Helpers */
 function countTokens(text: string) {
   return text.trim().split(/\s+/).filter(Boolean).length;
 }
-
 function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
-
-/** Helpers seguros */
 const toArray = <T,>(v: T | T[] | undefined | null): T[] =>
   Array.isArray(v) ? v : v == null ? [] : [v];
-
-const isNonEmptyArray = (v: unknown): v is unknown[] => Array.isArray(v) && v.length > 0;
+const isNonEmptyArray = (v: unknown): v is unknown[] =>
+  Array.isArray(v) && v.length > 0;
+const clamp = (n: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, n));
+const normalizeLocale = (loc: string) =>
+  (loc || 'es').toLowerCase().split('-')[0];
 
 const defaults: ConfigGeneracion = {
   generos: [],
@@ -79,6 +85,7 @@ const defaults: ConfigGeneracion = {
 export default function StoryForm() {
   const t = useTranslations('StoryForm');
   const { locale } = useLanguage();
+
   const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
@@ -103,7 +110,8 @@ export default function StoryForm() {
     setStoryConfig(null);
   };
 
-  const showChapters = modality === 'capitulos' || modality === 'final_sorpresa';
+  const showChapters =
+    modality === 'capitulos' || modality === 'final_sorpresa';
 
   const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
@@ -140,67 +148,102 @@ export default function StoryForm() {
     setError(null);
     setInitialStory(null);
     setInitialOptions([]);
+
     try {
-      if (!prompt.trim()) {
+      const trimmed = prompt.trim();
+      if (!trimmed) {
         setError('El inicio no puede estar vacío');
+        setLoading(false); // FIX: no quedar bloqueado
+        return;
+      }
+
+      // normalizar inputs
+      const optionsPerDecision = clamp(Number(numOptions) || 2, 2, 6);
+
+      const requiresChapters =
+        modality === 'capitulos' || modality === 'final_sorpresa';
+      const chaptersNum = requiresChapters ? Number(chapters) : undefined;
+
+      if (requiresChapters && (!chaptersNum || chaptersNum < 1)) {
+        setError('Ingresá un número de capítulos válido (>= 1)');
         setLoading(false);
         return;
       }
+
+      // token limit (truncado seguro)
+      let effectivePrompt = trimmed;
       if (tokenCount > TOKEN_LIMIT) {
-        setError(`El prompt supera el límite de ${TOKEN_LIMIT} tokens`);
-        return;
+        const words = trimmed.split(/\s+/).filter(Boolean).slice(0, TOKEN_LIMIT);
+        effectivePrompt = words.join(' ');
+        setPromptTruncated(true);
       }
-      // mapear la modalidad del select al valor que espera el backend
+
+      // mapear modalidad al enum esperado por el flujo
       const final: EndingMode = (() => {
         switch (modality) {
           case 'final_abierto':
             return 'sin_final_definido';
           case 'final_cerrado':
-            return chapters ? 'capitulos' : 'sin_final_definido';
+            return chaptersNum ? 'capitulos' : 'sin_final_definido';
           default:
-            return modality; // 'capitulos' | 'final_sorpresa'
+            return modality; // 'capitulos' | 'final_sorpresa' | 'infinita'
         }
       })();
 
-      const ajustesPayload = (() => {
-        const { creatividad, topP, ...rest } = config.ajustes;
-        return { ...rest, temperature: creatividad, top_p: topP };
-      })();
+      // mapear ajustes para el backend (creatividad/topP -> temperature/top_p)
+      const { creatividad, topP, ...restAjustes } = config.ajustes;
+      const ajustesPayload = {
+        ...restAjustes,
+        temperature: typeof creatividad === 'number' ? creatividad : 0.9,
+        top_p: typeof topP === 'number' ? topP : 0.95,
+      };
+
+      // normalizar locale a 'es' | 'en' ...
+      const lang = normalizeLocale(locale);
 
       const response = await fetch('/api/story', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          story: prompt,
+          story: effectivePrompt,
           option: '',
-          optionsPerDecision: Number(numOptions),
+          optionsPerDecision,
           genres: config.generos,
           estilo: config.estilo,
           ajustes: ajustesPayload,
-          language: locale,
+          language: lang,
+          // opcional: enviar para que el backend pueda decidir final/capítulos
+          endingMode: final,
+          chaptersCount:
+            final === 'capitulos' || final === 'final_sorpresa'
+              ? chaptersNum
+              : undefined,
         }),
       });
 
       const data = await response.json().catch(() => ({}));
-      if ((data as { truncated?: boolean }).truncated) setPromptTruncated(true);
+
       if (!response.ok) {
         setError(
           (data as { error?: string }).error ||
-            'Error al obtener la historia inicial'
+            'Error al obtener la historia inicial',
         );
       } else {
         const text: string = (data as { text?: string }).text || '';
-        const { story, options } = parseStoryResponse(text, Number(numOptions));
+        const { story, options } = parseStoryResponse(text, optionsPerDecision);
+
         setInitialStory(story);
         setInitialOptions(options);
         setStoryConfig({
-          optionsPerDecision: Number(numOptions),
+          optionsPerDecision,
           endingMode: final,
           chaptersCount:
-            (final === 'capitulos' || final === 'final_sorpresa') && chapters
-              ? Number(chapters)
+            final === 'capitulos' || final === 'final_sorpresa'
+              ? chaptersNum
               : undefined,
         });
+
+        // reset UI
         setPrompt('');
         setTokenCount(0);
         setNumOptions(2);
@@ -246,8 +289,11 @@ export default function StoryForm() {
               id="numOptions"
               type="number"
               min={2}
+              max={6}
               value={numOptions}
-              onChange={(e) => setNumOptions(Number(e.target.value))}
+              onChange={(e) =>
+                setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))
+              }
               className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
             />
           </div>
@@ -278,8 +324,7 @@ export default function StoryForm() {
                 required={modality === 'capitulos'}
                 value={chapters}
                 onChange={(e) => setChapters(e.target.value)}
-                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"                
-                
+                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
               />
             </div>
           )}
@@ -428,7 +473,7 @@ export default function StoryForm() {
               idioma: cfg.ajustes.idioma ?? [],
               registro: cfg.ajustes.registro ?? [],
               opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
-              // Escalares se copian tal cual:
+              // escalares
               lugar: cfg.ajustes.lugar,
               longitudPalabras: cfg.ajustes.longitudPalabras,
               creatividad: cfg.ajustes.creatividad,
