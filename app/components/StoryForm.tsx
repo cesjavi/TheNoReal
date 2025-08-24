@@ -1,40 +1,50 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useLanguage } from '../providers/LanguageProvider';
-import Story from './Story';
+import { useState } from "react";
+import { useTranslations } from "next-intl";
+import { useLanguage } from "../providers/LanguageProvider";
+import Story from "./Story";
 import StorySettings, {
   ConfigGeneracion,
   ESTILO_SECTIONS,
   AJUSTES_SECTIONS,
-} from './StorySettings';
-import { parseStoryResponse } from '@/lib/parseStoryResponse';
+} from "./StorySettings";
+import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
 type EndingMode =
-  | 'capitulos'
-  | 'sin_final_definido'
-  | 'final_sorpresa'
-  | 'infinita';
+  | "capitulos"
+  | "sin_final_definido"
+  | "final_sorpresa"
+  | "infinita";
 
 const MODALITY_HELP = {
-  capitulos: 'Divide la historia en capítulos.',
-  final_sorpresa: 'Añade un giro inesperado al final.',
-  final_abierto: 'La historia queda abierta a interpretación.',
-  final_cerrado: 'La historia tiene un desenlace definido.',
+  capitulos: "Divide la historia en capítulos.",
+  final_sorpresa: "Añade un giro inesperado al final.",
+  final_abierto: "La historia queda abierta a interpretación.",
+  final_cerrado: "La historia tiene un desenlace definido.",
 } as const;
 
 type Modality = keyof typeof MODALITY_HELP;
 
 const GENRES = [
-  'Aventura',
-  'Ciencia ficción',
-  'Terror',
-  'Fantasía',
-  'Misterio',
-  'Romance',
-  'Comedia',
+  "Aventura",
+  "Ciencia ficción",
+  "Terror",
+  "Fantasía",
+  "Misterio",
+  "Romance",
+  "Comedia",
 ];
+
+const GENRE_ICONS: Record<(typeof GENRES)[number], string> = {
+  Aventura: "/icons/aventura.svg",
+  "Ciencia ficción": "/icons/ciencia-ficcion.svg",
+  Terror: "/icons/terror.svg",
+  Fantasía: "/icons/fantasia.svg",
+  Misterio: "/icons/misterio.svg",
+  Romance: "/icons/romance.svg",
+  Comedia: "/icons/comedia.svg",
+};
 
 const TOKEN_LIMIT = 500;
 
@@ -52,7 +62,7 @@ const isNonEmptyArray = (v: unknown): v is unknown[] =>
 const clamp = (n: number, min: number, max: number) =>
   Math.max(min, Math.min(max, n));
 const normalizeLocale = (loc: string) =>
-  (loc || 'es').toLowerCase().split('-')[0];
+  (loc || "es").toLowerCase().split("-")[0];
 
 const defaults: ConfigGeneracion = {
   generos: [],
@@ -83,14 +93,14 @@ const defaults: ConfigGeneracion = {
 };
 
 export default function StoryForm() {
-  const t = useTranslations('StoryForm');
+  const t = useTranslations("StoryForm");
   const { locale } = useLanguage();
 
-  const [prompt, setPrompt] = useState('');
+  const [prompt, setPrompt] = useState("");
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
-  const [modality, setModality] = useState<Modality>('capitulos');
-  const [chapters, setChapters] = useState('3');
+  const [modality, setModality] = useState<Modality>("capitulos");
+  const [chapters, setChapters] = useState("3");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -111,7 +121,7 @@ export default function StoryForm() {
   };
 
   const showChapters =
-    modality === 'capitulos' || modality === 'final_sorpresa';
+    modality === "capitulos" || modality === "final_sorpresa";
 
   const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
@@ -130,15 +140,21 @@ export default function StoryForm() {
 
   const randomizeConfig = () => {
     const genero = randomPick(GENRES);
-    const estilo = ESTILO_SECTIONS.reduce((acc, { key, options }) => {
-      acc[key] = [randomPick(options)];
-      return acc;
-    }, {} as ConfigGeneracion['estilo']);
+    const estilo = ESTILO_SECTIONS.reduce(
+      (acc, { key, options }) => {
+        acc[key] = [randomPick(options)];
+        return acc;
+      },
+      {} as ConfigGeneracion["estilo"],
+    );
 
-    const ajustes = AJUSTES_SECTIONS.reduce((acc, { key, options }) => {
-      (acc as any)[key] = [randomPick(options)];
-      return acc;
-    }, {} as ConfigGeneracion['ajustes']);
+    const ajustes = AJUSTES_SECTIONS.reduce(
+      (acc, { key, options }) => {
+        (acc as any)[key] = [randomPick(options)];
+        return acc;
+      },
+      {} as ConfigGeneracion["ajustes"],
+    );
 
     setConfig({ generos: [genero], estilo, ajustes });
   };
@@ -152,7 +168,7 @@ export default function StoryForm() {
     try {
       const trimmed = prompt.trim();
       if (!trimmed) {
-        setError('El inicio no puede estar vacío');
+        setError("El inicio no puede estar vacío");
         setLoading(false); // FIX: no quedar bloqueado
         return;
       }
@@ -161,11 +177,11 @@ export default function StoryForm() {
       const optionsPerDecision = clamp(Number(numOptions) || 2, 2, 6);
 
       const requiresChapters =
-        modality === 'capitulos' || modality === 'final_sorpresa';
+        modality === "capitulos" || modality === "final_sorpresa";
       const chaptersNum = requiresChapters ? Number(chapters) : undefined;
 
       if (requiresChapters && (!chaptersNum || chaptersNum < 1)) {
-        setError('Ingresá un número de capítulos válido (>= 1)');
+        setError("Ingresá un número de capítulos válido (>= 1)");
         setLoading(false);
         return;
       }
@@ -173,18 +189,21 @@ export default function StoryForm() {
       // token limit (truncado seguro)
       let effectivePrompt = trimmed;
       if (tokenCount > TOKEN_LIMIT) {
-        const words = trimmed.split(/\s+/).filter(Boolean).slice(0, TOKEN_LIMIT);
-        effectivePrompt = words.join(' ');
+        const words = trimmed
+          .split(/\s+/)
+          .filter(Boolean)
+          .slice(0, TOKEN_LIMIT);
+        effectivePrompt = words.join(" ");
         setPromptTruncated(true);
       }
 
       // mapear modalidad al enum esperado por el flujo
       const final: EndingMode = (() => {
         switch (modality) {
-          case 'final_abierto':
-            return 'sin_final_definido';
-          case 'final_cerrado':
-            return chaptersNum ? 'capitulos' : 'sin_final_definido';
+          case "final_abierto":
+            return "sin_final_definido";
+          case "final_cerrado":
+            return chaptersNum ? "capitulos" : "sin_final_definido";
           default:
             return modality; // 'capitulos' | 'final_sorpresa' | 'infinita'
         }
@@ -194,19 +213,19 @@ export default function StoryForm() {
       const { creatividad, topP, ...restAjustes } = config.ajustes;
       const ajustesPayload = {
         ...restAjustes,
-        temperature: typeof creatividad === 'number' ? creatividad : 0.9,
-        top_p: typeof topP === 'number' ? topP : 0.95,
+        temperature: typeof creatividad === "number" ? creatividad : 0.9,
+        top_p: typeof topP === "number" ? topP : 0.95,
       };
 
       // normalizar locale a 'es' | 'en' ...
       const lang = normalizeLocale(locale);
 
-      const response = await fetch('/api/story', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           story: effectivePrompt,
-          option: '',
+          option: "",
           optionsPerDecision,
           genres: config.generos,
           estilo: config.estilo,
@@ -215,7 +234,7 @@ export default function StoryForm() {
           // opcional: enviar para que el backend pueda decidir final/capítulos
           endingMode: final,
           chaptersCount:
-            final === 'capitulos' || final === 'final_sorpresa'
+            final === "capitulos" || final === "final_sorpresa"
               ? chaptersNum
               : undefined,
         }),
@@ -226,10 +245,10 @@ export default function StoryForm() {
       if (!response.ok) {
         setError(
           (data as { error?: string }).error ||
-            'Error al obtener la historia inicial',
+            "Error al obtener la historia inicial",
         );
       } else {
-        const text: string = (data as { text?: string }).text || '';
+        const text: string = (data as { text?: string }).text || "";
         const { story, options } = parseStoryResponse(text, optionsPerDecision);
 
         setInitialStory(story);
@@ -238,20 +257,20 @@ export default function StoryForm() {
           optionsPerDecision,
           endingMode: final,
           chaptersCount:
-            final === 'capitulos' || final === 'final_sorpresa'
+            final === "capitulos" || final === "final_sorpresa"
               ? chaptersNum
               : undefined,
         });
 
         // reset UI
-        setPrompt('');
+        setPrompt("");
         setTokenCount(0);
         setNumOptions(2);
-        setModality('capitulos');
-        setChapters('');
+        setModality("capitulos");
+        setChapters("");
       }
     } catch {
-      setError('Error al conectar con el servidor');
+      setError("Error al conectar con el servidor");
     } finally {
       setLoading(false);
     }
@@ -321,7 +340,7 @@ export default function StoryForm() {
                 id="chapters"
                 type="number"
                 min={1}
-                required={modality === 'capitulos'}
+                required={modality === "capitulos"}
                 value={chapters}
                 onChange={(e) => setChapters(e.target.value)}
                 className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
@@ -342,14 +361,15 @@ export default function StoryForm() {
 
           <div className="flex flex-col gap-2 p-4 border border-black/30 rounded-lg max-w-xl w-full">
             {GENRES.map((genre) => (
-              <label key={genre} className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={config.generos.includes(genre)}
-                  onChange={() => toggleGenre(genre)}
-                />
+              <button
+                key={genre}
+                type="button"
+                onClick={() => toggleGenre(genre)}
+                className={`flex items-center gap-2 px-2 py-1 text-sm rounded-lg border border-black/30 hover:border-black/60 ${config.generos.includes(genre) ? "bg-accent text-black" : ""}`}
+              >
+                <img src={GENRE_ICONS[genre]} alt={genre} className="w-6 h-6" />
                 {genre}
-              </label>
+              </button>
             ))}
             <div className="flex gap-2 mt-2">
               <button
@@ -364,7 +384,7 @@ export default function StoryForm() {
                 onClick={randomizeConfig}
                 className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
               >
-                {t('randomize')}
+                {t("randomize")}
               </button>
             </div>
           </div>
@@ -411,7 +431,7 @@ export default function StoryForm() {
             disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
           >
-            {loading ? t('sending') : t('createStory')}
+            {loading ? t("sending") : t("createStory")}
           </button>
         </>
       )}
@@ -432,14 +452,14 @@ export default function StoryForm() {
 
       {promptTruncated && (
         <p className="text-yellow-600">
-          {t('promptTruncated', { limit: TOKEN_LIMIT })}
+          {t("promptTruncated", { limit: TOKEN_LIMIT })}
         </p>
       )}
 
       {error && (
         <p className="text-red-500">
-          {error === 'GROQ_API_KEY no configurada'
-            ? 'La clave de la API de Groq no está configurada.'
+          {error === "GROQ_API_KEY no configurada"
+            ? "La clave de la API de Groq no está configurada."
             : error}
         </p>
       )}
