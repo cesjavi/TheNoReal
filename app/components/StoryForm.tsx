@@ -357,37 +357,76 @@ export default function StoryForm() {
             Configuración
           </button>
 
-          <div className="flex flex-wrap gap-2 max-w-xl" />
+         {/* Selección de géneros (GRID) */}
+<div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
+  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+    {GENRES.map((genre) => {
+      const selected = config.generos.includes(genre);
+      return (
+        <button
+          key={genre}
+          type="button"
+          aria-pressed={selected}
+          onClick={() => toggleGenre(genre)}
+          title={selected ? "Quitar género" : "Agregar género"}
+          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
+            ${selected
+              ? "bg-accent text-black border-black/40 shadow-inner"
+              : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
+        >
+          <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
+          <span className="truncate">{genre}</span>
+          {selected && (
+            <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
+              ✓
+            </span>
+          )}
+        </button>
+      );
+    })}
+  </div>
 
-          <div className="flex flex-col gap-2 p-4 border border-black/30 rounded-lg max-w-xl w-full">
-            {GENRES.map((genre) => (
-              <button
-                key={genre}
-                type="button"
-                onClick={() => toggleGenre(genre)}
-                className={`flex items-center gap-2 px-2 py-1 text-sm rounded-lg border border-black/30 hover:border-black/60 ${config.generos.includes(genre) ? "bg-accent text-black" : ""}`}
-              >
-                <img src={GENRE_ICONS[genre]} alt={genre} className="w-6 h-6" />
-                {genre}
-              </button>
-            ))}
-            <div className="flex gap-2 mt-2">
-              <button
-                type="button"
-                onClick={clearGenres}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-              >
-                Limpiar
-              </button>
-              <button
-                type="button"
-                onClick={randomizeConfig}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-              >
-                {t("randomize")}
-              </button>
-            </div>
-          </div>
+  <div className="flex gap-2 mt-4">
+    <button
+      type="button"
+      onClick={clearGenres}
+      className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+    >
+      Limpiar
+    </button>
+    <button
+      type="button"
+      onClick={randomizeConfig}
+      className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+    >
+      {t("randomize")}
+    </button>
+  </div>
+</div>
+
+{/* Géneros seleccionados (chips) */}
+{config.generos.length > 0 && (
+  <div className="w-full max-w-xl mt-3 rounded-xl border border-black/20 bg-white/30 p-3">
+    <p className="mb-2 text-sm text-gray-700">
+      Géneros seleccionados:
+    </p>
+    <div className="flex flex-wrap gap-2">
+      {config.generos.map((genre) => (
+        <button
+          key={`chip-${genre}`}
+          type="button"
+          onClick={() => toggleGenre(genre)}
+          className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
+          title="Quitar"
+        >
+          <img src={GENRE_ICONS[genre]} alt="" className="h-4 w-4" />
+          <span>{genre}</span>
+          <span className="ml-1 leading-none">×</span>
+        </button>
+      ))}
+    </div>
+  </div>
+)}
 
           {(config.generos.length > 0 ||
             Object.values(config.estilo).some(isNonEmptyArray) ||
