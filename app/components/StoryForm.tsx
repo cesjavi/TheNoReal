@@ -301,7 +301,13 @@ export default function StoryForm() {
               )}
             </div>
           </div>
-
+          <button
+            onClick={handleSubmit}
+            disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
+            className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
+          >
+            {loading ? t("sending") : t("createStory")}
+          </button>
           <div className="flex items-center gap-2">
             <label htmlFor="numOptions">Opciones por decisión:</label>
             <input
@@ -348,42 +354,42 @@ export default function StoryForm() {
             </div>
           )}
 
+<button
+  type="button"
+  data-testid="btn-configuracion"
+  onClick={() => setOpen(true)}
+  className="self-start px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+>
+  Configuración
+</button>
+<>
+  <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+      {GENRES.map((genre) => {
+        const selected = config.generos.includes(genre);
+        return (
           <button
+            key={genre}
             type="button"
-            data-testid="btn-configuracion"
-            onClick={() => setOpen(true)}
-            className="self-start px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+            aria-pressed={selected ? 'true' : 'false'}   // ← FIX: string, no boolean
+            onClick={() => toggleGenre(genre)}
+            title={selected ? "Quitar género" : "Agregar género"}
+            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
+              ${selected
+                ? "bg-accent text-black border-black/40 shadow-inner"
+                : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
           >
-            Configuración
+            <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
+            <span className="truncate">{genre}</span>
+            {selected && (
+              <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
+                ✓
+              </span>
+            )}
           </button>
-
-         {/* Selección de géneros (GRID) */}
-<div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
-  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-    {GENRES.map((genre) => {
-      const selected = config.generos.includes(genre);
-      return (
-        <button
-          key={genre}
-          type="button"
-          aria-pressed={selected}
-          onClick={() => toggleGenre(genre)}
-          title={selected ? "Quitar género" : "Agregar género"}
-          className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
-            ${selected
-              ? "bg-accent text-black border-black/40 shadow-inner"
-              : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
-        >
-          <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
-          <span className="truncate">{genre}</span>
-          {selected && (
-            <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
-              ✓
-            </span>
-          )}
-        </button>
-      );
-    })}
+        );
+      })}
+    </div>
   </div>
 
   <div className="flex gap-2 mt-4">
@@ -402,7 +408,7 @@ export default function StoryForm() {
       {t("randomize")}
     </button>
   </div>
-</div>
+</>
 
 {/* Géneros seleccionados (chips) */}
 {config.generos.length > 0 && (
@@ -464,14 +470,6 @@ export default function StoryForm() {
               )}
             </div>
           )}
-
-          <button
-            onClick={handleSubmit}
-            disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
-            className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
-          >
-            {loading ? t("sending") : t("createStory")}
-          </button>
         </>
       )}
 
