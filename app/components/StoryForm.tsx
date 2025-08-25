@@ -36,7 +36,7 @@ const GENRES = [
   "Comedia",
 ] as const;
 
-const GENRE_ICONS: Record<(typeof GENRES)[number], string> = {
+const GENRE_ICONS: Record<string, string> = {
   Aventura: "/icons/aventura.svg",
   "Ciencia ficción": "/icons/ciencia-ficcion.svg",
   Terror: "/icons/terror.svg",
@@ -123,14 +123,14 @@ export default function StoryForm() {
   const showChapters =
     modality === "capitulos" || modality === "final_sorpresa";
 
-  const toggleGenre = (genre: (typeof GENRES)[number]) => {
-    setConfig((prev) => ({
-      ...prev,
-      generos: prev.generos.includes(genre)
-        ? prev.generos.filter((g) => g !== genre)
-        : [...prev.generos, genre],
-    }));
-  };
+  const toggleGenre = (genre: string) => {
+  setConfig((prev) => ({
+    ...prev,
+    generos: prev.generos.includes(genre)
+      ? prev.generos.filter((g) => g !== genre)
+      : [...prev.generos, genre],
+  }));
+};
 
   const clearGenres = () =>
     setConfig((prev) => ({
