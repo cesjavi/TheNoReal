@@ -34,7 +34,7 @@ const GENRES = [
   "Misterio",
   "Romance",
   "Comedia",
-];
+] as const;
 
 const GENRE_ICONS: Record<(typeof GENRES)[number], string> = {
   Aventura: "/icons/aventura.svg",
@@ -123,7 +123,7 @@ export default function StoryForm() {
   const showChapters =
     modality === "capitulos" || modality === "final_sorpresa";
 
-  const toggleGenre = (genre: string) => {
+  const toggleGenre = (genre: (typeof GENRES)[number]) => {
     setConfig((prev) => ({
       ...prev,
       generos: prev.generos.includes(genre)
@@ -139,7 +139,7 @@ export default function StoryForm() {
     }));
 
   const randomizeConfig = () => {
-    const genero = randomPick(GENRES);
+    const genero = randomPick([...GENRES]);
     const estilo = ESTILO_SECTIONS.reduce(
       (acc, { key, options }) => {
         acc[key] = [randomPick(options)];
@@ -169,11 +169,10 @@ export default function StoryForm() {
       const trimmed = prompt.trim();
       if (!trimmed) {
         setError("El inicio no puede estar vacío");
-        setLoading(false); // FIX: no quedar bloqueado
+        setLoading(false);
         return;
       }
 
-      // normalizar inputs
       const optionsPerDecision = clamp(Number(numOptions) || 2, 2, 6);
 
       const requiresChapters =
@@ -186,7 +185,6 @@ export default function StoryForm() {
         return;
       }
 
-      // token limit (truncado seguro)
       let effectivePrompt = trimmed;
       if (tokenCount > TOKEN_LIMIT) {
         const words = trimmed
@@ -197,7 +195,6 @@ export default function StoryForm() {
         setPromptTruncated(true);
       }
 
-      // mapear modalidad al enum esperado por el flujo
       const final: EndingMode = (() => {
         switch (modality) {
           case "final_abierto":
@@ -205,11 +202,10 @@ export default function StoryForm() {
           case "final_cerrado":
             return chaptersNum ? "capitulos" : "sin_final_definido";
           default:
-            return modality; // 'capitulos' | 'final_sorpresa' | 'infinita'
+            return modality;
         }
       })();
 
-      // mapear ajustes para el backend (creatividad/topP -> temperature/top_p)
       const { creatividad, topP, ...restAjustes } = config.ajustes;
       const ajustesPayload = {
         ...restAjustes,
@@ -217,7 +213,6 @@ export default function StoryForm() {
         top_p: typeof topP === "number" ? topP : 0.95,
       };
 
-      // normalizar locale a 'es' | 'en' ...
       const lang = normalizeLocale(locale);
 
       const response = await fetch("/api/story", {
@@ -231,7 +226,6 @@ export default function StoryForm() {
           estilo: config.estilo,
           ajustes: ajustesPayload,
           language: lang,
-          // opcional: enviar para que el backend pueda decidir final/capítulos
           endingMode: final,
           chaptersCount:
             final === "capitulos" || final === "final_sorpresa"
@@ -262,7 +256,6 @@ export default function StoryForm() {
               : undefined,
         });
 
-        // reset UI
         setPrompt("");
         setTokenCount(0);
         setNumOptions(2);
@@ -280,6 +273,7 @@ export default function StoryForm() {
     <main className="flex flex-col items-center p-8 gap-4">
       {!initialStory && (
         <>
+          {/* 1) Texto inicial */}
           <div className="flex flex-col w-full max-w-xl">
             <textarea
               className="w-full p-2 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
@@ -301,6 +295,88 @@ export default function StoryForm() {
               )}
             </div>
           </div>
+
+          {/* 2) ▼▼▼ MOVIDO AQUÍ: Géneros debajo del textarea ▼▼▼ */}
+          <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+              {GENRES.map((genre) => {
+                const selected = config.generos.includes(genre);
+                return (
+                  <button
+                    key={genre}
+                    type="button"
+                    aria-pressed={selected ? "true" : "false"}
+                    onClick={() => toggleGenre(genre)}
+                    title={selected ? "Quitar género" : "Agregar género"}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
+                      ${
+                        selected
+                          ? "bg-accent text-black border-black/40 shadow-inner"
+                          : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"
+                      }`}
+                  >
+                    <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
+                    <span className="truncate">{genre}</span>
+                    {selected && (
+                      <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
+                        ✓
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <button
+                type="button"
+                onClick={clearGenres}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Limpiar
+              </button>
+              <button
+                type="button"
+                onClick={randomizeConfig}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                {t("randomize")}
+              </button>
+              <button
+                type="button"
+                data-testid="btn-configuracion"
+                onClick={() => setOpen(true)}
+                className="self-start px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Configuración
+              </button>
+            </div>
+
+            {/* Chips de géneros seleccionados */}
+            {config.generos.length > 0 && (
+              <div className="w-full max-w-xl mt-3 rounded-xl border border-black/20 bg-white/30 p-3">
+                <p className="mb-2 text-sm text-gray-700">Géneros seleccionados:</p>
+                <div className="flex flex-wrap gap-2">
+                  {config.generos.map((genre) => (
+                    <button
+                      key={`chip-${genre}`}
+                      type="button"
+                      onClick={() => toggleGenre(genre)}
+                      className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
+                      title="Quitar"
+                    >
+                      <img src={GENRE_ICONS[genre]} alt="" className="h-4 w-4" />
+                      <span>{genre}</span>
+                      <span className="ml-1 leading-none">×</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          {/* 2) ▲▲▲ MOVIDO AQUÍ ▲▲▲ */}
+
+          {/* 3) Botón Crear historia (queda debajo de géneros) */}
           <button
             onClick={handleSubmit}
             disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
@@ -308,132 +384,58 @@ export default function StoryForm() {
           >
             {loading ? t("sending") : t("createStory")}
           </button>
-          <div className="flex items-center gap-2">
-            <label htmlFor="numOptions">Opciones por decisión:</label>
-            <input
-              id="numOptions"
-              type="number"
-              min={2}
-              max={6}
-              value={numOptions}
-              onChange={(e) =>
-                setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))
-              }
-              className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
-            />
-          </div>
 
-          <div className="flex flex-col w-full max-w-xl gap-2">
-            <label htmlFor="modality">Modalidad de final:</label>
-            <select
-              id="modality"
-              value={modality}
-              onChange={(e) => setModality(e.target.value as Modality)}
-              className="p-2 border rounded-lg border-black/30 hover:border-black/60 focus:ring-2 focus:ring-accent"
-            >
-              <option value="capitulos">Capítulos</option>
-              <option value="final_sorpresa">Final sorpresa</option>
-              <option value="final_abierto">Final abierto</option>
-              <option value="final_cerrado">Final cerrado</option>
-            </select>
-            <p className="text-sm text-gray-600">{MODALITY_HELP[modality]}</p>
-          </div>
-
-          {showChapters && (
-            <div className="flex items-center gap-2">
-              <label htmlFor="chapters">Capítulos:</label>
-              <input
-                id="chapters"
-                type="number"
-                min={1}
-                required={modality === "capitulos"}
-                value={chapters}
-                onChange={(e) => setChapters(e.target.value)}
-                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
-              />
-            </div>
-          )}
-
-<button
-  type="button"
-  data-testid="btn-configuracion"
-  onClick={() => setOpen(true)}
-  className="self-start px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
->
-  Configuración
-</button>
-<>
-  <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-      {GENRES.map((genre) => {
-        const selected = config.generos.includes(genre);
-        return (
-          <button
-            key={genre}
-            type="button"
-            aria-pressed={selected ? 'true' : 'false'}   // ← FIX: string, no boolean
-            onClick={() => toggleGenre(genre)}
-            title={selected ? "Quitar género" : "Agregar género"}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
-              ${selected
-                ? "bg-accent text-black border-black/40 shadow-inner"
-                : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
-          >
-            <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
-            <span className="truncate">{genre}</span>
-            {selected && (
-              <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
-                ✓
-              </span>
-            )}
-          </button>
-        );
-      })}
-    </div>
+          {/* 4) Resto de controles */}
+          {/* Controles en una sola línea */}
+<div className="flex flex-wrap gap-4 items-end w-full max-w-xl">
+  {/* Opciones por decisión */}
+  <div className="flex items-center gap-2">
+    <label htmlFor="numOptions">Opciones:</label>
+    <input
+      id="numOptions"
+      type="number"
+      min={2}
+      max={6}
+      value={numOptions}
+      onChange={(e) =>
+        setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))
+      }
+      className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+    />
   </div>
 
-  <div className="flex gap-2 mt-4">
-    <button
-      type="button"
-      onClick={clearGenres}
-      className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+  {/* Modalidad de final */}
+  <div className="flex flex-col">
+    <label htmlFor="modality">Modalidad de final:</label>
+    <select
+      id="modality"
+      value={modality}
+      onChange={(e) => setModality(e.target.value as Modality)}
+      className="p-2 border rounded-lg border-black/30 hover:border-black/60 focus:ring-2 focus:ring-accent"
     >
-      Limpiar
-    </button>
-    <button
-      type="button"
-      onClick={randomizeConfig}
-      className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-    >
-      {t("randomize")}
-    </button>
+      <option value="capitulos">Capítulos</option>
+      <option value="final_sorpresa">Final sorpresa</option>
+      <option value="final_abierto">Final abierto</option>
+      <option value="final_cerrado">Final cerrado</option>
+    </select>
   </div>
-</>
 
-{/* Géneros seleccionados (chips) */}
-{config.generos.length > 0 && (
-  <div className="w-full max-w-xl mt-3 rounded-xl border border-black/20 bg-white/30 p-3">
-    <p className="mb-2 text-sm text-gray-700">
-      Géneros seleccionados:
-    </p>
-    <div className="flex flex-wrap gap-2">
-      {config.generos.map((genre) => (
-        <button
-          key={`chip-${genre}`}
-          type="button"
-          onClick={() => toggleGenre(genre)}
-          className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
-          title="Quitar"
-        >
-          <img src={GENRE_ICONS[genre]} alt="" className="h-4 w-4" />
-          <span>{genre}</span>
-          <span className="ml-1 leading-none">×</span>
-        </button>
-      ))}
+  {/* Capítulos (solo si corresponde) */}
+  {showChapters && (
+    <div className="flex items-center gap-2">
+      <label htmlFor="chapters">Capítulos:</label>
+      <input
+        id="chapters"
+        type="number"
+        min={1}
+        required={modality === "capitulos"}
+        value={chapters}
+        onChange={(e) => setChapters(e.target.value)}
+        className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+      />
     </div>
-  </div>
-)}
-
+  )}
+</div>
           {(config.generos.length > 0 ||
             Object.values(config.estilo).some(isNonEmptyArray) ||
             Object.values(config.ajustes).some(isNonEmptyArray)) && (
@@ -506,7 +508,6 @@ export default function StoryForm() {
         config={config}
         onClose={() => setOpen(false)}
         onSave={(cfg) => {
-          // Normalización al guardar: arrays garantizados donde corresponde
           const normalized: ConfigGeneracion = {
             generos: Array.isArray(cfg.generos) ? cfg.generos : [],
             estilo: {
@@ -530,7 +531,6 @@ export default function StoryForm() {
               idioma: cfg.ajustes.idioma ?? [],
               registro: cfg.ajustes.registro ?? [],
               opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
-              // escalares
               lugar: cfg.ajustes.lugar,
               longitudPalabras: cfg.ajustes.longitudPalabras,
               creatividad: cfg.ajustes.creatividad,
