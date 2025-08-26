@@ -38,15 +38,12 @@ function normalizeLocale(tag: string) {
 }
 
 export default function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<string>(DEFAULT_LOCALE);
+  const [locale, setLocale] = useState<string>(() => {
+    const initial = typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
+    return normalizeLocale(initial);
+  });
   const [messages, setMessages] = useState<Record<string, any>>({});
   const [loaded, setLoaded] = useState(false);
-
-  // Pick initial locale from the browser but normalize it
-  useEffect(() => {
-    const initial = typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
-    setLocale(normalizeLocale(initial));
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,7 +68,7 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
             setMessages(data);
             setLoaded(true);
             // keep user's selected locale
-            if (!cancelled) setLocale(candidate);
+            if (!cancelled && candidate !== locale) setLocale(candidate);
           }
           return;
         } catch {
