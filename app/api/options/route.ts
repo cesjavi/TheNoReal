@@ -14,33 +14,52 @@ export async function POST(req: Request) {
       );
     }
 
-    let options: string[] = [];
-    for (let attempt = 0; attempt < 2; attempt++) {
+    const options: string[] = [];
+    let attempts = 0;
+    const maxAttempts = count + 2;
+    while (options.length < count && attempts < maxAttempts) {
+      attempts++;
       const completion = await createChatCompletion({
         model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
-        n: count,
+        n: 1,
         temperature,
         top_p,
       });
 
-      options = completion.choices
-        .map((choice) => choice.message.content?.trim())
-        .filter(Boolean) as string[];
-
-      console.log("options count", { expected: count, received: options.length });
-      if (options.length === count) {
-        break;
+      const option = completion.choices[0]?.message.content?.trim();
+      if (option) {
+        options.push(option);
       }
+      console.log("options progress", {
+        expected: count,
+        received: options.length,
+        attempts,
+      });
     }
 
-    if (options.length !== count) {
-      return Response.json({ error: "Error generating options" }, { status: 502 });
+    const uniqueOptions = Array.from(new Set(options.map((o) => o.trim()))).filter(
+      Boolean,
+    );
+
+    if (uniqueOptions.length < count) {
+      console.warn("Fewer options generated than requested", {
+        expected: count,
+        received: uniqueOptions.length,
+        attempts,
+      });
+      return Response.json(
+        {
+          error: `Generated ${uniqueOptions.length} of ${count} options`,
+          options: uniqueOptions,
+        },
+        { status: 502 },
+      );
     }
 
-    console.log("Groq options response", options);
+    console.log("Groq options response", uniqueOptions);
 
-    return Response.json({ options });
+    return Response.json({ options: uniqueOptions });
   } catch (err) {
     console.error(err);
     return Response.json({ error: "Error generating options" }, { status: 500 });
