@@ -20,7 +20,10 @@ export async function POST(req: Request) {
     const temperature: number = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
     const top_p: number = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
     const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
-    const estilo: Estilo | undefined = body.estilo;
+    // Define or import the Estilo type above if not already present
+    type Estilo = any; // Replace 'any' with the actual structure if known
+    
+        const estilo: Estilo | undefined = body.estilo;
 
     const metaBlock = buildMeta({
       optionsCount,
@@ -56,7 +59,7 @@ export async function POST(req: Request) {
     });
 
     const text: string =
-      completion?.choices?.[0]?.message?.content ?? completion?.choices?.[0]?.text ?? "";
+      completion?.choices?.[0]?.message?.content ?? "";
 
     console.log("Groq story response", text);
 
