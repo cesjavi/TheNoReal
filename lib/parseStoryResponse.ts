@@ -22,8 +22,8 @@ export function parseStoryResponse(
 ): ParseResult {
   const raw = (text || '').trim();
 
-  // Detecta final por palabra EXACTA al final
-  const finalRegex = /FINALIZADO\s*$/;
+  // Detecta "finalizado" al final, ignorando mayúsculas y minúsculas
+  const finalRegex = /FINALIZADO\s*$/i;
   const isFinal = finalRegex.test(raw);
 
   let { story, optionsBlock } = splitStoryAndOptions(raw);
