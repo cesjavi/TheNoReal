@@ -199,8 +199,39 @@ export default function StoryForm() {
           options = [],
         } = data as { story?: string; options?: string[] };
 
+        let opts = Array.from(new Set(options.filter(Boolean)));
+
+        if (opts.length < optionsPerDecision) {
+          try {
+            const missing = optionsPerDecision - opts.length;
+            const optRes = await fetch("/api/options", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                prompt: story,
+                numOptions: missing,
+                temperature: ajustesPayload.temperature,
+                top_p: ajustesPayload.top_p,
+              }),
+            });
+            const optData = await optRes.json().catch(() => ({}));
+            if (optRes.ok && Array.isArray((optData as any).options)) {
+              const extra = Array.from(
+                new Set(((optData as any).options as string[]).filter(Boolean))
+              );
+              opts = Array.from(new Set([...opts, ...extra]));
+            } else {
+              setError((optData as { error?: string }).error || "Error al obtener opciones adicionales");
+            }
+          } catch {
+            setError("Error al obtener opciones adicionales");
+          }
+        }
+
+        opts = opts.slice(0, optionsPerDecision);
+
         setInitialStory(story);
-        setInitialOptions(options);
+        setInitialOptions(opts);
         setStoryConfig({
           optionsPerDecision,
           endingMode: final,
