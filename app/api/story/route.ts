@@ -1,136 +1,62 @@
 import { NextResponse } from "next/server";
 import createChatCompletion from "@/lib/groqClient";
-import fs from "fs";
-import path from "path";
+import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
+import { buildMeta } from "@/lib/meta";
+import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
+import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json(
-      { error: "GROQ_API_KEY no configurada" },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
   }
 
   try {
-    const {
-      story,
-      option,
-      optionsPerDecision,
-      genres,
-      estilo = {},
-      ajustes = {},
-      finalize = false,
-      language = "es",
-    } = await req.json();
+    const body = await req.json();
+    const storyText: string = body.story ?? "";
+    const chosenOption: string = body.option ?? "";
+    const optionsCount: number = Number(body.optionsPerDecision ?? 2) || 2;
+    const genres: string[] = Array.isArray(body.genres) ? body.genres : [];
+    const temperature: number = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
+    const top_p: number = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
+    const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
 
-    const localesPath = path.join(process.cwd(), "public", "locales");
-    let messages;
-    try {
-      const messagesPath = path.join(localesPath, language, "api.json");
-      messages = JSON.parse(fs.readFileSync(messagesPath, "utf-8"));
-    } catch (err) {
-      console.warn(`Locale '${language}' not found, falling back to 'es'`, err);
-      try {
-        const fallbackPath = path.join(localesPath, "es", "api.json");
-        messages = JSON.parse(fs.readFileSync(fallbackPath, "utf-8"));
-      } catch (fallbackErr) {
-        console.error("Fallback locale 'es' not found", fallbackErr);
-        return NextResponse.json(
-          { error: `Locale '${language}' not supported` },
-          { status: 400 }
-        );
-      }
-    }
+    const metaBlock = buildMeta({
+      optionsCount,
+      targetWords,
+      recentFingerprints: getRecentFingerprints(),
+      bannedCliches: ["todo fue un sueño", "llamadas sin identificador", "hospital psiquiátrico abandonado"],
+    });
 
-    const t = (key: string, params: Record<string, any> = {}) => {
-      const parts = key.split(".");
-      let result: any = messages;
-      for (const p of parts) result = result?.[p];
-      if (typeof result === "string") {
-        return result.replace(/\{(\w+)\}/g, (_, k) => params[k]);
-      }
-      return "";
-    };
+    const messages = [
+      { role: "system", content: SYSTEM_PROMPT_V3 },
+      { role: "user", content: buildUserMessage({ text: storyText, chosenOption, optionsCount, targetWords, metaBlock }) },
+    ] as const;
 
-    const genreLine =
-      Array.isArray(genres) && genres.length > 0
-        ? t("genreLine", { genres: genres.join(', ') })
-        : '';
-
-    const formatSection = (
-      title: string,
-      data: Record<string, unknown>
-    ): string => {
-      const entries = Object.entries(data)
-        .filter(([, v]) =>
-          Array.isArray(v) ? (v as unknown[]).length > 0 : v !== undefined
-        )
-        .map(([k, v]) => {
-          const key = k.replace(/([A-Z])/g, ' $1').toLowerCase();
-          const value = Array.isArray(v) ? (v as unknown[]).join(', ') : v;
-          return `${key}: ${value}`;
-        });
-      return entries.length > 0 ? `${title}: ${entries.join('; ')}.` : '';
-    };
-
-    const estiloLine = formatSection(t('styleTitle'), estilo);
-    const ajustesLine = formatSection(t('settingsTitle'), ajustes);
-
-    const systemPrompt = [
-      t('system.intro'),
-      t('system.language'),
-      t('system.chapterLimit'),
-      t('system.finalMode'),
-      t('system.finalText'),
-      t('system.nonFinal'),
-      t('system.optionsFormat'),
-      t('system.separator'),
-      t('system.noExtra'),
-      t('system.uniqueness'),
-      genreLine,
-      estiloLine,
-      ajustesLine,
-    ]
-      .filter(Boolean)
-      .join("\n\n");
-
-    const userPrompt = finalize
-      ? `${story}\n\n${t('user.final')}`
-      : `${story}\n\n${t('user.continue', { option, options: optionsPerDecision })}`;
-
-    const chatMessages = [
-      {
-        role: "system" as const,
-        content: systemPrompt,
-      },
-      {
-        role: "user" as const,
-        content: userPrompt,
-      },
-    ];
-
-    console.log('Mensajes enviados a Groq:', chatMessages);
-
-    const { temperature, top_p } = ajustes as {
-      temperature?: number;
-      top_p?: number;
-    };
-
+    const model = process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct";
     const completion = await createChatCompletion({
-      model: "moonshotai/kimi-k2-instruct",//"moonshotai/kimi-k2-instruct",//"deepseek-r1-distill-llama-70b",//"openai/gpt-oss-120b",
-      messages: chatMessages,
+      model,
+      messages: messages as any,
       temperature,
       top_p,
     });
 
-    const text =
-      'choices' in completion
-        ? completion.choices?.[0]?.message?.content || ""
-        : "";
+    const text: string =
+      completion?.choices?.[0]?.message?.content ?? completion?.choices?.[0]?.text ?? "";
+
+    if (!text) {
+      return NextResponse.json({ error: "Respuesta vacía del modelo" }, { status: 502 });
+    }
+
+    // Parseamos para fingerprint y devolvemos texto completo como antes
+    const { story, isFinal } = parseStoryResponse(text, optionsCount);
+    if (!isFinal && story) {
+      const fp = computeFingerprint({ chapterText: story, genres });
+      pushFingerprint(fp);
+    }
 
     return NextResponse.json({ text });
-  } catch (error) {
-    console.error("Error al consultar la API de Groq", error);
-    return NextResponse.json({ error: "Error al consultar la API de Groq" }, { status: 500 });
+  } catch (err: any) {
+    console.error("api/story error:", err);
+    return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 });
   }
 }

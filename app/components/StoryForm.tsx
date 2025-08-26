@@ -11,11 +11,7 @@ import StorySettings, {
 } from "./StorySettings";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
-type EndingMode =
-  | "capitulos"
-  | "sin_final_definido"
-  | "final_sorpresa"
-  | "infinita";
+type EndingMode = "capitulos" | "sin_final_definido" | "final_sorpresa" | "infinita";
 
 const MODALITY_HELP = {
   capitulos: "Divide la historia en capítulos.",
@@ -66,30 +62,12 @@ const normalizeLocale = (loc: string) =>
 
 const defaults: ConfigGeneracion = {
   generos: [],
-  estilo: {
-    tono: [],
-    ritmo: [],
-    voz: [],
-    tiempo: [],
-    formato: [],
-    descripcion: [],
-    dialogo: [],
-    matiz: [],
-  },
+  estilo: { tono: [], ritmo: [], voz: [], tiempo: [], formato: [], descripcion: [], dialogo: [], matiz: [] },
   ajustes: {
-    publico: [],
-    epoca: [],
-    ambito: [],
-    estructura: [],
-    incluir: [],
-    evitar: [],
-    clasificacion: [],
-    idioma: [],
-    registro: [],
-    creatividad: 0.9,
-    topP: 0.95,
-    opcionesPorCapitulo: [],
-  },
+    publico: [], epoca: [], ambito: [], estructura: [], incluir: [], evitar: [], clasificacion: [], idioma: [], registro: [],
+    creatividad: 0.75, topP: 0.9, opcionesPorCapitulo: [],
+    targetWords: 220,
+  } as any,
 };
 
 export default function StoryForm() {
@@ -101,6 +79,7 @@ export default function StoryForm() {
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<Modality>("capitulos");
   const [chapters, setChapters] = useState("3");
+  const [targetWords, setTargetWords] = useState<number>(220);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -120,42 +99,29 @@ export default function StoryForm() {
     setStoryConfig(null);
   };
 
-  const showChapters =
-    modality === "capitulos" || modality === "final_sorpresa";
+  const showChapters = modality === "capitulos" || modality === "final_sorpresa";
 
   const toggleGenre = (genre: string) => {
-  setConfig((prev) => ({
-    ...prev,
-    generos: prev.generos.includes(genre)
-      ? prev.generos.filter((g) => g !== genre)
-      : [...prev.generos, genre],
-  }));
-};
-
-  const clearGenres = () =>
     setConfig((prev) => ({
       ...prev,
-      generos: [],
+      generos: prev.generos.includes(genre)
+        ? prev.generos.filter((g) => g !== genre)
+        : [...prev.generos, genre],
     }));
+  };
+
+  const clearGenres = () => setConfig((prev) => ({ ...prev, generos: [] }));
 
   const randomizeConfig = () => {
     const genero = randomPick([...GENRES]);
     const estilo = ESTILO_SECTIONS.reduce(
-      (acc, { key, options }) => {
-        acc[key] = [randomPick(options)];
-        return acc;
-      },
-      {} as ConfigGeneracion["estilo"],
+      (acc, { key, options }) => { acc[key] = [randomPick(options)]; return acc; },
+      {} as ConfigGeneracion["estilo"]
     );
-
     const ajustes = AJUSTES_SECTIONS.reduce(
-      (acc, { key, options }) => {
-        (acc as any)[key] = [randomPick(options)];
-        return acc;
-      },
-      {} as ConfigGeneracion["ajustes"],
+      (acc, { key, options }) => { (acc as any)[key] = [randomPick(options)]; return acc; },
+      {} as ConfigGeneracion["ajustes"]
     );
-
     setConfig({ generos: [genero], estilo, ajustes });
   };
 
@@ -174,9 +140,7 @@ export default function StoryForm() {
       }
 
       const optionsPerDecision = clamp(Number(numOptions) || 2, 2, 6);
-
-      const requiresChapters =
-        modality === "capitulos" || modality === "final_sorpresa";
+      const requiresChapters = modality === "capitulos" || modality === "final_sorpresa";
       const chaptersNum = requiresChapters ? Number(chapters) : undefined;
 
       if (requiresChapters && (!chaptersNum || chaptersNum < 1)) {
@@ -187,30 +151,25 @@ export default function StoryForm() {
 
       let effectivePrompt = trimmed;
       if (tokenCount > TOKEN_LIMIT) {
-        const words = trimmed
-          .split(/\s+/)
-          .filter(Boolean)
-          .slice(0, TOKEN_LIMIT);
+        const words = trimmed.split(/\s+/).filter(Boolean).slice(0, TOKEN_LIMIT);
         effectivePrompt = words.join(" ");
         setPromptTruncated(true);
       }
 
       const final: EndingMode = (() => {
         switch (modality) {
-          case "final_abierto":
-            return "sin_final_definido";
-          case "final_cerrado":
-            return chaptersNum ? "capitulos" : "sin_final_definido";
-          default:
-            return modality;
+          case "final_abierto": return "sin_final_definido";
+          case "final_cerrado": return chaptersNum ? "capitulos" : "sin_final_definido";
+          default: return modality;
         }
       })();
 
-      const { creatividad, topP, ...restAjustes } = config.ajustes;
-      const ajustesPayload = {
+      const { creatividad, topP, ...restAjustes } = config.ajustes as any;
+      const ajustesPayload: any = {
         ...restAjustes,
-        temperature: typeof creatividad === "number" ? creatividad : 0.9,
-        top_p: typeof topP === "number" ? topP : 0.95,
+        temperature: typeof creatividad === "number" ? creatividad : 0.75,
+        top_p: typeof topP === "number" ? topP : 0.9,
+        targetWords: targetWords,
       };
 
       const lang = normalizeLocale(locale);
@@ -227,20 +186,14 @@ export default function StoryForm() {
           ajustes: ajustesPayload,
           language: lang,
           endingMode: final,
-          chaptersCount:
-            final === "capitulos" || final === "final_sorpresa"
-              ? chaptersNum
-              : undefined,
+          chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
         }),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(
-          (data as { error?: string }).error ||
-            "Error al obtener la historia inicial",
-        );
+        setError((data as { error?: string }).error || "Error al obtener la historia inicial");
       } else {
         const text: string = (data as { text?: string }).text || "";
         const { story, options } = parseStoryResponse(text, optionsPerDecision);
@@ -250,10 +203,7 @@ export default function StoryForm() {
         setStoryConfig({
           optionsPerDecision,
           endingMode: final,
-          chaptersCount:
-            final === "capitulos" || final === "final_sorpresa"
-              ? chaptersNum
-              : undefined,
+          chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
         });
 
         setPrompt("");
@@ -287,36 +237,29 @@ export default function StoryForm() {
               }}
             />
             <div className="flex justify-between text-sm text-gray-600">
-              <span>
-                {tokenCount}/{TOKEN_LIMIT} tokens
-              </span>
-              {tokenCount >= TOKEN_LIMIT && (
-                <span className="text-red-600">Límite alcanzado</span>
-              )}
+              <span>{tokenCount}/{TOKEN_LIMIT} tokens</span>
+              {tokenCount >= TOKEN_LIMIT && (<span className="text-red-600">Límite alcanzado</span>)}
             </div>
           </div>
 
-          {/* 2) ▼▼▼ MOVIDO AQUÍ: Géneros debajo del textarea ▼▼▼ */}
+          {/* 2) Géneros debajo del textarea */}
           <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {GENRES.map((genre) => {
-                const selected = config.generos.includes(genre);
+                const selected = config.generos.includes(genre as any);
                 return (
                   <button
-                    key={genre}
+                    key={genre as any}
                     type="button"
                     aria-pressed={selected ? "true" : "false"}
-                    onClick={() => toggleGenre(genre)}
+                    onClick={() => toggleGenre(genre as any)}
                     title={selected ? "Quitar género" : "Agregar género"}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition
-                      ${
-                        selected
-                          ? "bg-accent text-black border-black/40 shadow-inner"
-                          : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"
-                      }`}
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
+                      selected ? "bg-accent text-black border-black/40 shadow-inner"
+                              : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
                   >
-                    <img src={GENRE_ICONS[genre]} alt="" className="w-6 h-6" />
-                    <span className="truncate">{genre}</span>
+                    <img src={GENRE_ICONS[genre as any] ?? "/icons/generico.svg"} alt="" className="w-6 h-6" />
+                    <span className="truncate">{genre as any}</span>
                     {selected && (
                       <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
                         ✓
@@ -361,11 +304,11 @@ export default function StoryForm() {
                     <button
                       key={`chip-${genre}`}
                       type="button"
-                      onClick={() => toggleGenre(genre)}
+                      onClick={() => toggleGenre(genre as any)}
                       className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
                       title="Quitar"
                     >
-                      <img src={GENRE_ICONS[genre]} alt="" className="h-4 w-4" />
+                      <img src={GENRE_ICONS[genre] ?? "/icons/generico.svg"} alt="" className="h-4 w-4" />
                       <span>{genre}</span>
                       <span className="ml-1 leading-none">×</span>
                     </button>
@@ -374,9 +317,8 @@ export default function StoryForm() {
               </div>
             )}
           </div>
-          {/* 2) ▲▲▲ MOVIDO AQUÍ ▲▲▲ */}
 
-          {/* 3) Botón Crear historia (queda debajo de géneros) */}
+          {/* 3) Botón Crear historia */}
           <button
             onClick={handleSubmit}
             disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
@@ -385,89 +327,91 @@ export default function StoryForm() {
             {loading ? t("sending") : t("createStory")}
           </button>
 
-          {/* 4) Resto de controles */}
-          {/* Controles en una sola línea */}
-<div className="flex flex-wrap gap-4 items-end w-full max-w-xl">
-  {/* Opciones por decisión */}
-  <div className="flex items-center gap-2">
-    <label htmlFor="numOptions">Opciones:</label>
-    <input
-      id="numOptions"
-      type="number"
-      min={2}
-      max={6}
-      value={numOptions}
-      onChange={(e) =>
-        setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))
-      }
-      className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
-    />
-  </div>
+          {/* 4) Controles en una sola línea */}
+          <div className="flex flex-wrap gap-4 items-end w-full max-w-xl">
+            {/* Opciones por decisión */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="numOptions">Opciones por decisión:</label>
+              <input
+                id="numOptions"
+                type="number"
+                min={2}
+                max={6}
+                value={numOptions}
+                onChange={(e) => setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))}
+                className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+              />
+            </div>
 
-  {/* Modalidad de final */}
-  <div className="flex flex-col">
-    <label htmlFor="modality">Modalidad de final:</label>
-    <select
-      id="modality"
-      value={modality}
-      onChange={(e) => setModality(e.target.value as Modality)}
-      className="p-2 border rounded-lg border-black/30 hover:border-black/60 focus:ring-2 focus:ring-accent"
-    >
-      <option value="capitulos">Capítulos</option>
-      <option value="final_sorpresa">Final sorpresa</option>
-      <option value="final_abierto">Final abierto</option>
-      <option value="final_cerrado">Final cerrado</option>
-    </select>
-  </div>
+            {/* Modalidad de final */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="modality">Modalidad de final:</label>
+              <select
+                id="modality"
+                value={modality}
+                onChange={(e) => setModality(e.target.value as Modality)}
+                className="p-2 border rounded-lg border-black/30 hover:border-black/60 focus:ring-2 focus:ring-accent"
+              >
+                <option value="capitulos">Capítulos</option>
+                <option value="final_sorpresa">Final sorpresa</option>
+                <option value="final_abierto">Final abierto</option>
+                <option value="final_cerrado">Final cerrado</option>
+              </select>
+            </div>
 
-  {/* Capítulos (solo si corresponde) */}
-  {showChapters && (
-    <div className="flex items-center gap-2">
-      <label htmlFor="chapters">Capítulos:</label>
-      <input
-        id="chapters"
-        type="number"
-        min={1}
-        required={modality === "capitulos"}
-        value={chapters}
-        onChange={(e) => setChapters(e.target.value)}
-        className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
-      />
-    </div>
-  )}
-</div>
+            {/* Capítulos (si corresponde) */}
+            {showChapters && (
+              <div className="flex items-center gap-2">
+                <label htmlFor="chapters">Capítulos:</label>
+                <input
+                  id="chapters"
+                  type="number"
+                  min={1}
+                  required={modality === "capitulos"}
+                  value={chapters}
+                  onChange={(e) => setChapters(e.target.value)}
+                  className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+                />
+              </div>
+            )}
+
+            {/* Target words */}
+            <div className="flex items-center gap-2">
+              <label htmlFor="targetWords">Palabras objetivo:</label>
+              <input
+                id="targetWords"
+                type="number"
+                min={80}
+                max={600}
+                value={targetWords}
+                onChange={(e) => setTargetWords(Math.max(80, Math.min(600, Number(e.target.value) || 220)))}
+                className="w-24 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
+              />
+            </div>
+          </div>
+
+          {/* 5) Ayudas/modos */}
+          <div className="flex flex-col w-full max-w-xl gap-2">
+            <p className="text-sm text-gray-600">{MODALITY_HELP[modality]}</p>
+          </div>
+
           {(config.generos.length > 0 ||
             Object.values(config.estilo).some(isNonEmptyArray) ||
             Object.values(config.ajustes).some(isNonEmptyArray)) && (
             <div className="flex flex-wrap gap-2 max-w-xl">
               {config.generos.map((genre) => (
-                <span
-                  key={`genero-${genre}`}
-                  className="px-2 py-1 text-sm rounded-full bg-accent text-black"
-                >
-                  {genre}
-                </span>
+                <span key={`genero-${genre}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{genre}</span>
               ))}
 
               {Object.entries(config.estilo).flatMap(([key, values]) =>
                 toArray(values as string[]).map((v) => (
-                  <span
-                    key={`estilo-${key}-${v}`}
-                    className="px-2 py-1 text-sm rounded-full bg-accent text-black"
-                  >
-                    {v}
-                  </span>
+                  <span key={`estilo-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
                 )),
               )}
 
               {Object.entries(config.ajustes).flatMap(([key, values]) =>
                 toArray(values as string[]).map((v) => (
-                  <span
-                    key={`ajuste-${key}-${v}`}
-                    className="px-2 py-1 text-sm rounded-full bg-accent text-black"
-                  >
-                    {v}
-                  </span>
+                  <span key={`ajuste-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
                 )),
               )}
             </div>
@@ -484,22 +428,16 @@ export default function StoryForm() {
           chaptersCount={storyConfig.chaptersCount}
           genres={config.generos}
           estilo={config.estilo}
-          ajustes={config.ajustes}
+          ajustes={config.ajustes as any}
           onBack={resetStory}
         />
       )}
 
-      {promptTruncated && (
-        <p className="text-yellow-600">
-          {t("promptTruncated", { limit: TOKEN_LIMIT })}
-        </p>
-      )}
+      {promptTruncated && <p className="text-yellow-600">{t("promptTruncated", { limit: TOKEN_LIMIT })}</p>}
 
       {error && (
         <p className="text-red-500">
-          {error === "GROQ_API_KEY no configurada"
-            ? "La clave de la API de Groq no está configurada."
-            : error}
+          {error === "GROQ_API_KEY no configurada" ? "La clave de la API de Groq no está configurada." : error}
         </p>
       )}
 
@@ -511,37 +449,21 @@ export default function StoryForm() {
           const normalized: ConfigGeneracion = {
             generos: Array.isArray(cfg.generos) ? cfg.generos : [],
             estilo: {
-              tono: cfg.estilo.tono ?? [],
-              ritmo: cfg.estilo.ritmo ?? [],
-              voz: cfg.estilo.voz ?? [],
-              tiempo: cfg.estilo.tiempo ?? [],
-              formato: cfg.estilo.formato ?? [],
-              descripcion: cfg.estilo.descripcion ?? [],
-              dialogo: cfg.estilo.dialogo ?? [],
-              matiz: cfg.estilo.matiz ?? [],
+              tono: cfg.estilo.tono ?? [], ritmo: cfg.estilo.ritmo ?? [], voz: cfg.estilo.voz ?? [], tiempo: cfg.estilo.tiempo ?? [],
+              formato: cfg.estilo.formato ?? [], descripcion: cfg.estilo.descripcion ?? [], dialogo: cfg.estilo.dialogo ?? [], matiz: cfg.estilo.matiz ?? [],
             },
             ajustes: {
-              publico: cfg.ajustes.publico ?? [],
-              epoca: cfg.ajustes.epoca ?? [],
-              ambito: cfg.ajustes.ambito ?? [],
-              estructura: cfg.ajustes.estructura ?? [],
-              incluir: cfg.ajustes.incluir ?? [],
-              evitar: cfg.ajustes.evitar ?? [],
-              clasificacion: cfg.ajustes.clasificacion ?? [],
-              idioma: cfg.ajustes.idioma ?? [],
-              registro: cfg.ajustes.registro ?? [],
-              opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
-              lugar: cfg.ajustes.lugar,
-              longitudPalabras: cfg.ajustes.longitudPalabras,
-              creatividad: cfg.ajustes.creatividad,
-              topP: cfg.ajustes.topP,
-              semilla: cfg.ajustes.semilla,
-              consistenciaSaga: cfg.ajustes.consistenciaSaga,
-              estiloVisual: cfg.ajustes.estiloVisual,
-              paleta: cfg.ajustes.paleta,
-            },
+              publico: cfg.ajustes.publico ?? [], epoca: cfg.ajustes.epoca ?? [], ambito: cfg.ajustes.ambito ?? [], estructura: cfg.ajustes.estructura ?? [],
+              incluir: cfg.ajustes.incluir ?? [], evitar: cfg.ajustes.evitar ?? [], clasificacion: cfg.ajustes.clasificacion ?? [], idioma: cfg.ajustes.idioma ?? [],
+              registro: cfg.ajustes.registro ?? [], opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
+              lugar: cfg.ajustes.lugar, longitudPalabras: cfg.ajustes.longitudPalabras, creatividad: cfg.ajustes.creatividad,
+              topP: cfg.ajustes.topP, semilla: cfg.ajustes.semilla, consistenciaSaga: cfg.ajustes.consistenciaSaga,
+              estiloVisual: cfg.ajustes.estiloVisual, paleta: cfg.ajustes.paleta,
+              targetWords: (cfg as any).ajustes?.targetWords ?? 220,
+            } as any,
           };
           setConfig(normalized);
+          setTargetWords((normalized.ajustes as any).targetWords ?? 220);
           setOpen(false);
         }}
       />

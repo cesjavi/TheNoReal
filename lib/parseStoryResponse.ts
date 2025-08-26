@@ -1,29 +1,42 @@
-export function parseStoryResponse(text: string, numOptions: number) {
-  console.log("📩 Texto completo recibido:", text);
-  const [storyPart, optionsPartRaw] = text.split(/\n\s*---\s*\n/, 2);
-  const hasSeparator = optionsPartRaw !== undefined;
-  let story = hasSeparator ? storyPart.trim() : '';
-  const optionsPart = hasSeparator ? optionsPartRaw : text;
-  const linesAll = optionsPart
-    .split('\n')
-    .map((l) => l.trim())
-    .filter(Boolean);
-  let lines = linesAll;
-  if (!hasSeparator && linesAll.length > 0) {
-    if (/^\d+[\.\)\-:]/.test(linesAll[0])) {
-      // first line is an option
-      story = '';
-    } else {
-      story = linesAll[0];
-      lines = linesAll.slice(1);
-    }
-  }
-  console.log("✂️ Parte historia:", story);
-  console.log("✂️ Parte opciones (raw):", lines.join('\n'));
-  let options = lines.filter((l) => /^\d+[\.\)\-:]/.test(l));
-  if (options.length === 0) options = lines;
-  options = options.slice(0, numOptions);
+import { validateOptions } from "./optionGuard";
 
-  console.log("✅ Opciones parseadas:", options);
-  return { story, options };
+export type ParseResult = {
+  story: string;
+  options: string[];
+  isFinal: boolean;
+};
+
+// Split exacto por línea '---'.
+function splitStoryAndOptions(text: string): { story: string; optionsBlock: string | null } {
+  const lines = (text || "").split(/\r?\n/);
+  const idx = lines.findIndex(l => l.trim() === "---");
+  if (idx === -1) return { story: text.trim(), optionsBlock: null };
+  const story = lines.slice(0, idx).join("\n").trim();
+  const optionsBlock = lines.slice(idx + 1).join("\n");
+  return { story, optionsBlock };
+}
+
+export function parseStoryResponse(text: string, optionsPerDecision: number): ParseResult {
+  const raw = (text || "").trim();
+
+  // Detecta final por palabra EXACTA al final
+  const finalRegex = /FINALIZADO\s*$/;
+  const isFinal = finalRegex.test(raw);
+
+  const { story, optionsBlock } = splitStoryAndOptions(raw);
+  let options: string[] = [];
+
+  if (!isFinal && optionsBlock) {
+    const optLines = optionsBlock.split(/\r?\n/);
+    const parsed = optLines
+      .map(l => {
+        const m = l.match(/^\s*\d+\.\s+(.+?)\s*$/);
+        return m ? m[1] : null;
+      })
+      .filter(Boolean) as string[];
+
+    options = validateOptions(parsed, optionsPerDecision);
+  }
+
+  return { story, options, isFinal };
 }
