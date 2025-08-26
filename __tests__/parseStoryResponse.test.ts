@@ -22,4 +22,11 @@ describe('parseStoryResponse', () => {
       'Investigar las antiguas ruinas de la ciudad perdida',
     ]);
   });
+
+  it('detecta final ignorando mayúsculas y minúsculas', () => {
+    const text = 'El héroe ha cumplido su misión\nFiNaLiZaDo';
+    const { isFinal, options } = parseStoryResponse(text, 2);
+    expect(isFinal).toBe(true);
+    expect(options).toEqual([]);
+  });
 });
