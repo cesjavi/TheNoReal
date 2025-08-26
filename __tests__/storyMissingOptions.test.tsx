@@ -17,7 +17,9 @@ describe('Story options regeneration', () => {
       .mockResolvedValueOnce({
         json: () =>
           Promise.resolve({
-            text: 'Nuevo capítulo\n---\n1. Explorar el misterioso bosque oscuro con gran cautela',
+            story: 'Nuevo capítulo',
+            options: ['Explorar el misterioso bosque oscuro con gran cautela'],
+            isFinal: false,
           }),
       })
       .mockResolvedValueOnce({
