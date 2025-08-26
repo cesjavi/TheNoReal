@@ -56,7 +56,7 @@ export function dedupeOptions(options: string[]): string[] {
 
 export function validateOptions(
   options: string[],
-  N: number,
+  N: number, // number of options to return; should be a non-negative integer
   min = 2,
   max = 16
 ): { valid: string[]; discarded: OptionDiscard[] } {
@@ -72,7 +72,7 @@ export function validateOptions(
     }
   }
   return {
-    valid: valid.slice(0, Math.max(0, N | 0 || 0)),
+    valid: valid.slice(0, Math.max(0, Math.floor(N))),
     discarded,
   };
 }
