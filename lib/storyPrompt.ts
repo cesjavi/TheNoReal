@@ -52,6 +52,25 @@ export type BuildUserMessageArgs = {
   estilo?: Estilo;
 };
 
+function formatConfigLines(genres?: string[], estilo?: Estilo): string[] {
+  const lines: string[] = [];
+  if (genres && genres.length > 0) {
+    lines.push(`Géneros a respetar: ${genres.join(", ")}`);
+  }
+  if (estilo) {
+    const parts: string[] = [];
+    for (const [key, values] of Object.entries(estilo)) {
+      if (Array.isArray(values) && values.length > 0) {
+        parts.push(`${key} ${values.join(", ")}`);
+      }
+    }
+    if (parts.length > 0) {
+      lines.push(`Estilo: ${parts.join(", ")}`);
+    }
+  }
+  return lines;
+}
+
 export function buildUserMessage({
   text,
   chosenOption,
