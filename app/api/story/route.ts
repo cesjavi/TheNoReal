@@ -43,6 +43,8 @@ export async function POST(req: Request) {
     const text: string =
       completion?.choices?.[0]?.message?.content ?? completion?.choices?.[0]?.text ?? "";
 
+    console.log("Groq story response", text);
+
     if (!text) {
       return NextResponse.json({ error: "Respuesta vacía del modelo" }, { status: 502 });
     }
