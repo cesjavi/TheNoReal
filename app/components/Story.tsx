@@ -132,12 +132,12 @@ export default function Story({
       } = data as { story?: string; options?: string[]; isFinal?: boolean };
 
       let imageUrl: string | null = null;
-      /*try {
+      try {
         const { url } = await generateImage(newStory, genres);
         imageUrl = url;
       } catch (err) {
         console.error('No se pudo generar la imagen', err);
-      }*/
+      }
 
       setChapters((prev) => [...prev, { texto: newStory, imageUrl }]);
       setChoices((prev) => [...prev, option]);

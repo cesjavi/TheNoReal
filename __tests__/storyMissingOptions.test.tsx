@@ -9,6 +9,9 @@ jest.mock('next-intl', () => ({
 jest.mock('../app/providers/LanguageProvider', () => ({
   useLanguage: () => ({ locale: 'es' }),
 }));
+jest.mock('@/lib/imageGenerator', () => ({
+  generateImage: jest.fn().mockResolvedValue({ url: null, truncated: false }),
+}));
 
 describe('Story options regeneration', () => {
   beforeEach(() => {
