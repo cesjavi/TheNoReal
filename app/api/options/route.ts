@@ -38,6 +38,8 @@ export async function POST(req: Request) {
       return Response.json({ error: "Error generating options" }, { status: 502 });
     }
 
+    console.log("Groq options response", options);
+
     return Response.json({ options });
   } catch (err) {
     console.error(err);
