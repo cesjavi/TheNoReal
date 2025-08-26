@@ -1,3 +1,5 @@
+import type { Estilo } from "@/types/story";
+
 export const SYSTEM_PROMPT_V3 = `Eres un generador de historias ramificadas y únicas. No repitas tramas ni frases largas. Escribe SIEMPRE en el idioma configurado (por defecto: español). No cambies de idioma.
 
 === FORMATO ESTRICTO ===
@@ -47,7 +49,28 @@ export type BuildUserMessageArgs = {
   optionsCount: number;
   targetWords?: number;
   metaBlock?: string | null;
+  genres?: string[];
+  estilo?: Estilo;
 };
+
+function formatConfigLines(genres?: string[], estilo?: Estilo): string[] {
+  const lines: string[] = [];
+  if (genres && genres.length > 0) {
+    lines.push(`Géneros a respetar: ${genres.join(", ")}`);
+  }
+  if (estilo) {
+    const parts: string[] = [];
+    for (const [key, values] of Object.entries(estilo)) {
+      if (Array.isArray(values) && values.length > 0) {
+        parts.push(`${key} ${values.join(", ")}`);
+      }
+    }
+    if (parts.length > 0) {
+      lines.push(`Estilo: ${parts.join(", ")}`);
+    }
+  }
+  return lines;
+}
 
 export function buildUserMessage({
   text,
@@ -55,15 +78,16 @@ export function buildUserMessage({
   optionsCount,
   targetWords,
   metaBlock,
+  genres,
+  estilo,
 }: BuildUserMessageArgs): string {
   const chosen = (chosenOption ?? "") + "";
-  const lines = [
-    text.trim(),
-    "",
-    `Opción elegida: ${chosen}`,
-    "",
-    `Genera exactamente ${optionsCount} opciones nuevas y coherentes para continuar la historia.`,
-  ];
+  const lines = [text.trim(), ""];
+  const configLines = formatConfigLines(genres, estilo);
+  if (configLines.length > 0) {
+    lines.push(...configLines, "");
+  }
+  lines.push(`Opción elegida: ${chosen}`, "", `Genera exactamente ${optionsCount} opciones nuevas y coherentes para continuar la historia.`);
   if (typeof targetWords === "number") {
     // Sugerencia suave al modelo; el SYSTEM dicta cómo usarlo vía [META].
   }

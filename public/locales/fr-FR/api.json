@@ -20,6 +20,7 @@
     "chapterLength": "Garde une longueur raisonnable et centrée sur l'action (ne divague pas)."
   },
   "genreLine": "Genres à respecter : {genres}.",
+  "styleLine": "Style : {style}.",
   "styleTitle": "Style",
   "settingsTitle": "Paramètres",
   "outputExamples": {
