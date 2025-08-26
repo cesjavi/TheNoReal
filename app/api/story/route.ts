@@ -20,6 +20,7 @@ export async function POST(req: Request) {
     const temperature: number = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
     const top_p: number = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
     const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
+    const estilo: Estilo | undefined = body.estilo;
 
     const metaBlock = buildMeta({
       optionsCount,
