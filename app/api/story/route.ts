@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import createChatCompletion from "@/lib/groqClient";
 import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
+import type { Estilo } from "@/types/story";
 import { buildMeta } from "@/lib/meta";
 import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
@@ -19,6 +20,7 @@ export async function POST(req: Request) {
     const temperature: number = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
     const top_p: number = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
     const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
+    const estilo: Estilo | undefined = body.estilo;
 
     const metaBlock = buildMeta({
       optionsCount,
@@ -29,7 +31,17 @@ export async function POST(req: Request) {
 
     const messages = [
       { role: "system", content: SYSTEM_PROMPT_V3 },
-      { role: "user", content: buildUserMessage({ text: storyText, chosenOption, optionsCount, targetWords, metaBlock }) },
+      {
+        role: "user",
+        content: buildUserMessage({
+          text: storyText,
+          chosenOption,
+          optionsCount,
+          targetWords,
+          metaBlock,
+          estilo,
+        }),
+      },
     ] as const;
 
     const model = process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct";

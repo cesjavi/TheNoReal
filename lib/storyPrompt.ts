@@ -1,3 +1,5 @@
+import type { Estilo } from "@/types/story";
+
 export const SYSTEM_PROMPT_V3 = `Eres un generador de historias ramificadas y únicas. No repitas tramas ni frases largas. Escribe SIEMPRE en el idioma configurado (por defecto: español). No cambies de idioma.
 
 === FORMATO ESTRICTO ===
@@ -47,6 +49,7 @@ export type BuildUserMessageArgs = {
   optionsCount: number;
   targetWords?: number;
   metaBlock?: string | null;
+  estilo?: Estilo;
 };
 
 export function buildUserMessage({
@@ -55,6 +58,7 @@ export function buildUserMessage({
   optionsCount,
   targetWords,
   metaBlock,
+  estilo,
 }: BuildUserMessageArgs): string {
   const chosen = (chosenOption ?? "") + "";
   const lines = [
@@ -64,6 +68,24 @@ export function buildUserMessage({
     "",
     `Genera exactamente ${optionsCount} opciones nuevas y coherentes para continuar la historia.`,
   ];
+  if (estilo) {
+    const labels: Record<keyof Estilo, string> = {
+      tono: "Tono",
+      ritmo: "Ritmo",
+      voz: "Voz",
+      tiempo: "Tiempo",
+      formato: "Formato",
+      descripcion: "Descripción",
+      dialogo: "Diálogo",
+      matiz: "Matiz",
+    };
+    const estiloLines = (Object.entries(estilo) as [keyof Estilo, string[]][])
+      .filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
+      .map(([key, arr]) => `${labels[key]}: ${arr.join(", ")}`);
+    if (estiloLines.length > 0) {
+      lines.push("", ...estiloLines);
+    }
+  }
   if (typeof targetWords === "number") {
     // Sugerencia suave al modelo; el SYSTEM dicta cómo usarlo vía [META].
   }
