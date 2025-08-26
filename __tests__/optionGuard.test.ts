@@ -24,4 +24,20 @@ describe('validateOptions', () => {
     const { valid } = validateOptions([longOption], 1, 2, 25);
     expect(valid).toEqual([longOption]);
   });
+
+  it('recognizes common imperative endings', () => {
+    const options = [
+      'Descifra… el código',
+      'Come la comida',
+      'Apagad las luces',
+      'Proceded con cautela',
+      'Salid de aquí',
+      'Callaos ya',
+      'Caminemos juntos',
+      'Revivamos el momento',
+    ];
+    const { valid, discarded } = validateOptions(options, options.length);
+    expect(valid).toEqual(options);
+    expect(discarded).toEqual([]);
+  });
 });
