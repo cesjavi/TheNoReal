@@ -77,9 +77,6 @@ export async function generateImage(
   } finally {
     clearTimeout(timeout);
   }
-
-  // Temporary fallback to satisfy return type while implementation is commented out
-  return { url: null, truncated };
 }
 
 export default generateImage;
