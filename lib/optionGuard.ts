@@ -15,12 +15,25 @@ export function looksLikeVerbStartEs(s: string): boolean {
   return commonImperatives.includes(first);
 }
 
-export function isValidOption(s: string, min=8, max=16): boolean {
+export type OptionDiscard = { option: string; reason: string };
+
+export function isValidOption(
+  s: string,
+  min = 2,
+  max = 16
+): { ok: boolean; reason?: string } {
   const t = normalizeOption(s);
   const words = countWords(t);
-  if (words < min || words > max) return false;
-  if (!looksLikeVerbStartEs(t)) return false;
-  return true;
+  if (words < min) {
+    return { ok: false, reason: `menos de ${min} palabras` };
+  }
+  if (words > max) {
+    return { ok: false, reason: `más de ${max} palabras` };
+  }
+  if (!looksLikeVerbStartEs(t)) {
+    return { ok: false, reason: 'no empieza con un verbo' };
+  }
+  return { ok: true };
 }
 
 export function dedupeOptions(options: string[]): string[] {
@@ -36,8 +49,25 @@ export function dedupeOptions(options: string[]): string[] {
   return out;
 }
 
-export function validateOptions(options: string[], N: number): string[] {
+export function validateOptions(
+  options: string[],
+  N: number,
+  min = 2,
+  max = 16
+): { valid: string[]; discarded: OptionDiscard[] } {
   const deduped = dedupeOptions(options);
-  const filtered = deduped.filter(o => isValidOption(o));
-  return filtered.slice(0, Math.max(0, N|0 || 0));
+  const valid: string[] = [];
+  const discarded: OptionDiscard[] = [];
+  for (const o of deduped) {
+    const { ok, reason } = isValidOption(o, min, max);
+    if (ok) {
+      valid.push(o);
+    } else {
+      discarded.push({ option: o, reason: reason || 'motivo desconocido' });
+    }
+  }
+  return {
+    valid: valid.slice(0, Math.max(0, N | 0 || 0)),
+    discarded,
+  };
 }
