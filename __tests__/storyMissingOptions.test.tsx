@@ -13,7 +13,8 @@ jest.mock('../app/providers/LanguageProvider', () => ({
 describe('Story options regeneration', () => {
   beforeEach(() => {
     global.fetch = jest.fn().mockResolvedValue({
-      json: () => Promise.resolve({ text: 'Nuevo capítulo\nOpción única' }),
+      json: () =>
+        Promise.resolve({ text: 'Nuevo capítulo\n---\n1. Explorar la cueva' }),
     }) as jest.Mock;
   });
 
@@ -40,7 +41,7 @@ describe('Story options regeneration', () => {
     fireEvent.click(screen.getByText('Uno'));
 
     await waitFor(() => expect(consoleSpy).toHaveBeenCalled());
-    expect(screen.getByText('Opción única')).toBeInTheDocument();
+    expect(screen.getByText('Explorar la cueva')).toBeInTheDocument();
     expect(consoleSpy).toHaveBeenCalledWith(
       'La API devolvió menos opciones de las esperadas'
     );

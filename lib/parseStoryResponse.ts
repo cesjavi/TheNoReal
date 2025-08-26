@@ -16,26 +16,46 @@ function splitStoryAndOptions(text: string): { story: string; optionsBlock: stri
   return { story, optionsBlock };
 }
 
-export function parseStoryResponse(text: string, optionsPerDecision: number): ParseResult {
-  const raw = (text || "").trim();
+export function parseStoryResponse(
+  text: string,
+  optionsPerDecision: number
+): ParseResult {
+  const raw = (text || '').trim();
 
   // Detecta final por palabra EXACTA al final
   const finalRegex = /FINALIZADO\s*$/;
   const isFinal = finalRegex.test(raw);
 
-  const { story, optionsBlock } = splitStoryAndOptions(raw);
+  let { story, optionsBlock } = splitStoryAndOptions(raw);
   let options: string[] = [];
 
-  if (!isFinal && optionsBlock) {
-    const optLines = optionsBlock.split(/\r?\n/);
-    const parsed = optLines
-      .map(l => {
-        const m = l.match(/^\s*\d+\.\s+(.+?)\s*$/);
-        return m ? m[1] : null;
-      })
-      .filter(Boolean) as string[];
+  if (!isFinal) {
+    const optionRegex = /^\s*\d+[.\-:)]\s+(.+?)\s*$/;
+    if (!optionsBlock) {
+      const lines = raw.split(/\r?\n/);
+      if (lines.every(l => optionRegex.test(l))) {
+        // Solo opciones, sin historia
+        story = '';
+        optionsBlock = raw;
+      } else if (lines.length > 1 && lines.slice(1).every(l => optionRegex.test(l))) {
+        // Primera línea como historia, resto opciones
+        story = lines[0].trim();
+        optionsBlock = lines.slice(1).join('\n');
+      }
+    }
 
-    options = validateOptions(parsed, optionsPerDecision);
+    if (optionsBlock) {
+      const optLines = optionsBlock.split(/\r?\n/);
+      const parsed = optLines
+        .map(l => {
+          const m = l.match(optionRegex);
+          return m ? m[1] : null;
+        })
+        .filter(Boolean) as string[];
+
+      const { valid } = validateOptions(parsed, optionsPerDecision);
+      options = valid;
+    }
   }
 
   return { story, options, isFinal };
