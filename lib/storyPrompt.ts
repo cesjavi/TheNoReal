@@ -49,7 +49,6 @@ export type BuildUserMessageArgs = {
   optionsCount: number;
   targetWords?: number;
   metaBlock?: string | null;
-  genres?: string[];
   estilo?: Estilo;
 };
 
@@ -78,16 +77,34 @@ export function buildUserMessage({
   optionsCount,
   targetWords,
   metaBlock,
-  genres,
   estilo,
 }: BuildUserMessageArgs): string {
   const chosen = (chosenOption ?? "") + "";
-  const lines = [text.trim(), ""];
-  const configLines = formatConfigLines(genres, estilo);
-  if (configLines.length > 0) {
-    lines.push(...configLines, "");
+  const lines = [
+    text.trim(),
+    "",
+    `Opción elegida: ${chosen}`,
+    "",
+    `Genera exactamente ${optionsCount} opciones nuevas y coherentes para continuar la historia.`,
+  ];
+  if (estilo) {
+    const labels: Record<keyof Estilo, string> = {
+      tono: "Tono",
+      ritmo: "Ritmo",
+      voz: "Voz",
+      tiempo: "Tiempo",
+      formato: "Formato",
+      descripcion: "Descripción",
+      dialogo: "Diálogo",
+      matiz: "Matiz",
+    };
+    const estiloLines = (Object.entries(estilo) as [keyof Estilo, string[]][])
+      .filter(([, arr]) => Array.isArray(arr) && arr.length > 0)
+      .map(([key, arr]) => `${labels[key]}: ${arr.join(", ")}`);
+    if (estiloLines.length > 0) {
+      lines.push("", ...estiloLines);
+    }
   }
-  lines.push(`Opción elegida: ${chosen}`, "", `Genera exactamente ${optionsCount} opciones nuevas y coherentes para continuar la historia.`);
   if (typeof targetWords === "number") {
     // Sugerencia suave al modelo; el SYSTEM dicta cómo usarlo vía [META].
   }
