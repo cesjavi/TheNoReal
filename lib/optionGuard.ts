@@ -8,11 +8,16 @@ function countWords(s: string): number {
 }
 
 export function looksLikeVerbStartEs(s: string): boolean {
-  const first = normalizeOption(s).split(" ")[0]?.toLowerCase() || "";
+  const firstRaw = normalizeOption(s).split(" ")[0]?.toLowerCase() || "";
+  const first = firstRaw.replace(/[^\p{L}]+$/u, "");
   if (!first) return false;
   if (/(ar|er|ir)$/.test(first)) return true; // infinitivo
-  const commonImperatives = ["ve","haz","sigue","entra","toma","abre","mira","detén","corre","huye","busca","investiga","pregunta","enfrenta","rompe","cruza","sube","baja","miente","confiesa","llama","esconde","revela"];
-  return commonImperatives.includes(first);
+  const irregularImperatives = ["haz", "sé", "di", "pon", "sal", "ten", "ven", "ve", "detén"];
+  if (irregularImperatives.includes(first)) return true;
+  const commonEndings = ["a", "e", "ad", "ed", "id", "os", "emos", "amos"];
+  return commonEndings.some(
+    (ending) => first.length > ending.length + 1 && first.endsWith(ending)
+  );
 }
 
 export type OptionDiscard = { option: string; reason: string };
