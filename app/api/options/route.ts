@@ -14,23 +14,29 @@ export async function POST(req: Request) {
       );
     }
 
-    const completions = await Promise.all(
-      Array.from({ length: count }).map(() =>
-        createChatCompletion({
-          model: "openai/gpt-oss-120b",
-          messages: [{ role: "user", content: prompt }],
-          n: 1,
-          temperature,
-          top_p,
-        })
-      )
-    );
+    let options: string[] = [];
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const completion = await createChatCompletion({
+        model: "openai/gpt-oss-120b",
+        messages: [{ role: "user", content: prompt }],
+        n: count,
+        temperature,
+        top_p,
+      });
 
-    const options = completions
-      .map((c) =>
-        'choices' in c ? c.choices[0]?.message?.content?.trim() : undefined
-      )
-      .filter(Boolean);
+      options = completion.choices
+        .map((choice) => choice.message.content?.trim())
+        .filter(Boolean) as string[];
+
+      console.log("options count", { expected: count, received: options.length });
+      if (options.length === count) {
+        break;
+      }
+    }
+
+    if (options.length !== count) {
+      return Response.json({ error: "Error generating options" }, { status: 502 });
+    }
 
     return Response.json({ options });
   } catch (err) {
