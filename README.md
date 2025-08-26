@@ -1,3 +1,8 @@
+# Proyecto
+
+Esta aplicación Next.js sirve como base para el proyecto. Para iniciar el entorno de desarrollo, ejecuta uno de los siguientes comandos:
+
+```bash
 pnpm dev
 # or
 bun dev
