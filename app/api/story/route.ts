@@ -49,14 +49,17 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Respuesta vacía del modelo" }, { status: 502 });
     }
 
-    // Parseamos para fingerprint y devolvemos texto completo como antes
-    const { story, isFinal } = parseStoryResponse(text, optionsCount);
+    // Extraemos historia, opciones y flag final
+    const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
+
+    // Fingerprint solo si no es final
     if (!isFinal && story) {
       const fp = computeFingerprint({ chapterText: story, genres });
       pushFingerprint(fp);
     }
 
-    return NextResponse.json({ text });
+    // Devolvemos datos estructurados en lugar del texto sin procesar
+    return NextResponse.json({ story, options, isFinal });
   } catch (err: any) {
     console.error("api/story error:", err);
     return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 });

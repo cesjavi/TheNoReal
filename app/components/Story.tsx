@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
 import { generateImage } from '@/lib/imageGenerator';
-import { parseStoryResponse } from '@/lib/parseStoryResponse';
 import type { Estilo, Ajustes } from '@/types/story';
 import { useLanguage } from '../providers/LanguageProvider';
 
@@ -126,11 +125,11 @@ export default function Story({
       });
 
       const data = await response.json();
-      const text = (data.text as string) || '';
-      const { story: newStory, options: newOptions } = parseStoryResponse(
-        text,
-        optionsPerDecision
-      );
+      const {
+        story: newStory = '',
+        options: newOptions = [],
+        isFinal = false,
+      } = data as { story?: string; options?: string[]; isFinal?: boolean };
 
       let imageUrl: string | null = null;
       /*try {
@@ -145,55 +144,62 @@ export default function Story({
       setCurrentChapter(nextChapter);
 
       let opts = Array.from(new Set(newOptions.filter(Boolean)));
-      const MAX_RETRIES = 3;
-      let attempts = 0;
 
-      while (opts.length < optionsPerDecision && attempts < MAX_RETRIES) {
-        try {
-          setRegeneratingOptions(true);
-          const missing = optionsPerDecision - opts.length;
-          const optRes = await fetch('/api/options', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prompt: nextStory,
-              numOptions: missing,
-              temperature: ajustesPayload.temperature,
-              top_p: ajustesPayload.top_p,
-            }),
-          });
-          const optData = await optRes.json();
-          const extra = Array.from(new Set((optData.options as string[]) || []));
-          opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
-        } catch (err) {
-          console.error('Error al regenerar opciones', err);
-          break;
+      if (!isFinal) {
+        const MAX_RETRIES = 3;
+        let attempts = 0;
+
+        while (opts.length < optionsPerDecision && attempts < MAX_RETRIES) {
+          try {
+            setRegeneratingOptions(true);
+            const missing = optionsPerDecision - opts.length;
+            const optRes = await fetch('/api/options', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                prompt: nextStory,
+                numOptions: missing,
+                temperature: ajustesPayload.temperature,
+                top_p: ajustesPayload.top_p,
+              }),
+            });
+            const optData = await optRes.json();
+            const extra = Array.from(new Set((optData.options as string[]) || []));
+            opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
+          } catch (err) {
+            console.error('Error al regenerar opciones', err);
+            break;
+          }
+          attempts++;
         }
-        attempts++;
-      }
 
-      setRegeneratingOptions(false);
+        setRegeneratingOptions(false);
 
-      if (opts.length < optionsPerDecision) {
-        console.error('La API devolvió menos opciones de las esperadas');
-      }
-      opts = opts.slice(0, optionsPerDecision);
-
-      let end = false;
-      if (endingMode === 'capitulos') {
-        if (chaptersCount && nextChapter > chaptersCount) end = true;
-      } else if (endingMode === 'final_sorpresa') {
-        const SURPRISE_ENDING_PROBABILITY = 0.1;
-        if ((chaptersCount && nextChapter > chaptersCount) || Math.random() < SURPRISE_ENDING_PROBABILITY) {
-          end = true;
+        if (opts.length < optionsPerDecision) {
+          console.error('La API devolvió menos opciones de las esperadas');
         }
-      } else if (endingMode === 'infinita') {
-        // no termina por contador
-      } else if (endingMode === 'sin_final_definido') {
-        // termina de forma variable (se respeta la salida del modelo)
-      }
+        opts = opts.slice(0, optionsPerDecision);
 
-      if (end) {
+        let end = false;
+        if (endingMode === 'capitulos') {
+          if (chaptersCount && nextChapter > chaptersCount) end = true;
+        } else if (endingMode === 'final_sorpresa') {
+          const SURPRISE_ENDING_PROBABILITY = 0.1;
+          if ((chaptersCount && nextChapter > chaptersCount) || Math.random() < SURPRISE_ENDING_PROBABILITY) {
+            end = true;
+          }
+        } else if (endingMode === 'infinita') {
+          // no termina por contador
+        } else if (endingMode === 'sin_final_definido') {
+          // termina de forma variable (se respeta la salida del modelo)
+        }
+
+        if (end) {
+          opts = [];
+          setFinalized(true);
+        }
+      } else {
+        // El modelo indicó fin de la historia
         opts = [];
         setFinalized(true);
       }
@@ -232,17 +238,17 @@ export default function Story({
         }),
       });
       const data = await response.json();
-      const text = (data.text as string) || '';
+      const finalText = (data.story as string) || '';
 
       let imageUrl: string | null = null;
       try {
-        const { url } = await generateImage(text, genres);
+        const { url } = await generateImage(finalText, genres);
         imageUrl = url;
       } catch (err) {
         console.error('No se pudo generar la imagen', err);
       }
 
-      setChapters((prev) => [...prev, { texto: text, imageUrl }]);
+      setChapters((prev) => [...prev, { texto: finalText, imageUrl }]);
       setOptions([]);
       setFinalized(true);
     } catch (error) {

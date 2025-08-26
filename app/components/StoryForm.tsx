@@ -9,7 +9,6 @@ import StorySettings, {
   ESTILO_SECTIONS,
   AJUSTES_SECTIONS,
 } from "./StorySettings";
-import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
 type EndingMode = "capitulos" | "sin_final_definido" | "final_sorpresa" | "infinita";
 
@@ -195,8 +194,10 @@ export default function StoryForm() {
       if (!response.ok) {
         setError((data as { error?: string }).error || "Error al obtener la historia inicial");
       } else {
-        const text: string = (data as { text?: string }).text || "";
-        const { story, options } = parseStoryResponse(text, optionsPerDecision);
+        const {
+          story = "",
+          options = [],
+        } = data as { story?: string; options?: string[] };
 
         setInitialStory(story);
         setInitialOptions(options);
