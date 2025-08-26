@@ -12,19 +12,27 @@ jest.mock('../app/providers/LanguageProvider', () => ({
 
 describe('Story options regeneration', () => {
   beforeEach(() => {
-    global.fetch = jest.fn().mockResolvedValue({
-      json: () =>
-        Promise.resolve({ text: 'Nuevo capítulo\n---\n1. Explorar la cueva' }),
-    }) as jest.Mock;
+    (global.fetch as jest.Mock) = jest
+      .fn()
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve({
+            text: 'Nuevo capítulo\n---\n1. Explorar el misterioso bosque oscuro con gran cautela',
+          }),
+      })
+      .mockResolvedValueOnce({
+        json: () =>
+          Promise.resolve({
+            options: ['Investigar las antiguas ruinas de la ciudad perdida'],
+          }),
+      });
   });
 
   afterEach(() => {
     jest.resetAllMocks();
   });
 
-  it('loggea error si la API devuelve menos opciones de las esperadas', async () => {
-    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
+  it('reintenta completar opciones faltantes', async () => {
     render(
       <Story
         initialStory="Inicio"
@@ -40,12 +48,17 @@ describe('Story options regeneration', () => {
 
     fireEvent.click(screen.getByText('Uno'));
 
-    await waitFor(() => expect(consoleSpy).toHaveBeenCalled());
-    expect(screen.getByText('Explorar la cueva')).toBeInTheDocument();
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'La API devolvió menos opciones de las esperadas'
-    );
+    await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
 
-    consoleSpy.mockRestore();
+    expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe('/api/story');
+    expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe('/api/options');
+    expect(
+      await screen.findByText(
+        'Explorar el misterioso bosque oscuro con gran cautela'
+      )
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Investigar las antiguas ruinas de la ciudad perdida')
+    ).toBeInTheDocument();
   });
 });

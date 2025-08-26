@@ -20,7 +20,8 @@
       "stop": "Stop reading",
       "read": "Read aloud"
     },
-    "generating": "Generating content…"
+    "generating": "Generating content…",
+    "regeneratingOptions": "Regenerating options…"
   },
   "LanguageSelector": {
     "selectLanguage": "Select language",

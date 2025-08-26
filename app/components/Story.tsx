@@ -52,6 +52,7 @@ export default function Story({
     Array.from(new Set(initialOptions)).slice(0, optionsPerDecision)
   );
   const [loading, setLoading] = useState(false);
+  const [regeneratingOptions, setRegeneratingOptions] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isReading, setIsReading] = useState(false);
@@ -144,10 +145,37 @@ export default function Story({
       setCurrentChapter(nextChapter);
 
       let opts = Array.from(new Set(newOptions.filter(Boolean)));
+      const MAX_RETRIES = 3;
+      let attempts = 0;
+
+      while (opts.length < optionsPerDecision && attempts < MAX_RETRIES) {
+        try {
+          setRegeneratingOptions(true);
+          const missing = optionsPerDecision - opts.length;
+          const optRes = await fetch('/api/options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: nextStory,
+              numOptions: missing,
+              temperature: ajustesPayload.temperature,
+              top_p: ajustesPayload.top_p,
+            }),
+          });
+          const optData = await optRes.json();
+          const extra = Array.from(new Set((optData.options as string[]) || []));
+          opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
+        } catch (err) {
+          console.error('Error al regenerar opciones', err);
+          break;
+        }
+        attempts++;
+      }
+
+      setRegeneratingOptions(false);
+
       if (opts.length < optionsPerDecision) {
-        console.error(
-          'La API devolvió menos opciones de las esperadas'
-        );
+        console.error('La API devolvió menos opciones de las esperadas');
       }
       opts = opts.slice(0, optionsPerDecision);
 
@@ -412,7 +440,7 @@ export default function Story({
                 '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
             }}
           >
-            {t('generating')}
+            {regeneratingOptions ? t('regeneratingOptions') : t('generating')}
           </div>
         </div>
       )}
