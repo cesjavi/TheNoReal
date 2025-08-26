@@ -10,13 +10,23 @@ export type ApiLocale = {
 const cache = new Map<string, ApiLocale>();
 
 export async function loadApiLocale(language: string): Promise<ApiLocale> {
+  const localePattern = /^[A-Za-z0-9_-]+$/;
   const parts = typeof language === "string" ? language.split("-") : [];
-  const candidates = [language, parts[0], "neutral"].filter(Boolean) as string[];
+  const rawCandidates = [language, parts[0], "neutral"];
+  const candidates = rawCandidates.filter(
+    (loc): loc is string => !!loc && localePattern.test(loc)
+  );
   for (const loc of candidates) {
     if (cache.has(loc)) {
       return cache.get(loc)!;
     }
-    const file = path.join(process.cwd(), "public", "locales", loc, "api.json");
+    const file = path.join(
+      process.cwd(),
+      "public",
+      "locales",
+      loc,
+      "api.json"
+    );
     try {
       const data = await fs.readFile(file, "utf8");
       const json = JSON.parse(data) as ApiLocale;
