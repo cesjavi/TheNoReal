@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import styles from './Story.module.css';
 import { useTranslations } from 'next-intl';
 import { generateImage } from '@/lib/imageGenerator';
 import type { Estilo, Ajustes } from '@/types/story';
@@ -377,9 +376,7 @@ export default function Story({
                 key={`${idx}-${opt}`}
                 onClick={() => handleSelect(opt)}
                 disabled={loading || finalized}
-                className="group rounded-xl border px-4 py-3 text-left text-sm transition-all hover:-translate-y-0.5 hover:[box-shadow:0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)] disabled:opacity-50"
-                style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
-              >
+                className="group rounded-xl border px-4 py-3 text-left text-sm transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-md">
                 <span className="block font-medium">{opt}</span>
                 <span className="mt-0.5 block text-xs text-muted-foreground">
                   {t('suggestion', { index: idx + 1 })}
@@ -418,13 +415,17 @@ export default function Story({
               disabled={loading}
               className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
               {t('download')}
+            </button>
             <button
               onClick={handleFinalize}
               disabled={loading || finalized}
-              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50 story-finalize-btn"
+              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50"
+              style={{
+                boxShadow:
+                  '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
+              }}
             >
               {t('finalize')}
-            </button>
             </button>
           </div>
         </div>

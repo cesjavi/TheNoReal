@@ -154,7 +154,10 @@ export default function StoryForm() {
         return;
       }
 
-      const optionsPerDecision = clamp(Number(numOptions) || 2, 2, 6);
+      // Permitir que el usuario fije N opciones desde Configuración (ajustes.opcionesPorCapitulo)
+      const opcionesCfg = Number((config.ajustes as any)?.opcionesPorCapitulo?.[0]);
+      const optionsPerDecision = clamp(opcionesCfg || (Number(numOptions) || 2), 2, 6);
+
       const requiresChapters = modality === "capitulos" || modality === "final_sorpresa";
       const chaptersNum = requiresChapters ? Number(chapters) : undefined;
 
@@ -191,22 +194,31 @@ export default function StoryForm() {
         targetWords: targetWords,
       };
 
-      const lang = normalizeLocale(locale);
+      // Si el usuario eligió un idioma en ajustes, priorizarlo (ej: "es-AR")
+      const langFromCfg = toArray(config.ajustes.idioma as any)[0] as string | undefined;
+      const lang = normalizeLocale(langFromCfg || locale);
+
+      const payload = {
+        story: effectivePrompt,
+        option: "",
+        optionsPerDecision,
+        genres: config.generos,
+        estilo: config.estilo,
+        ajustes: ajustesPayload,
+        language: lang,
+        endingMode: final,
+        chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
+        finalize: false, // dejar explícito para la API
+      } as const;
+
+      // Útil para depurar en Network tab y en logs del server
+      // eslint-disable-next-line no-console
+      console.log("/api/story payload", payload);
 
       const response = await fetch("/api/story", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          story: effectivePrompt,
-          option: "",
-          optionsPerDecision,
-          genres: config.generos,
-          estilo: config.estilo,
-          ajustes: ajustesPayload,
-          language: lang,
-          endingMode: final,
-          chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json().catch(() => ({}));
