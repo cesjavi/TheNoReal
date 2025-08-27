@@ -1,5 +1,6 @@
 import createChatCompletion from "@/lib/groqClient";
 import { validateOptions, OptionDiscard } from "@/lib/optionGuard";
+import { limitTemperature, limitTopP } from "@/lib/sampling";
 
 const MAX_OPTIONS = 5;
 
