@@ -33,6 +33,7 @@ export interface Ajustes {
   consistenciaSaga?: boolean;
   estiloVisual?: string;
   paleta?: string;
+  targetWords?: number;
 }
 
 export interface ConfigGeneracion {
@@ -163,24 +164,25 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
         return { ...prev, estilo: { ...prev.estilo, [estiloKey]: next } };
       } else {
         const ajustesKey = key as AjustesArrayKeys;
-        const current = ((prev.ajustes as any)[ajustesKey] ?? []) as string[];
+        const current = prev.ajustes[ajustesKey] ?? [];
         const next = current.includes(value) ? current.filter(v => v !== value) : [...current, value];
         return { ...prev, ajustes: { ...prev.ajustes, [ajustesKey]: next } };
       }
     });
   }
 
-  const handleField = (key: keyof Ajustes, value: string | number | boolean) => {
+  const handleField = <K extends keyof Ajustes>(key: K, value: Ajustes[K]) => {
+    let v = value;
     if (key === 'longitudPalabras') {
-      const num = Number(value);
+      const num = Number(v);
       if (!Number.isFinite(num) || num <= 0 || num > 10000) return;
-      value = num;
+      v = num as Ajustes[K];
     }
     setLocal(prev => ({
       ...prev,
       ajustes: {
         ...prev.ajustes,
-        [key]: value as any,
+        [key]: v,
       },
     }));
   };
