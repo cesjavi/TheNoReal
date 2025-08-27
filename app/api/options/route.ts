@@ -1,10 +1,13 @@
 import createChatCompletion from "@/lib/groqClient";
+import { validateOptions, OptionDiscard } from "@/lib/optionGuard";
 
 const MAX_OPTIONS = 5;
 
 export async function POST(req: Request) {
   try {
     const { prompt, numOptions, temperature, top_p } = await req.json();
+    const safeTemperature = limitTemperature(temperature);
+    const safeTopP = limitTopP(top_p);
 
     const count = Number(numOptions) || 1;
     if (count > MAX_OPTIONS) {
@@ -14,52 +17,53 @@ export async function POST(req: Request) {
       );
     }
 
-    const options: string[] = [];
+    const rawOptions: string[] = [];
+    let validOptions: string[] = [];
+    let discarded: OptionDiscard[] = [];
     let attempts = 0;
     const maxAttempts = count + 2;
-    while (options.length < count && attempts < maxAttempts) {
+    while (validOptions.length < count && attempts < maxAttempts) {
       attempts++;
       const completion = await createChatCompletion({
         model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
         n: 1,
-        temperature,
-        top_p,
+        temperature: safeTemperature,
+        top_p: safeTopP,
       });
 
       const option = completion.choices[0]?.message.content?.trim();
       if (option) {
-        options.push(option);
+        rawOptions.push(option);
+        ({ valid: validOptions, discarded } = validateOptions(rawOptions, count));
       }
       console.log("options progress", {
         expected: count,
-        received: options.length,
+        received: validOptions.length,
         attempts,
       });
     }
 
-    const uniqueOptions = Array.from(new Set(options.map((o) => o.trim()))).filter(
-      Boolean,
-    );
-
-    if (uniqueOptions.length < count) {
-      console.warn("Fewer options generated than requested", {
+    if (validOptions.length < count) {
+      console.warn("Fewer valid options generated than requested", {
         expected: count,
-        received: uniqueOptions.length,
+        received: validOptions.length,
         attempts,
+        discarded,
       });
       return Response.json(
         {
-          error: `Generated ${uniqueOptions.length} of ${count} options`,
-          options: uniqueOptions,
+          error: `Generated ${validOptions.length} of ${count} options`,
+          options: validOptions,
+          discarded,
         },
         { status: 502 },
       );
     }
 
-    console.log("Groq options response", uniqueOptions);
+    console.log("Groq options response", validOptions);
 
-    return Response.json({ options: uniqueOptions });
+    return Response.json({ options: validOptions });
   } catch (err) {
     console.error(err);
     return Response.json({ error: "Error generating options" }, { status: 500 });
