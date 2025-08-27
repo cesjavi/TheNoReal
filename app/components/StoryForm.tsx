@@ -19,6 +19,8 @@ const MODALITY_HELP = {
   final_sorpresa: "Añade un giro inesperado al final.",
   final_abierto: "La historia queda abierta a interpretación.",
   final_cerrado: "La historia tiene un desenlace definido.",
+  sin_final_definido: "La historia no tiene un final predeterminado.",
+  infinita: "La historia continúa indefinidamente.",
 } as const;
 
 type Modality = keyof typeof MODALITY_HELP;
@@ -173,6 +175,10 @@ export default function StoryForm() {
         switch (modality) {
           case "final_abierto": return "sin_final_definido";
           case "final_cerrado": return chaptersNum ? "capitulos" : "sin_final_definido";
+          case "sin_final_definido":
+          case "infinita":
+          case "capitulos":
+          case "final_sorpresa":
           default: return modality;
         }
       })();
@@ -369,6 +375,8 @@ export default function StoryForm() {
                 <option value="final_sorpresa">Final sorpresa</option>
                 <option value="final_abierto">Final abierto</option>
                 <option value="final_cerrado">Final cerrado</option>
+                <option value="sin_final_definido">Sin final definido</option>
+                <option value="infinita">Historia infinita</option>
               </select>
             </div>
 
