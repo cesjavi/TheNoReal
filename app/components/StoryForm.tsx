@@ -279,7 +279,8 @@ export default function StoryForm() {
   };
 
   return (
-    <main className="flex flex-col items-center p-8 gap-4">
+    <main className="flex flex-col items-center p-8 gap-4"
+    style={{ backgroundImage: "url('/bg.jpg')" }}>
       {!initialStory && (
         <>
           {/* 1) Texto inicial */}
