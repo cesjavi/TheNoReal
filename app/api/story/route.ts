@@ -4,6 +4,7 @@ import { buildSystemPrompt, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
 import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
+import { limitTemperature, limitTopP } from "@/lib/sampling";
 
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
@@ -17,8 +18,12 @@ export async function POST(req: Request) {
     const optionsCount: number = Number(body.optionsPerDecision ?? 2) || 2;
     const genres: string[] = Array.isArray(body.genres) ? body.genres : [];
     const language: string = typeof body.language === "string" ? body.language : "neutral";
-    const temperature: number = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
-    const top_p: number = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
+    const temperature: number | undefined = limitTemperature(
+      typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75,
+    );
+    const top_p: number | undefined = limitTopP(
+      typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9,
+    );
     const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
     // Define or import the Estilo type above if not already present
     type Estilo = any; // Replace 'any' with the actual structure if known
