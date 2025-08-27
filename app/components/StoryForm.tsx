@@ -77,6 +77,7 @@ export default function StoryForm() {
   const t = useTranslations("StoryForm");
   const { locale } = useLanguage();
 
+  const [userPrompt, setUserPrompt] = useState<string>("");  
   const [prompt, setPrompt] = useState("");
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
@@ -176,6 +177,7 @@ export default function StoryForm() {
         effectivePrompt = words.join(" ");
         setPromptTruncated(true);
       }
+      setUserPrompt(effectivePrompt);
 
       const final: EndingMode = (() => {
         switch (modality) {
@@ -480,6 +482,7 @@ export default function StoryForm() {
 
       {initialStory && storyConfig && (
         <Story
+          userPrompt={userPrompt}
           initialStory={initialStory}
           initialOptions={initialOptions}
           optionsPerDecision={storyConfig.optionsPerDecision}

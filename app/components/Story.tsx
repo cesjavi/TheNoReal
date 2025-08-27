@@ -7,6 +7,7 @@ import type { Estilo, Ajustes } from '@/types/story';
 import { useLanguage } from '../providers/LanguageProvider';
 
 interface StoryProps {
+  userPrompt: string;
   initialStory: string;
   initialOptions: string[];
   optionsPerDecision: number;
@@ -31,6 +32,7 @@ interface HistoryEntry {
 }
 
 export default function Story({
+  userPrompt,
   initialStory,
   initialOptions,
   optionsPerDecision,
@@ -44,6 +46,7 @@ export default function Story({
   const t = useTranslations('Story');
   const { locale } = useLanguage();
   const [chapters, setChapters] = useState<Chapter[]>([
+    { texto: userPrompt, imageUrl: null },
     { texto: initialStory, imageUrl: null },
   ]);
   const [choices, setChoices] = useState<string[]>([]);
