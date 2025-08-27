@@ -8,6 +8,7 @@ import StorySettings, {
   ConfigGeneracion,
   ESTILO_SECTIONS,
   AJUSTES_SECTIONS,
+  Ajustes,
 } from "./StorySettings";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
@@ -67,7 +68,7 @@ const defaults: ConfigGeneracion = {
     publico: [], epoca: [], ambito: [], estructura: [], incluir: [], evitar: [], clasificacion: [], idioma: [], registro: [],
     creatividad: 0.75, topP: 0.9, opcionesPorCapitulo: [],
     targetWords: 220,
-  } as any,
+  },
 };
 
 export default function StoryForm() {
@@ -118,10 +119,22 @@ export default function StoryForm() {
       (acc, { key, options }) => { acc[key] = [randomPick(options)]; return acc; },
       {} as ConfigGeneracion["estilo"]
     );
-    const ajustes = AJUSTES_SECTIONS.reduce(
-      (acc, { key, options }) => { (acc as any)[key] = [randomPick(options)]; return acc; },
-      {} as ConfigGeneracion["ajustes"]
-    );
+    const ajustes: Ajustes = {
+      publico: [],
+      epoca: [],
+      ambito: [],
+      estructura: [],
+      incluir: [],
+      evitar: [],
+      clasificacion: [],
+      idioma: [],
+      registro: [],
+      opcionesPorCapitulo: [],
+      targetWords,
+    };
+    AJUSTES_SECTIONS.forEach(({ key, options }) => {
+      ajustes[key] = [randomPick(options)];
+    });
     setConfig({ generos: [genero], estilo, ajustes });
   };
 
@@ -164,7 +177,7 @@ export default function StoryForm() {
         }
       })();
 
-      const { creatividad, topP, ...restAjustes } = config.ajustes as any;
+      const { creatividad, topP, ...restAjustes } = config.ajustes;
       const ajustesPayload: any = {
         ...restAjustes,
         temperature: typeof creatividad === "number" ? creatividad : 0.75,
@@ -428,7 +441,7 @@ export default function StoryForm() {
           chaptersCount={storyConfig.chaptersCount}
           genres={config.generos}
           estilo={config.estilo}
-          ajustes={config.ajustes as any}
+          ajustes={config.ajustes}
           onBack={resetStory}
         />
       )}
@@ -449,21 +462,39 @@ export default function StoryForm() {
           const normalized: ConfigGeneracion = {
             generos: Array.isArray(cfg.generos) ? cfg.generos : [],
             estilo: {
-              tono: cfg.estilo.tono ?? [], ritmo: cfg.estilo.ritmo ?? [], voz: cfg.estilo.voz ?? [], tiempo: cfg.estilo.tiempo ?? [],
-              formato: cfg.estilo.formato ?? [], descripcion: cfg.estilo.descripcion ?? [], dialogo: cfg.estilo.dialogo ?? [], matiz: cfg.estilo.matiz ?? [],
+              tono: cfg.estilo.tono ?? [],
+              ritmo: cfg.estilo.ritmo ?? [],
+              voz: cfg.estilo.voz ?? [],
+              tiempo: cfg.estilo.tiempo ?? [],
+              formato: cfg.estilo.formato ?? [],
+              descripcion: cfg.estilo.descripcion ?? [],
+              dialogo: cfg.estilo.dialogo ?? [],
+              matiz: cfg.estilo.matiz ?? [],
             },
             ajustes: {
-              publico: cfg.ajustes.publico ?? [], epoca: cfg.ajustes.epoca ?? [], ambito: cfg.ajustes.ambito ?? [], estructura: cfg.ajustes.estructura ?? [],
-              incluir: cfg.ajustes.incluir ?? [], evitar: cfg.ajustes.evitar ?? [], clasificacion: cfg.ajustes.clasificacion ?? [], idioma: cfg.ajustes.idioma ?? [],
-              registro: cfg.ajustes.registro ?? [], opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
-              lugar: cfg.ajustes.lugar, longitudPalabras: cfg.ajustes.longitudPalabras, creatividad: cfg.ajustes.creatividad,
-              topP: cfg.ajustes.topP, semilla: cfg.ajustes.semilla, consistenciaSaga: cfg.ajustes.consistenciaSaga,
-              estiloVisual: cfg.ajustes.estiloVisual, paleta: cfg.ajustes.paleta,
-              targetWords: (cfg as any).ajustes?.targetWords ?? 220,
-            } as any,
+              publico: cfg.ajustes.publico ?? [],
+              epoca: cfg.ajustes.epoca ?? [],
+              ambito: cfg.ajustes.ambito ?? [],
+              estructura: cfg.ajustes.estructura ?? [],
+              incluir: cfg.ajustes.incluir ?? [],
+              evitar: cfg.ajustes.evitar ?? [],
+              clasificacion: cfg.ajustes.clasificacion ?? [],
+              idioma: cfg.ajustes.idioma ?? [],
+              registro: cfg.ajustes.registro ?? [],
+              opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
+              lugar: cfg.ajustes.lugar,
+              longitudPalabras: cfg.ajustes.longitudPalabras,
+              creatividad: cfg.ajustes.creatividad,
+              topP: cfg.ajustes.topP,
+              semilla: cfg.ajustes.semilla,
+              consistenciaSaga: cfg.ajustes.consistenciaSaga,
+              estiloVisual: cfg.ajustes.estiloVisual,
+              paleta: cfg.ajustes.paleta,
+              targetWords: cfg.ajustes.targetWords ?? 220,
+            },
           };
           setConfig(normalized);
-          setTargetWords((normalized.ajustes as any).targetWords ?? 220);
+          setTargetWords(normalized.ajustes.targetWords ?? 220);
           setOpen(false);
         }}
       />
