@@ -41,7 +41,7 @@ Copy the example file and provide your own values:
 cp .env.example .env.local
 ```
 
-Set `GROQ_API_KEY` to a valid token from Groq (the previously committed key has been revoked) and update `DATABASE_URL` for your database. ` .env.local` is ignored by git and should not be committed.
+Set `GROQ_API_KEY` to a valid token from Groq (the previously committed key has been revoked) and update `DATABASE_URL` for your database. You can also set `GROQ_MODEL` to choose a Groq model; it defaults to `meta-llama/llama-4-scout-17b-16e-instruct`. `.env.local` is ignored by git and should not be committed.
 
 You can also define `NEXT_PUBLIC_IMAGE_TIMEOUT` (in milliseconds) to control how long the app waits for image generation before aborting and continuing without an image. It defaults to `15000`.
 

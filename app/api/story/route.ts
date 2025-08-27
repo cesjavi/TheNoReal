@@ -50,7 +50,7 @@ export async function POST(req: Request) {
       { role: "user", content: userContent },
     ] as const;
 
-    const model = "meta-llama/llama-4-scout-17b-16e-instruct";//process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct";
+    const model = process.env.GROQ_MODEL ?? "meta-llama/llama-4-scout-17b-16e-instruct";
     const completion = await createChatCompletion({
       model,
       messages: messages as any,
