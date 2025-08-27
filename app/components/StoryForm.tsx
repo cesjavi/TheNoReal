@@ -4,23 +4,23 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useLanguage } from "../providers/LanguageProvider";
 import Story from "./Story";
-import StorySettings, { ESTILO_SECTIONS, AJUSTES_SECTIONS } from "./StorySettings";
-import type { ConfigGeneracion, Genero, Ajustes } from "@/types/story";
+import StorySettings, {
+  ConfigGeneracion,
+  ESTILO_SECTIONS,
+  AJUSTES_SECTIONS,
+} from "./StorySettings";
+import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
-type EndingMode =
-  | "capitulos"
-  | "sin_final_definido"
-  | "final_sorpresa"
-  | "infinita";
+type EndingMode = "capitulos" | "sin_final_definido" | "final_sorpresa" | "infinita";
 
-const MODALITY_HELP: Record<EndingMode, string> = {
+const MODALITY_HELP = {
   capitulos: "Divide la historia en capítulos.",
   final_sorpresa: "Añade un giro inesperado al final.",
-  sin_final_definido: "La historia queda abierta a interpretación.",
-  infinita: "La historia continúa indefinidamente.",
+  final_abierto: "La historia queda abierta a interpretación.",
+  final_cerrado: "La historia tiene un desenlace definido.",
 } as const;
 
-type Modality = EndingMode;
+type Modality = keyof typeof MODALITY_HELP;
 
 const GENRES = [
   "Aventura",
@@ -30,9 +30,9 @@ const GENRES = [
   "Misterio",
   "Romance",
   "Comedia",
-] as const satisfies readonly Genero[];
+] as const;
 
-const GENRE_ICONS: Record<Genero, string> = {
+const GENRE_ICONS: Record<string, string> = {
   Aventura: "/icons/aventura.svg",
   "Ciencia ficción": "/icons/ciencia-ficcion.svg",
   Terror: "/icons/terror.svg",
@@ -51,6 +51,8 @@ function countTokens(text: string) {
 function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
+const toArray = <T,>(v: T | T[] | undefined | null): T[] =>
+  Array.isArray(v) ? v : v == null ? [] : [v];
 const isNonEmptyArray = (v: unknown): v is unknown[] =>
   Array.isArray(v) && v.length > 0;
 const clamp = (n: number, min: number, max: number) =>
@@ -58,39 +60,14 @@ const clamp = (n: number, min: number, max: number) =>
 const normalizeLocale = (loc: string) =>
   (loc || "es").toLowerCase().split("-")[0];
 
-type AjustesPayload = Omit<Ajustes, "creatividad" | "topP"> & {
-  temperature: number;
-  top_p: number;
-  targetWords: number;
-};
-
 const defaults: ConfigGeneracion = {
   generos: [],
-  estilo: {
-    tono: [],
-    ritmo: [],
-    voz: [],
-    tiempo: [],
-    formato: [],
-    descripcion: [],
-    dialogo: [],
-    matiz: [],
-  },
+  estilo: { tono: [], ritmo: [], voz: [], tiempo: [], formato: [], descripcion: [], dialogo: [], matiz: [] },
   ajustes: {
-    publico: [],
-    epoca: [],
-    ambito: [],
-    estructura: [],
-    incluir: [],
-    evitar: [],
-    clasificacion: [],
-    idioma: [],
-    registro: [],
-    creatividad: 0.75,
-    topP: 0.9,
-    opcionesPorCapitulo: [],
+    publico: [], epoca: [], ambito: [], estructura: [], incluir: [], evitar: [], clasificacion: [], idioma: [], registro: [],
+    creatividad: 0.75, topP: 0.9, opcionesPorCapitulo: [],
     targetWords: 220,
-  },
+  } as any,
 };
 
 export default function StoryForm() {
@@ -124,7 +101,7 @@ export default function StoryForm() {
 
   const showChapters = modality === "capitulos" || modality === "final_sorpresa";
 
-  const toggleGenre = (genre: Genero) => {
+  const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
       ...prev,
       generos: prev.generos.includes(genre)
@@ -137,26 +114,13 @@ export default function StoryForm() {
 
   const randomizeConfig = () => {
     const genero = randomPick([...GENRES]);
-    const estilo = ESTILO_SECTIONS.reduce<ConfigGeneracion["estilo"]>(
-      (acc, { key, options }) => ({ ...acc, [key]: [randomPick(options)] }),
-      { tono: [], ritmo: [], voz: [], tiempo: [], formato: [], descripcion: [], dialogo: [], matiz: [] }
+    const estilo = ESTILO_SECTIONS.reduce(
+      (acc, { key, options }) => { acc[key] = [randomPick(options)]; return acc; },
+      {} as ConfigGeneracion["estilo"]
     );
-    const ajustesBase: ConfigGeneracion["ajustes"] = {
-      ...defaults.ajustes,
-      publico: [],
-      epoca: [],
-      ambito: [],
-      estructura: [],
-      clasificacion: [],
-      idioma: [],
-      registro: [],
-      opcionesPorCapitulo: [],
-      incluir: [],
-      evitar: [],
-    };
-    const ajustes = AJUSTES_SECTIONS.reduce<ConfigGeneracion["ajustes"]>(
-      (acc, { key, options }) => ({ ...acc, [key]: [randomPick(options)] }),
-      ajustesBase
+    const ajustes = AJUSTES_SECTIONS.reduce(
+      (acc, { key, options }) => { (acc as any)[key] = [randomPick(options)]; return acc; },
+      {} as ConfigGeneracion["ajustes"]
     );
     setConfig({ generos: [genero], estilo, ajustes });
   };
@@ -192,14 +156,20 @@ export default function StoryForm() {
         setPromptTruncated(true);
       }
 
-      const final: EndingMode = modality;
+      const final: EndingMode = (() => {
+        switch (modality) {
+          case "final_abierto": return "sin_final_definido";
+          case "final_cerrado": return chaptersNum ? "capitulos" : "sin_final_definido";
+          default: return modality;
+        }
+      })();
 
-      const { creatividad = 0.75, topP = 0.9, targetWords: _tw, ...restAjustes } = config.ajustes;
-      const ajustesPayload: AjustesPayload = {
+      const { creatividad, topP, ...restAjustes } = config.ajustes as any;
+      const ajustesPayload: any = {
         ...restAjustes,
-        temperature: creatividad,
-        top_p: topP,
-        targetWords,
+        temperature: typeof creatividad === "number" ? creatividad : 0.75,
+        top_p: typeof topP === "number" ? topP : 0.9,
+        targetWords: targetWords,
       };
 
       const lang = normalizeLocale(locale);
@@ -220,51 +190,16 @@ export default function StoryForm() {
         }),
       });
 
-      const data: { story?: string; options?: string[]; error?: string } = await response
-        .json()
-        .catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data.error || "Error al obtener la historia inicial");
+        setError((data as { error?: string }).error || "Error al obtener la historia inicial");
       } else {
-        const { story = "", options = [] } = data;
-        let opts = Array.from(new Set(options.filter(Boolean)));
-
-        if (opts.length < optionsPerDecision) {
-          try {
-            const missing = optionsPerDecision - opts.length;
-            const optRes = await fetch("/api/options", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                prompt: story,
-                numOptions: missing,
-                temperature: ajustesPayload.temperature,
-                top_p: ajustesPayload.top_p,
-              }),
-            });
-            const optData: { options?: unknown[]; error?: string } = await optRes
-              .json()
-              .catch(() => ({}));
-            if (optRes.ok && Array.isArray(optData.options)) {
-              const extra = Array.from(
-                new Set(
-                  optData.options.filter((o): o is string => typeof o === "string" && o.length > 0)
-                )
-              );
-              opts = Array.from(new Set([...opts, ...extra]));
-            } else {
-              setError(optData.error || "Error al obtener opciones adicionales");
-            }
-          } catch {
-            setError("Error al obtener opciones adicionales");
-          }
-        }
-
-        opts = opts.slice(0, optionsPerDecision);
+        const text: string = (data as { text?: string }).text || "";
+        const { story, options } = parseStoryResponse(text, optionsPerDecision);
 
         setInitialStory(story);
-        setInitialOptions(opts);
+        setInitialOptions(options);
         setStoryConfig({
           optionsPerDecision,
           endingMode: final,
@@ -311,22 +246,20 @@ export default function StoryForm() {
           <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {GENRES.map((genre) => {
-                const selected = config.generos.includes(genre);
+                const selected = config.generos.includes(genre as any);
                 return (
                   <button
-                    key={genre}
+                    key={genre as any}
                     type="button"
                     aria-pressed={selected ? "true" : "false"}
-                    onClick={() => toggleGenre(genre)}
+                    onClick={() => toggleGenre(genre as any)}
                     title={selected ? "Quitar género" : "Agregar género"}
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
-                      selected
-                        ? "bg-accent text-black border-black/40 shadow-inner"
-                        : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"
-                    }`}
+                      selected ? "bg-accent text-black border-black/40 shadow-inner"
+                              : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
                   >
-                    <img src={GENRE_ICONS[genre] ?? "/icons/generico.svg"} alt="" className="w-6 h-6" />
-                    <span className="truncate">{genre}</span>
+                    <img src={GENRE_ICONS[genre as any] ?? "/icons/generico.svg"} alt="" className="w-6 h-6" />
+                    <span className="truncate">{genre as any}</span>
                     {selected && (
                       <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
                         ✓
@@ -371,7 +304,7 @@ export default function StoryForm() {
                     <button
                       key={`chip-${genre}`}
                       type="button"
-                      onClick={() => toggleGenre(genre)}
+                      onClick={() => toggleGenre(genre as any)}
                       className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
                       title="Quitar"
                     >
@@ -421,8 +354,8 @@ export default function StoryForm() {
               >
                 <option value="capitulos">Capítulos</option>
                 <option value="final_sorpresa">Final sorpresa</option>
-                <option value="sin_final_definido">Final abierto</option>
-                <option value="infinita">Historia infinita</option>
+                <option value="final_abierto">Final abierto</option>
+                <option value="final_cerrado">Final cerrado</option>
               </select>
             </div>
 
@@ -470,34 +403,16 @@ export default function StoryForm() {
                 <span key={`genero-${genre}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{genre}</span>
               ))}
 
-              {(Object.entries(config.estilo) as Array<[
-                keyof ConfigGeneracion["estilo"],
-                string[]
-              ]>).flatMap(([key, values]) =>
-                values.map((v) => (
-                  <span
-                    key={`estilo-${String(key)}-${v}`}
-                    className="px-2 py-1 text-sm rounded-full bg-accent text-black"
-                  >
-                    {v}
-                  </span>
-                ))
+              {Object.entries(config.estilo).flatMap(([key, values]) =>
+                toArray(values as string[]).map((v) => (
+                  <span key={`estilo-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
+                )),
               )}
 
-              {(Object.entries(config.ajustes) as Array<[
-                string,
-                unknown
-              ]>).flatMap(([key, value]) =>
-                Array.isArray(value)
-                  ? value.map((v: string) => (
-                      <span
-                        key={`ajuste-${key}-${v}`}
-                        className="px-2 py-1 text-sm rounded-full bg-accent text-black"
-                      >
-                        {v}
-                      </span>
-                    ))
-                  : []
+              {Object.entries(config.ajustes).flatMap(([key, values]) =>
+                toArray(values as string[]).map((v) => (
+                  <span key={`ajuste-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
+                )),
               )}
             </div>
           )}
@@ -513,7 +428,7 @@ export default function StoryForm() {
           chaptersCount={storyConfig.chaptersCount}
           genres={config.generos}
           estilo={config.estilo}
-          ajustes={config.ajustes}
+          ajustes={config.ajustes as any}
           onBack={resetStory}
         />
       )}
@@ -531,43 +446,24 @@ export default function StoryForm() {
         config={config}
         onClose={() => setOpen(false)}
         onSave={(cfg) => {
-          const ajustesCfg = cfg.ajustes as Ajustes;
           const normalized: ConfigGeneracion = {
-            generos: Array.isArray(cfg.generos) ? (cfg.generos as Genero[]) : [],
+            generos: Array.isArray(cfg.generos) ? cfg.generos : [],
             estilo: {
-              tono: cfg.estilo.tono ?? [],
-              ritmo: cfg.estilo.ritmo ?? [],
-              voz: cfg.estilo.voz ?? [],
-              tiempo: cfg.estilo.tiempo ?? [],
-              formato: cfg.estilo.formato ?? [],
-              descripcion: cfg.estilo.descripcion ?? [],
-              dialogo: cfg.estilo.dialogo ?? [],
-              matiz: cfg.estilo.matiz ?? [],
+              tono: cfg.estilo.tono ?? [], ritmo: cfg.estilo.ritmo ?? [], voz: cfg.estilo.voz ?? [], tiempo: cfg.estilo.tiempo ?? [],
+              formato: cfg.estilo.formato ?? [], descripcion: cfg.estilo.descripcion ?? [], dialogo: cfg.estilo.dialogo ?? [], matiz: cfg.estilo.matiz ?? [],
             },
             ajustes: {
-              publico: cfg.ajustes.publico ?? [],
-              epoca: cfg.ajustes.epoca ?? [],
-              ambito: cfg.ajustes.ambito ?? [],
-              estructura: cfg.ajustes.estructura ?? [],
-              incluir: cfg.ajustes.incluir ?? [],
-              evitar: cfg.ajustes.evitar ?? [],
-              clasificacion: cfg.ajustes.clasificacion ?? [],
-              idioma: cfg.ajustes.idioma ?? [],
-              registro: cfg.ajustes.registro ?? [],
-              opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
-              lugar: cfg.ajustes.lugar,
-              longitudPalabras: cfg.ajustes.longitudPalabras,
-              creatividad: cfg.ajustes.creatividad,
-              topP: cfg.ajustes.topP,
-              semilla: cfg.ajustes.semilla,
-              consistenciaSaga: cfg.ajustes.consistenciaSaga,
-              estiloVisual: cfg.ajustes.estiloVisual,
-              paleta: cfg.ajustes.paleta,
-              targetWords: ajustesCfg.targetWords ?? 220,
-            },
+              publico: cfg.ajustes.publico ?? [], epoca: cfg.ajustes.epoca ?? [], ambito: cfg.ajustes.ambito ?? [], estructura: cfg.ajustes.estructura ?? [],
+              incluir: cfg.ajustes.incluir ?? [], evitar: cfg.ajustes.evitar ?? [], clasificacion: cfg.ajustes.clasificacion ?? [], idioma: cfg.ajustes.idioma ?? [],
+              registro: cfg.ajustes.registro ?? [], opcionesPorCapitulo: cfg.ajustes.opcionesPorCapitulo ?? [],
+              lugar: cfg.ajustes.lugar, longitudPalabras: cfg.ajustes.longitudPalabras, creatividad: cfg.ajustes.creatividad,
+              topP: cfg.ajustes.topP, semilla: cfg.ajustes.semilla, consistenciaSaga: cfg.ajustes.consistenciaSaga,
+              estiloVisual: cfg.ajustes.estiloVisual, paleta: cfg.ajustes.paleta,
+              targetWords: (cfg as any).ajustes?.targetWords ?? 220,
+            } as any,
           };
           setConfig(normalized);
-          setTargetWords(normalized.ajustes.targetWords ?? 220);
+          setTargetWords((normalized.ajustes as any).targetWords ?? 220);
           setOpen(false);
         }}
       />

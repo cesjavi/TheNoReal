@@ -8,37 +8,19 @@ function countWords(s: string): number {
 }
 
 export function looksLikeVerbStartEs(s: string): boolean {
-  const firstRaw = normalizeOption(s).split(" ")[0]?.toLowerCase() || "";
-  const first = firstRaw.replace(/[^\p{L}]+$/u, "");
+  const first = normalizeOption(s).split(" ")[0]?.toLowerCase() || "";
   if (!first) return false;
   if (/(ar|er|ir)$/.test(first)) return true; // infinitivo
-  const irregularImperatives = ["haz", "sé", "di", "pon", "sal", "ten", "ven", "ve", "detén"];
-  if (irregularImperatives.includes(first)) return true;
-  const commonEndings = ["a", "e", "ad", "ed", "id", "os", "emos", "amos"];
-  return commonEndings.some(
-    (ending) => first.length > ending.length + 1 && first.endsWith(ending)
-  );
+  const commonImperatives = ["ve","haz","sigue","entra","toma","abre","mira","detén","corre","huye","busca","investiga","pregunta","enfrenta","rompe","cruza","sube","baja","miente","confiesa","llama","esconde","revela"];
+  return commonImperatives.includes(first);
 }
 
-export type OptionDiscard = { option: string; reason: string };
-
-export function isValidOption(
-  s: string,
-  min = 2,
-  max = 16
-): { ok: boolean; reason?: string } {
+export function isValidOption(s: string, min=8, max=16): boolean {
   const t = normalizeOption(s);
   const words = countWords(t);
-  if (words < min) {
-    return { ok: false, reason: `menos de ${min} palabras` };
-  }
-  if (words > max) {
-    return { ok: false, reason: `más de ${max} palabras` };
-  }
-  if (!looksLikeVerbStartEs(t)) {
-    return { ok: false, reason: 'no empieza con un verbo' };
-  }
-  return { ok: true };
+  if (words < min || words > max) return false;
+  if (!looksLikeVerbStartEs(t)) return false;
+  return true;
 }
 
 export function dedupeOptions(options: string[]): string[] {
@@ -54,25 +36,8 @@ export function dedupeOptions(options: string[]): string[] {
   return out;
 }
 
-export function validateOptions(
-  options: string[],
-  N: number, // number of options to return; should be a non-negative integer
-  min = 2,
-  max = 16
-): { valid: string[]; discarded: OptionDiscard[] } {
+export function validateOptions(options: string[], N: number): string[] {
   const deduped = dedupeOptions(options);
-  const valid: string[] = [];
-  const discarded: OptionDiscard[] = [];
-  for (const o of deduped) {
-    const { ok, reason } = isValidOption(o, min, max);
-    if (ok) {
-      valid.push(o);
-    } else {
-      discarded.push({ option: o, reason: reason || 'motivo desconocido' });
-    }
-  }
-  return {
-    valid: valid.slice(0, Math.max(0, Math.floor(N))),
-    discarded,
-  };
+  const filtered = deduped.filter(o => isValidOption(o));
+  return filtered.slice(0, Math.max(0, N|0 || 0));
 }

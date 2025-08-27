@@ -1,5 +1,11 @@
-import type { Fingerprint } from "../types/fingerprint";
-export type { Fingerprint };
+export type Fingerprint = {
+  escenario: string;
+  epoca: string;
+  protagonista: string;
+  dispositivo: string;
+  tono: string;
+  firstSentence: string;
+};
 
 type GlobalWithRing = typeof globalThis & {
   __fingerprints?: Fingerprint[];

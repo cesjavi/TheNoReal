@@ -16,46 +16,26 @@ function splitStoryAndOptions(text: string): { story: string; optionsBlock: stri
   return { story, optionsBlock };
 }
 
-export function parseStoryResponse(
-  text: string,
-  optionsPerDecision: number
-): ParseResult {
-  const raw = (text || '').trim();
+export function parseStoryResponse(text: string, optionsPerDecision: number): ParseResult {
+  const raw = (text || "").trim();
 
-  // Detecta "finalizado" al final, ignorando mayúsculas y minúsculas
-  const finalRegex = /FINALIZADO\s*$/i;
+  // Detecta final por palabra EXACTA al final
+  const finalRegex = /FINALIZADO\s*$/;
   const isFinal = finalRegex.test(raw);
 
-  let { story, optionsBlock } = splitStoryAndOptions(raw);
+  const { story, optionsBlock } = splitStoryAndOptions(raw);
   let options: string[] = [];
 
-  if (!isFinal) {
-    const optionRegex = /^\s*\d+[.\-:)]\s+(.+?)\s*$/;
-    if (!optionsBlock) {
-      const lines = raw.split(/\r?\n/);
-      if (lines.every(l => optionRegex.test(l))) {
-        // Solo opciones, sin historia
-        story = '';
-        optionsBlock = raw;
-      } else if (lines.length > 1 && lines.slice(1).every(l => optionRegex.test(l))) {
-        // Primera línea como historia, resto opciones
-        story = lines[0].trim();
-        optionsBlock = lines.slice(1).join('\n');
-      }
-    }
+  if (!isFinal && optionsBlock) {
+    const optLines = optionsBlock.split(/\r?\n/);
+    const parsed = optLines
+      .map(l => {
+        const m = l.match(/^\s*\d+\.\s+(.+?)\s*$/);
+        return m ? m[1] : null;
+      })
+      .filter(Boolean) as string[];
 
-    if (optionsBlock) {
-      const optLines = optionsBlock.split(/\r?\n/);
-      const parsed = optLines
-        .map(l => {
-          const m = l.match(optionRegex);
-          return m ? m[1] : null;
-        })
-        .filter(Boolean) as string[];
-
-      const { valid } = validateOptions(parsed, optionsPerDecision);
-      options = valid;
-    }
+    options = validateOptions(parsed, optionsPerDecision);
   }
 
   return { story, options, isFinal };

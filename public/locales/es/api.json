@@ -13,7 +13,7 @@
   },
   "user": {
     "final": "Genera el FINAL de la historia ahora.",
-    "continue": "Opción elegida: {option}\n\nGenera exactamente {options} opciones nuevas y coherentes para continuar la historia."
+    "continue": "Opción elegida: {option}\n\nGenera exactamente {options} opciones nuevas y coherentes para continuar la historia. Las opciones no pueden tener mas de 40 palabras."
   },
   "constraints": {
     "optionsPerDecision": "{options}",
