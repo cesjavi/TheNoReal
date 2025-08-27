@@ -118,7 +118,10 @@ export default function StoryForm() {
   const randomizeConfig = () => {
     const genero = randomPick([...GENRES]);
     const estilo = ESTILO_SECTIONS.reduce(
-      (acc, { key, options }) => { acc[key] = [randomPick(options)]; return acc; },
+      (acc, { key, options }) => {
+        acc[key] = [randomPick(options)];
+        return acc;
+      },
       {} as ConfigGeneracion["estilo"]
     );
     const ajustes: Ajustes = {
@@ -176,13 +179,16 @@ export default function StoryForm() {
 
       const final: EndingMode = (() => {
         switch (modality) {
-          case "final_abierto": return "sin_final_definido";
-          case "final_cerrado": return chaptersNum ? "capitulos" : "sin_final_definido";
+          case "final_abierto":
+            return "sin_final_definido";
+          case "final_cerrado":
+            return chaptersNum ? "capitulos" : "sin_final_definido";
           case "sin_final_definido":
           case "infinita":
           case "capitulos":
           case "final_sorpresa":
-          default: return modality;
+          default:
+            return modality;
         }
       })();
 
@@ -221,20 +227,40 @@ export default function StoryForm() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json().catch(() => ({}));
+      const data: any = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError((data as { error?: string }).error || "Error al obtener la historia inicial");
+        setError((data?.error as string) || "Error al obtener la historia inicial");
       } else {
-        const text: string = (data as { text?: string }).text || "";
-        const { story, options } = parseStoryResponse(text, optionsPerDecision);
+        // ✅ Compatibilidad: nueva API ({story, options}) o vieja API ({text})
+        let firstChapter = "";
+        let firstOptions: string[] = [];
 
-        setInitialStory(story);
-        setInitialOptions(options);
+        if (typeof data?.story === "string") {
+          firstChapter = data.story || "";
+
+          // Tipado explícito para evitar 'any'
+          const rawOptsUnknown: unknown[] = Array.isArray(data.options) ? data.options : [];
+          const normalized: string[] = rawOptsUnknown
+            .filter((o: unknown): o is string => typeof o === "string")
+            .map((o: string) => o.trim())
+            .filter(Boolean);
+
+          firstOptions = Array.from(new Set(normalized));
+        } else {
+          const raw: string = (data?.text as string) || "";
+          const parsed = parseStoryResponse(raw, optionsPerDecision);
+          firstChapter = parsed.story;
+          firstOptions = parsed.options;
+        }
+
+        setInitialStory(firstChapter);
+        setInitialOptions(firstOptions);
         setStoryConfig({
           optionsPerDecision,
           endingMode: final,
-          chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
+          chaptersCount:
+            final === "capitulos" || final === "final_sorpresa" ? chaptersNum : undefined,
         });
 
         setPrompt("");

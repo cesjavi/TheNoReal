@@ -54,7 +54,7 @@ export function looksLikeVerbStartEs(s: string): boolean {
 export function isValidOption(
   s: string,
   min = 8,
-  max = 16,
+  max = 56,
 ): { ok: boolean; reason?: string } {
   const t = normalizeOption(s);
   const words = countWords(t);
@@ -62,8 +62,8 @@ export function isValidOption(
     return { ok: false, reason: `menos de ${min} palabras` };
   if (words > max)
     return { ok: false, reason: `más de ${max} palabras` };
-  if (!looksLikeVerbStartEs(t))
-    return { ok: false, reason: "no empieza por verbo" };
+  //if (!looksLikeVerbStartEs(t))
+    //return { ok: false, reason: "no empieza por verbo" };
   return { ok: true };
 }
 
@@ -84,7 +84,7 @@ export function validateOptions(
   options: string[],
   N: number,
   min = 8,
-  max = 16,
+  max = 56,
 ): { valid: string[]; discarded: OptionDiscard[] } {
   const deduped = dedupeOptions(options);
   const valid: string[] = [];
