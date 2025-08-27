@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import styles from './Story.module.css';
 import { useTranslations } from 'next-intl';
 import { generateImage } from '@/lib/imageGenerator';
 import type { Estilo, Ajustes } from '@/types/story';
@@ -417,17 +418,13 @@ export default function Story({
               disabled={loading}
               className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
               {t('download')}
-            </button>
             <button
               onClick={handleFinalize}
               disabled={loading || finalized}
-              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50"
-              style={{
-                boxShadow:
-                  '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
-              }}
+              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50 story-finalize-btn"
             >
               {t('finalize')}
+            </button>
             </button>
           </div>
         </div>
