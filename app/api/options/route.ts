@@ -36,7 +36,9 @@ export async function POST(req: Request) {
       const option = completion.choices[0]?.message.content?.trim();
       if (option) {
         rawOptions.push(option);
-        ({ valid: validOptions, discarded } = validateOptions(rawOptions, count));
+        const result = validateOptions(rawOptions, count);
+        validOptions = result.valid;
+        discarded = result.discarded;
       }
       console.log("options progress", {
         expected: count,

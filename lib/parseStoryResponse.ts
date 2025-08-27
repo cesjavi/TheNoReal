@@ -20,7 +20,7 @@ export function parseStoryResponse(text: string, optionsPerDecision: number): Pa
   const raw = (text || "").trim();
 
   // Detecta final por palabra EXACTA al final
-  const finalRegex = /FINALIZADO\s*$/;
+  const finalRegex = /FINALIZADO\s*$/i;
   const isFinal = finalRegex.test(raw);
 
   const { story, optionsBlock } = splitStoryAndOptions(raw);
@@ -35,7 +35,8 @@ export function parseStoryResponse(text: string, optionsPerDecision: number): Pa
       })
       .filter(Boolean) as string[];
 
-    options = validateOptions(parsed, optionsPerDecision);
+    const { valid } = validateOptions(parsed, optionsPerDecision);
+    options = valid;
   }
 
   return { story, options, isFinal };
