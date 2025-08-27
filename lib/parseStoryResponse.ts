@@ -19,8 +19,8 @@ function splitStoryAndOptions(text: string): { story: string; optionsBlock: stri
 export function parseStoryResponse(text: string, optionsPerDecision: number): ParseResult {
   const raw = (text || "").trim();
 
-  // Detecta final por palabra EXACTA al final
-  const finalRegex = /FINALIZADO\s*$/;
+  // Detecta final por palabra "finalizado" al final, sin importar mayúsculas/minúsculas
+  const finalRegex = /finalizado\s*$/i;
   const isFinal = finalRegex.test(raw);
 
   const { story, optionsBlock } = splitStoryAndOptions(raw);
