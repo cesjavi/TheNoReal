@@ -7,6 +7,10 @@ export type Genero =
   | 'Romance'
   | 'Comedia';
 
+/**
+ * Preferencias estilísticas para la historia.
+ * Cada propiedad es una lista de etiquetas seleccionadas por el usuario.
+ */
 export interface Estilo {
   tono: string[];
   ritmo: string[];
@@ -18,6 +22,11 @@ export interface Estilo {
   matiz: string[];
 }
 
+/**
+ * Ajustes que controlan la generación de la historia.  Los campos de tipo
+ * `string[]` representan listas de opciones elegidas por el usuario y los
+ * numéricos modifican el comportamiento del modelo.
+ */
 export interface Ajustes {
   publico: string[];
   epoca: string[];
@@ -37,6 +46,8 @@ export interface Ajustes {
   consistenciaSaga?: boolean;
   estiloVisual?: string;
   paleta?: string;
+  /** Número objetivo de palabras por capítulo */
+  targetWords?: number;
 }
 
 export interface ConfigGeneracion {
