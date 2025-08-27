@@ -279,8 +279,13 @@ export default function StoryForm() {
   };
 
   return (
-    <main className="flex flex-col items-center p-8 gap-4"
-    style={{ backgroundImage: "url('/bg.jpg')" }}>
+    <main className="flex flex-col items-center p-8 gap-4">      
+      <div className="absolute top-0 center h-160 w-150 pointer-events-auto opacity-30">
+    <img src="/bg-nubes1.svg" alt="Tormenta animada" className="w-full h-full object-cover opacity-20" />
+  </div>
+       <div className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none">
+    <img src="/bg-wave5.svg" alt="Barquito animado" className="w-full h-full" />
+  </div>
       {!initialStory && (
         <>
           {/* 1) Texto inicial */}

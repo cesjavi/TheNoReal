@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="200" viewBox="0 0 400 200">
+  <!-- Fondo -->
+  <rect width="100%" height="100%" fill="#1F1B4D"/>
+
+  <!-- Nube -->
+  <g fill="#cccccc" opacity="0.9">
+    <ellipse cx="120" cy="80" rx="60" ry="35"/>
+    <ellipse cx="170" cy="80" rx="50" ry="30"/>
+    <ellipse cx="90" cy="90" rx="40" ry="25"/>
+  </g>
+
+  <!-- Nube 2 -->
+  <g fill="#bbbbbb" opacity="0.9">
+    <ellipse cx="270" cy="70" rx="70" ry="40"/>
+    <ellipse cx="320" cy="75" rx="50" ry="30"/>
+    <ellipse cx="230" cy="85" rx="45" ry="25"/>
+  </g>
+
+  <!-- Rayo 1 -->
+  <polygon points="140,110 155,110 145,135 160,135 130,180 140,150 125,150"
+           fill="#F4B400" opacity="0">
+    <animate attributeName="opacity" values="0;1;0" dur="2s" repeatCount="indefinite"/>
+  </polygon>
+
+  <!-- Rayo 2 -->
+  <polygon points="270,110 285,110 275,135 295,135 260,180 270,150 255,150"
+           fill="#FFD700" opacity="0">
+    <animate attributeName="opacity" values="0;1;0" dur="3s" repeatCount="indefinite" begin="1s"/>
+  </polygon>
+</svg>

@@ -1,0 +1,22 @@
+<svg
+        className="absolute bottom-0 left-0 w-full h-40 z-0 opacity-30"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 320"
+        preserveAspectRatio="none"
+      >
+    <path
+      fill="#6A63D5"
+      fillOpacity="0.3"
+      d="M0,160 Q360,220 720,160 T1440,160 V320 H0 Z"
+    >
+      <animate
+        attributeName="d"
+        dur="10s"
+        repeatCount="indefinite"
+        values="
+          M0,160 Q360,220 720,160 T1440,160 V320 H0 Z;
+          M0,180 Q360,120 720,180 T1440,160 V320 H0 Z;
+          M0,160 Q360,220 720,160 T1440,160 V320 H0 Z"
+      />
+    </path>
+  </svg>
