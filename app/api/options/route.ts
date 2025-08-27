@@ -6,6 +6,8 @@ const MAX_OPTIONS = 5;
 export async function POST(req: Request) {
   try {
     const { prompt, numOptions, temperature, top_p } = await req.json();
+    const safeTemperature = limitTemperature(temperature);
+    const safeTopP = limitTopP(top_p);
 
     const count = Number(numOptions) || 1;
     if (count > MAX_OPTIONS) {
@@ -26,8 +28,8 @@ export async function POST(req: Request) {
         model: "openai/gpt-oss-120b",
         messages: [{ role: "user", content: prompt }],
         n: 1,
-        temperature,
-        top_p,
+        temperature: safeTemperature,
+        top_p: safeTopP,
       });
 
       const option = completion.choices[0]?.message.content?.trim();
