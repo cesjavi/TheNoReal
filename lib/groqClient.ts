@@ -7,11 +7,12 @@ import type { Stream } from 'groq-sdk/lib/streaming';
 
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-function filterSensitive(data: unknown): unknown {
+export function filterSensitive(data: unknown): unknown {
   const secret = process.env.GROQ_API_KEY;
   if (!secret) return data;
+  const escapedSecret = secret.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   if (typeof data === 'string') {
-    return data.replace(new RegExp(secret, 'g'), '[REDACTED]');
+    return data.replace(new RegExp(escapedSecret, 'g'), '[REDACTED]');
   }
   if (Array.isArray(data)) {
     return data.map(filterSensitive);
