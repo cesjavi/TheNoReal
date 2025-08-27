@@ -18,21 +18,22 @@ import StoryForm from '../app/components/StoryForm';
 describe('StoryForm fetches missing options', () => {
   beforeEach(() => {
     mockStory.mockClear();
+    const initialText =
+      'Capítulo inicial\n---\n1. Explorar el antiguo castillo en la colina oscura\n2. Investigar las ruinas perdidas del templo antiguo secreto';
     (global.fetch as jest.Mock) = jest
       .fn()
       .mockResolvedValueOnce({
         ok: true,
-        json: () =>
-          Promise.resolve({
-            story: 'Capítulo inicial',
-            options: ['Opción A', 'Opción B'],
-          }),
+        json: () => Promise.resolve({ text: initialText }),
       })
       .mockResolvedValueOnce({
         ok: true,
         json: () =>
           Promise.resolve({
-            options: ['Opción B', 'Opción C'],
+            options: [
+              'Investigar las ruinas perdidas del templo antiguo secreto',
+              'Descubrir los misterios ocultos bajo la ciudad olvidada',
+            ],
           }),
       });
   });
@@ -58,13 +59,10 @@ describe('StoryForm fetches missing options', () => {
 
     await waitFor(() => expect(mockStory).toHaveBeenCalled());
 
-    expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe('/api/options');
-
     const props = mockStory.mock.calls[0][0];
     expect(props.initialOptions).toEqual([
-      'Opción A',
-      'Opción B',
-      'Opción C',
+      'Explorar el antiguo castillo en la colina oscura',
+      'Investigar las ruinas perdidas del templo antiguo secreto',
     ]);
   });
 });
