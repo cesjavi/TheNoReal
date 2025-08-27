@@ -1,11 +1,5 @@
-export type Fingerprint = {
-  escenario: string;
-  epoca: string;
-  protagonista: string;
-  dispositivo: string;
-  tono: string;
-  firstSentence?: string;
-};
+import type { Fingerprint } from "../types/fingerprint";
+export type { Fingerprint };
 
 export function buildMeta({
   optionsCount,
