@@ -4,7 +4,8 @@ import { buildSystemPrompt, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
 import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
-import { limitTemperature, limitTopP } from "@/lib/sampling";
+import type { Estilo } from "@/types/story";
+import type { ChatCompletionMessageParam } from "groq-sdk/resources/chat/completions";
 
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
@@ -12,23 +13,25 @@ export async function POST(req: Request) {
   }
 
   try {
-    const body = await req.json();
-    const storyText: string = body.story ?? "";
-    const chosenOption: string = body.option ?? "";
-    const optionsCount: number = Number(body.optionsPerDecision ?? 2) || 2;
-    const genres: string[] = Array.isArray(body.genres) ? body.genres : [];
-    const language: string = typeof body.language === "string" ? body.language : "neutral";
-    const temperature: number | undefined = limitTemperature(
-      typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75,
-    );
-    const top_p: number | undefined = limitTopP(
-      typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9,
-    );
-    const targetWords: number = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
-    // Define or import the Estilo type above if not already present
-    type Estilo = any; // Replace 'any' with the actual structure if known
-    
-        const estilo: Estilo | undefined = body.estilo;
+    const body: {
+      story?: string;
+      option?: string;
+      optionsPerDecision?: number;
+      genres?: string[];
+      language?: string;
+      ajustes?: { temperature?: number; top_p?: number; targetWords?: number };
+      estilo?: Estilo;
+    } = await req.json();
+
+    const storyText = body.story ?? "";
+    const chosenOption = body.option ?? "";
+    const optionsCount = Number(body.optionsPerDecision ?? 2) || 2;
+    const genres = Array.isArray(body.genres) ? body.genres : [];
+    const language = typeof body.language === "string" ? body.language : "neutral";
+    const temperature = typeof body.ajustes?.temperature === "number" ? body.ajustes.temperature : 0.75;
+    const top_p = typeof body.ajustes?.top_p === "number" ? body.ajustes.top_p : 0.9;
+    const targetWords = typeof body.ajustes?.targetWords === "number" ? body.ajustes.targetWords : 220;
+    const estilo: Estilo | undefined = body.estilo;
 
     const metaBlock = buildMeta({
       optionsCount,
@@ -50,15 +53,15 @@ export async function POST(req: Request) {
       }),
     ]);
 
-    const messages = [
+    const messages: ChatCompletionMessageParam[] = [
       { role: "system", content: systemContent },
       { role: "user", content: userContent },
-    ] as const;
+    ];
 
     const model = process.env.GROQ_MODEL ?? "meta-llama/llama-4-scout-17b-16e-instruct";
     const completion = await createChatCompletion({
       model,
-      messages: messages as any,
+      messages,
       temperature,
       top_p,
     });
@@ -83,7 +86,7 @@ export async function POST(req: Request) {
 
     // Devolvemos datos estructurados en lugar del texto sin procesar
     return NextResponse.json({ story, options, isFinal });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("api/story error:", err);
     return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 });
   }
