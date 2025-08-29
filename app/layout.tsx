@@ -35,16 +35,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-       <head>
-        {/* Script de Google AdSense */}
+    <head>
         <Script
-          id="adsense-script"
           async
-          strategy="afterInteractive"
-          crossOrigin="anonymous"
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9368869720669033"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
         />
-      </head>
+      </head>       
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
           <div className="p-4 flex justify-end">
