@@ -71,10 +71,10 @@ export function parseStoryResponseStrict(
   if (trailingBlankLines) diagnostics.push("trailing blank lines");
   if (/`{3}|^\s*[-*#]/m.test(normalized)) diagnostics.push("markdown hints");
 
-  const isFinal = /(?:^|\n)FINALIZADO$/.test(normalized);
-  let working = normalized;
-  if (isFinal) {
-    working = working.replace(/(?:^|\n)FINALIZADO$/, "").trimEnd();
+  if (!isFinal && optionsBlock) {
+    const optLines = optionsBlock.split(/\r?\n/);
+    const { valid } = validateOptions(optLines, optionsPerDecision);
+    options = valid;
   }
 
   const { story, optionsBlock, separatorLine } = splitStoryAndOptionsNormalized(working);
