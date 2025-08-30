@@ -38,7 +38,7 @@ export async function POST(req: Request) {
         rawOptions.push(option);
         const result = validateOptions(rawOptions, count);
         validOptions = result.valid;
-        discarded = result.discarded;
+        discarded = result.invalid;
       }
       console.log("options progress", {
         expected: count,
