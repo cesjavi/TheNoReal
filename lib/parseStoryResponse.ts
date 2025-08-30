@@ -28,14 +28,7 @@ export function parseStoryResponse(text: string, optionsPerDecision: number): Pa
 
   if (!isFinal && optionsBlock) {
     const optLines = optionsBlock.split(/\r?\n/);
-    const parsed = optLines
-      .map(l => {
-        const m = l.match(/^\s*\d+\.\s+(.+?)\s*$/);
-        return m ? m[1] : null;
-      })
-      .filter(Boolean) as string[];
-
-    const { valid } = validateOptions(parsed, optionsPerDecision);
+    const { valid } = validateOptions(optLines, optionsPerDecision);
     options = valid;
   }
 
