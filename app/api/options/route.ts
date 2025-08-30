@@ -1,5 +1,5 @@
 import createChatCompletion from "@/lib/groqClient";
-import { validateOptions, OptionDiscard } from "@/lib/optionGuard";
+import { validateOptions } from "@/lib/optionGuard";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 
 const MAX_OPTIONS = 5;
@@ -19,8 +19,7 @@ export async function POST(req: Request) {
     }
 
     const rawOptions: string[] = [];
-    let validOptions: string[] = [];
-    let discarded: OptionDiscard[] = [];
+    let validOptions: string[] = [];    
     let attempts = 0;
     const maxAttempts = count + 2;
     while (validOptions.length < count && attempts < maxAttempts) {
@@ -37,8 +36,7 @@ export async function POST(req: Request) {
       if (option) {
         rawOptions.push(option);
         const result = validateOptions(rawOptions, count);
-        validOptions = result.valid;
-        discarded = result.invalid;
+        validOptions = result.valid;        
       }
       console.log("options progress", {
         expected: count,
@@ -52,13 +50,13 @@ export async function POST(req: Request) {
         expected: count,
         received: validOptions.length,
         attempts,
-        discarded,
+        
       });
       return Response.json(
         {
           error: `Generated ${validOptions.length} of ${count} options`,
           options: validOptions,
-          discarded,
+          
         },
         { status: 502 },
       );
