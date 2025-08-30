@@ -1,4 +1,4 @@
-import { parseStoryResponse } from '../lib/parseStoryResponse';
+import { parseStoryResponse, parseStoryResponseStrict } from '../lib/parseStoryResponse';
 
 describe('parseStoryResponse', () => {
   it('separates historia y opciones con ---', () => {
@@ -23,10 +23,18 @@ describe('parseStoryResponse', () => {
     ]);
   });
 
-  it('detecta final ignorando mayúsculas y minúsculas', () => {
-    const text = 'El héroe ha cumplido su misión\nFiNaLiZaDo';
+  it('detecta final solo con FINALIZADO exacto', () => {
+    const text = 'El héroe ha cumplido su misión\nFINALIZADO';
     const { isFinal, options } = parseStoryResponse(text, 2);
     expect(isFinal).toBe(true);
     expect(options).toEqual([]);
+  });
+});
+
+describe('parseStoryResponseStrict', () => {
+  it('emite error cuando falta separador', () => {
+    const text = 'Historia sin separador\n1. Opción inválida';
+    const result = parseStoryResponseStrict(text, 1);
+    expect(result.errors).toContain('missing options separator');
   });
 });
