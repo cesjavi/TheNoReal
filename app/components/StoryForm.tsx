@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useLanguage } from "../providers/LanguageProvider";
 import Story from "./Story";
@@ -96,6 +96,40 @@ export default function StoryForm() {
   const [promptTruncated, setPromptTruncated] = useState(false);
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [open, setOpen] = useState(false);
+  const [topSvgs, setTopSvgs] = useState<string[]>([]);
+  const [bottomSvgs, setBottomSvgs] = useState<string[]>([]);
+  const [topSvg, setTopSvg] = useState<string>("");
+  const [bottomSvg, setBottomSvg] = useState<string>("");
+  const [topDelay, setTopDelay] = useState<string>("0s");
+  const [bottomDelay, setBottomDelay] = useState<string>("0s");
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await fetch("/api/backgrounds");
+        const data = await res.json();
+        setTopSvgs(data.top || []);
+        setBottomSvgs(data.bottom || []);
+      } catch (err) {
+        console.error("Error fetching backgrounds", err);
+      }
+    };
+    load();
+  }, []);
+
+  useEffect(() => {
+    if (topSvgs.length) {
+      setTopSvg(randomPick(topSvgs));
+      setTopDelay(`${Math.random()}s`);
+    }
+  }, [topSvgs]);
+
+  useEffect(() => {
+    if (bottomSvgs.length) {
+      setBottomSvg(randomPick(bottomSvgs));
+      setBottomDelay(`${Math.random()}s`);
+    }
+  }, [bottomSvgs]);
 
   const resetStory = () => {
     setInitialStory(null);
@@ -281,11 +315,21 @@ export default function StoryForm() {
   return (
     <main className="flex flex-col items-center p-8 gap-4">      
       <div className="absolute top-0 center h-80 w-200 pointer-events-none opacity-40">
-    <img src="/bg-nubes1.svg" alt="Tormenta animada" className="w-full h-full object-cover opacity-60" />
-  </div>
-       <div className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none">
-    <img src="/bg-wave5.svg" alt="Barquito animado" className="w-full h-full" />
-  </div>
+        <img
+          src={topSvg}
+          style={{ animationDelay: topDelay }}
+          alt="Tormenta animada"
+          className="w-full h-full object-cover opacity-60"
+        />
+      </div>
+      <div className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none">
+        <img
+          src={bottomSvg}
+          style={{ animationDelay: bottomDelay }}
+          alt="Barquito animado"
+          className="w-full h-full"
+        />
+      </div>
       {!initialStory && (
         <>
           {/* 1) Texto inicial */}
