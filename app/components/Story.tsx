@@ -330,7 +330,7 @@ export default function Story({
             className="rounded-2xl border bg-card transition-shadow hover:[box-shadow:0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
             style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
           >
-            {imageUrl && (
+            {imageUrl ? (
               <div className="overflow-hidden rounded-t-2xl">
                 <img
                   src={imageUrl}
@@ -338,7 +338,7 @@ export default function Story({
                   className="h-56 w-full object-cover"
                 />
               </div>
-            )}
+            ) : null}
 
             <div className="space-y-4 p-5">
               {idx > 0 && (

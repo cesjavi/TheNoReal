@@ -314,20 +314,20 @@ export default function StoryForm() {
 
   return (
     <main className="flex flex-col items-center p-8 gap-4">      
-      <div className="absolute top-0 center h-80 w-200 pointer-events-none opacity-40">
+      <div >
         <img
           src={topSvg}
           style={{ animationDelay: topDelay }}
-          alt="Tormenta animada"
-          className="w-full h-full object-cover opacity-60"
+          alt="T"
+          className="fixed left-1/2 top-0 -translate-x-1/2 -translate-y-0 object-cover h-80 w-200 pointer-events-none opacity-40"
         />
       </div>
-      <div className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none">
+      <div className="">
         <img
           src={bottomSvg}
           style={{ animationDelay: bottomDelay }}
-          alt="Barquito animado"
-          className="w-full h-full"
+          alt="B"
+          className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none"
         />
       </div>
       {!initialStory && (
