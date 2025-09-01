@@ -108,8 +108,8 @@ export default function StoryForm() {
       try {
         const res = await fetch("/api/backgrounds");
         const data = await res.json();
-        setTopSvgs(data.top || []);
-        setBottomSvgs(data.bottom || []);
+        setTopSvgs(Array.isArray(data?.top) ? data.top : []);
+        setBottomSvgs(Array.isArray(data?.bottom) ? data.bottom : []);
       } catch (err) {
         console.error("Error fetching backgrounds", err);
       }
@@ -118,14 +118,14 @@ export default function StoryForm() {
   }, []);
 
   useEffect(() => {
-    if (topSvgs.length) {
+    if (topSvgs?.length) {
       setTopSvg(randomPick(topSvgs));
       setTopDelay(`${Math.random()}s`);
     }
   }, [topSvgs]);
 
   useEffect(() => {
-    if (bottomSvgs.length) {
+    if (bottomSvgs?.length) {
       setBottomSvg(randomPick(bottomSvgs));
       setBottomDelay(`${Math.random()}s`);
     }
