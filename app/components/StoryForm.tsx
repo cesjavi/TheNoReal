@@ -96,10 +96,10 @@ export default function StoryForm() {
   const [promptTruncated, setPromptTruncated] = useState(false);
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [open, setOpen] = useState(false);
-  const [topSvgs, setTopSvgs] = useState<string[]>([]);
-  const [bottomSvgs, setBottomSvgs] = useState<string[]>([]);
-  const [topSvg, setTopSvg] = useState<string>("");
-  const [bottomSvg, setBottomSvg] = useState<string>("");
+  const [topSvgs, setTopSvgs] = useState<string[] | null>([]);
+  const [bottomSvgs, setBottomSvgs] = useState<string[] | null>([]);
+  const [topSvg, setTopSvg] = useState<string | null>(null);
+  const [bottomSvg, setBottomSvg] = useState<string | null>(null);
   const [topDelay, setTopDelay] = useState<string>("0s");
   const [bottomDelay, setBottomDelay] = useState<string>("0s");
 

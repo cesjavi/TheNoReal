@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@prisma/client": "^6.14.0",
+    "@vercel/speed-insights": "^1.2.0",
     "expo": "^53.0.20",
     "groq-sdk": "^0.30.0",
     "next": "15.4.6",
