@@ -36,14 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-    <head>
-      <meta name="google-adsense-account" content="ca-pub-9368869720669033"></meta>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9368869720669033"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
+    <head>      
       </head>       
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
