@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">The Non Real</string>
+    <string name="title_activity_main">The Non Real</string>
+    <string name="package_name">ar.com.thenonreal.app</string>
+    <string name="custom_url_scheme">ar.com.thenonreal.app</string>
+</resources>

@@ -6,100 +6,167 @@ import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/li
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 
+// ---------- Tipos auxiliares ----------
+type Ajustes = {
+  temperature?: number;
+  top_p?: number;
+  targetWords?: number;
+};
+
+type StoryRequest = {
+  story?: string;
+  option?: string;
+  optionsPerDecision?: number;
+  genres?: string[];
+  estilo?: Record<string, unknown>;
+  ajustes?: Ajustes;
+  language?: string;
+  endingMode?: string;
+  chaptersCount?: number;
+  finalize?: boolean;
+};
+
+// Minimal, sólo lo que usamos
+type ChatMessage = { role: "system" | "user"; content: string };
+
+type ChatChoice = {
+  index?: number;
+  message?: { role?: string; content?: string };
+  finish_reason?: string | null;
+};
+
+type ChatCompletion = {
+  id?: string;
+  model?: string;
+  choices: ChatChoice[];
+};
+
+function isObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === "object" && x !== null;
+}
+
+function isStringArray(x: unknown): x is string[] {
+  return Array.isArray(x) && x.every((v) => typeof v === "string");
+}
+
+function isStoryRequest(x: unknown): x is StoryRequest {
+  if (!isObject(x)) return false;
+  // `story` puede ser cadena vacía; lo único “obligatorio” para nosotros
+  // es que exista el objeto y que no tenga tipos imposibles.
+  if ("genres" in x && !isStringArray((x as StoryRequest).genres)) return false;
+  return true;
+}
+
+// ---------- Handler ----------
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
   }
 
   try {
-    const body = await req.json();
+    const raw = (await req.json()) as unknown;
+    if (!isStoryRequest(raw)) {
+      return NextResponse.json({ error: "Bad request" }, { status: 400 });
+    }
+
     const {
       story: storyText = "",
       option: chosenOption = "",
       optionsPerDecision = 2,
       genres = [],
       estilo = {},
-      ajustes = {} as { temperature?: number; top_p?: number; targetWords?: number },
+      ajustes = {} as Ajustes,
       language = "es",
       endingMode,
       chaptersCount,
       finalize = false,
-    } = body;
+    } = raw;
 
     // Sampling y targets
     const optionsCount: number = Number(optionsPerDecision) || 2;
     const temperature = limitTemperature(ajustes?.temperature) ?? 0.75;
     const top_p = limitTopP(ajustes?.top_p) ?? 0.9;
-    const targetWords: number = typeof ajustes?.targetWords === "number" ? ajustes.targetWords : 220;
+    const targetWords: number =
+      typeof ajustes?.targetWords === "number" ? ajustes.targetWords : 220;
 
-    // META base (tu helper)
+    // META base
     const metaBase = buildMeta({
       optionsCount,
       targetWords,
       recentFingerprints: getRecentFingerprints(),
-      bannedCliches: ["todo fue un sueño", "llamadas sin identificador", "hospital psiquiátrico abandonado"],
+      bannedCliches: [
+        "todo fue un sueño",
+        "llamadas sin identificador",
+        "hospital psiquiátrico abandonado",
+      ],
     });
 
-    // EXTENSIÓN: inyecto toda la config dentro del MISMO [META]
-    // (no agrego [CONFIG] extra, para no tocar storyPrompt.ts)
+    // Extensión de META en el mismo bloque
     const metaConfigLines = [
-  `language=${language}`,
-  `genres=[${(genres as string[]).map((g: string) => JSON.stringify(g)).join(", ")}]`,
-  endingMode ? `ending_mode=${endingMode}` : null,
-  Number.isFinite(chaptersCount) ? `chapters_count=${chaptersCount}` : null,
-  `estilo=${JSON.stringify(estilo)}`,
-  `ajustes=${JSON.stringify(ajustes)}`,
-  finalize ? `finalize_now=true` : null,
-].filter(Boolean) as string[];
-
+      `language=${language}`,
+      `genres=[${genres.map((g) => JSON.stringify(g)).join(", ")}]`,
+      endingMode ? `ending_mode=${endingMode}` : null,
+      Number.isFinite(chaptersCount) ? `chapters_count=${chaptersCount}` : null,
+      `estilo=${JSON.stringify(estilo)}`,
+      `ajustes=${JSON.stringify(ajustes)}`,
+      finalize ? `finalize_now=true` : null,
+    ].filter(Boolean) as string[];
 
     const metaBlock = [metaBase.trim(), ...metaConfigLines].join("\n");
 
-    // Construyo el mensaje de usuario CON el [META] (buildUserMessage ya lo envuelve)
+    // Mensaje de usuario (con [META])
     const userContent = buildUserMessage({
-      text: [
-        storyText,
-        finalize ? "\nFinaliza ahora." : "",
-      ].join(""),
+      text: [storyText, finalize ? "\nFinaliza ahora." : ""].join(""),
       chosenOption,
       optionsCount,
       targetWords,
       metaBlock,
     });
 
-    const messages = [
+    const messages: ChatMessage[] = [
       { role: "system", content: SYSTEM_PROMPT_V3 },
       { role: "user", content: userContent },
-    ] as const;
+    ];
 
-    const model = process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct";//"openai/gpt-oss-120b";// "meta-llama/llama-4-scout-17b-16e-instruct";
-    const completion = await createChatCompletion({
+    const model =
+      process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct"; // fallback
+
+    const completion = (await createChatCompletion({
       model,
-      messages: messages as any,
+      messages, // ← ya no es `any`
       temperature,
       top_p,
-    });
-  // 👇 Log completo para debug
-  console.dir(completion.choices, { depth: null });
+    })) as ChatCompletion;
+
+    // Debug (servidor). Si no querés logs, remové esta línea.
+    // eslint-disable-next-line no-console
+    console.dir(completion.choices, { depth: null });
 
     const text: string = completion?.choices?.[0]?.message?.content ?? "";
     if (!text) {
-      return NextResponse.json({ error: "Respuesta vacía del modelo" }, { status: 502 });
+      return NextResponse.json(
+        { error: "Respuesta vacía del modelo" },
+        { status: 502 }
+      );
     }
 
-    // Parseo según tu formato (capítulo + --- + opciones)
+    // Parseo formato (capítulo + --- + opciones)
     const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
 
-    // Huellas para antirrep (solo si no es final y hay capítulo)
+    // Huellas para antirrep (si corresponde)
     if (!isFinal && story) {
       const fp = computeFingerprint({ chapterText: story, genres });
       pushFingerprint(fp);
     }
 
-    // Devuelvo lo que espera el frontend
     return NextResponse.json({ story, options, isFinal, raw: text });
-  } catch (err) {
-    console.error("api/story error:", err);
-    return NextResponse.json({ error: "Error al procesar la solicitud" }, { status: 500 });
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Unknown error";
+    // eslint-disable-next-line no-console
+    console.error("api/story error:", msg);
+    return NextResponse.json(
+      { error: "Error al procesar la solicitud" },
+      { status: 500 }
+    );
   }
 }

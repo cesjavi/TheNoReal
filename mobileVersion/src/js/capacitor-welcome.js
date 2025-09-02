@@ -7,6 +7,8 @@ window.customElements.define(
     constructor() {
       super();
 
+      // Si preferís, podés mover esto a connectedCallback()
+      // para asegurarte de que el DOM está listo.
       SplashScreen.hide();
 
       const root = this.attachShadow({ mode: 'open' });
@@ -90,22 +92,17 @@ window.customElements.define(
     }
 
     connectedCallback() {
-      const self = this;
-
-      self.shadowRoot.querySelector('#take-photo').addEventListener('click', async function (e) {
+      const btn = this.shadowRoot?.querySelector<HTMLButtonElement>('#take-photo');
+      btn?.addEventListener('click', async () => {
         try {
-          const photo = await Camera.getPhoto({
-            resultType: 'uri',
-          });
+          const photo = await Camera.getPhoto({ resultType: 'uri' });
 
-          const image = self.shadowRoot.querySelector('#image');
-          if (!image) {
-            return;
+          const img = this.shadowRoot?.querySelector<HTMLImageElement>('#image');
+          if (img && photo?.webPath) {
+            img.src = photo.webPath;
           }
-
-          image.src = photo.webPath;
-        } catch (e) {
-          console.warn('User cancelled', e);
+        } catch (err) {
+          console.warn('User cancelled', err);
         }
       });
     }

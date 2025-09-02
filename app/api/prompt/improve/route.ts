@@ -1,0 +1,48 @@
+import { NextResponse } from "next/server";
+import createChatCompletion from "@/lib/groqClient";
+
+export async function POST(req: Request) {
+  if (!process.env.GROQ_API_KEY) {
+    return NextResponse.json(
+      { error: "GROQ_API_KEY is not configured" },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const { prompt } = await req.json();
+    if (!prompt || typeof prompt !== "string") {
+      return NextResponse.json(
+        { error: "prompt is required" },
+        { status: 400 }
+      );
+    }
+
+    const model = process.env.GROQ_MODEL || "openai/gpt-oss-120b";
+    const completion = await createChatCompletion({
+      model,
+      messages: [
+        {
+          role: "system",
+          content:
+            "Eres un asistente que mejora prompts manteniendo la intención original.",
+        },
+        { role: "user", content: prompt },
+      ],
+    });
+
+    const improved = completion.choices[0]?.message?.content?.trim();
+    if (!improved) {
+      throw new Error("Empty response from model");
+    }
+
+    return NextResponse.json({ prompt: improved });
+  } catch (err) {
+    console.error("improve prompt error:", err);
+    return NextResponse.json(
+      { error: "Error improving prompt" },
+      { status: 500 }
+    );
+  }
+}
+

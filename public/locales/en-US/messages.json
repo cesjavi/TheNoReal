@@ -1,6 +1,8 @@
 {
   "StoryForm": {
     "randomize": "Randomize",
+    "improvePrompt": "Improve Prompt",
+    "generatePrompt": "Generate Prompt",
     "createStory": "Create story",
     "sending": "Sending...",
     "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens."

@@ -3,9 +3,13 @@
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react';
 import { NextIntlClientProvider } from 'next-intl';
 
+import type { AbstractIntlMessages } from 'use-intl';
+
+type Messages = AbstractIntlMessages;
+
 interface LangContext {
-  locale: string;
-  setLocale: (locale: string) => void;
+  locale: Locale;
+  setLocale: (locale: Locale) => void;
 }
 
 // Locales with available message bundles
@@ -19,30 +23,40 @@ export const SUPPORTED = [
   'neutral',
 ] as const;
 
-const DEFAULT_LOCALE = 'es';
+type Locale = typeof SUPPORTED[number];
+const DEFAULT_LOCALE: Locale = 'es';
 
-const LanguageContext = createContext<LangContext>({ locale: DEFAULT_LOCALE, setLocale: () => {} });
+const LanguageContext = createContext<LangContext>({
+  locale: DEFAULT_LOCALE,
+  setLocale: () => {},
+});
+
 export const useLanguage = () => useContext(LanguageContext);
 
-function baseOf(tag: string) {
+function baseOf(tag: string): string {
   return (tag || '').toLowerCase().split('-')[0];
 }
 
-function normalizeLocale(tag: string) {
+function normalizeLocale(tag: string): Locale {
   const lower = (tag || '').toLowerCase();
-  const full = SUPPORTED.find(l => l.toLowerCase() === lower);
+
+  const full = SUPPORTED.find((l) => l.toLowerCase() === lower);
   if (full) return full;
+
   const base = baseOf(lower);
-  const baseMatch = SUPPORTED.find(l => l.toLowerCase() === base);
+  const baseMatch = SUPPORTED.find((l) => l.toLowerCase() === base);
   return baseMatch || DEFAULT_LOCALE;
 }
 
 export default function LanguageProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<string>(() => {
-    const initial = typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
-    return normalizeLocale(initial);
-  });
-  const [messages, setMessages] = useState<Record<string, any>>({});
+  // Pedimos el idioma del navegador solo en cliente
+  const initialRequested =
+    typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
+
+  const initialLocale = normalizeLocale(initialRequested);
+
+  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [messages, setMessages] = useState<Messages>({});
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -50,32 +64,38 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
     (async () => {
       setLoaded(false);
 
-      // Try: full tag -> base -> default
+      // Calculamos el "resolved" en base al locale actual
+      // e intentamos cargar en orden: full -> base -> default
       const full = locale;
       const base = baseOf(locale);
-      const candidates = Array.from(new Set([full, base, DEFAULT_LOCALE]));
+      const candidates = Array.from(new Set([full, base as Locale, DEFAULT_LOCALE]));
 
-      async function tryFetch(loc: string) {
+      async function tryFetch(loc: Locale): Promise<Messages> {
         const res = await fetch(`/locales/${loc}/messages.json`, { cache: 'no-store' });
         if (!res.ok) throw new Error(`Missing messages for ${loc}`);
-        return res.json();
+        const json = (await res.json()) as unknown;
+        return (json ?? {}) as Messages;
       }
 
       for (const candidate of candidates) {
         try {
           const data = await tryFetch(candidate);
-          if (!cancelled) {
-            setMessages(data);
-            setLoaded(true);
-            // keep user's selected locale
-            if (!cancelled && candidate !== locale) setLocale(candidate);
+          if (cancelled) return;
+
+          // Si candidate resolvió distinto al actual, actualizamos locale una sola vez
+          if (candidate !== locale) {
+            setLocale(candidate);
           }
+
+          setMessages(data);
+          setLoaded(true);
           return;
         } catch {
-          // continue to next candidate
+          // probar siguiente candidate
         }
       }
 
+      // Si nada cargó, al menos marcamos como cargado para no bloquear el render
       if (!cancelled) {
         setMessages({});
         setLoaded(true);

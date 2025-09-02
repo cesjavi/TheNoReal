@@ -1,0 +1,10 @@
+# carpetas estándar
+node_modules
+.next
+dist
+build
+
+# generado por Prisma/wasm (ajustá si tu path es otro)
+lib/generated/**
+lib/generated/prisma/**
+**/wasm.js
