@@ -25,7 +25,8 @@ export const metadata: Metadata = {
       { url: "/icons/icon-512x512.png", sizes: "512x512", type: "image/png" },
     ],
     apple: "/icons/icon-192x192.png",
-  },
+    shortcut: "/icon-192x192.png"
+  },  
 };
 
 export default function RootLayout({
