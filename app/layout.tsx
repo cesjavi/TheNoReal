@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     ],
     apple: "/icons/icon-192x192.png",
     shortcut: "/icon-192x192.png"
-  },  
+  },
 };
 
 export default function RootLayout({
@@ -36,8 +36,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-    <head>      
-      </head>       
+    <head>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
           <div className="p-4 flex justify-end">
