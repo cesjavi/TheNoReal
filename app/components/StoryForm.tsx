@@ -336,6 +336,22 @@ export default function StoryForm() {
               <span>{tokenCount}/{TOKEN_LIMIT} tokens</span>
               {tokenCount >= TOKEN_LIMIT && (<span className="text-red-600">Límite alcanzado</span>)}
             </div>
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => {}}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                {t("improvePrompt")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {}}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                {t("generatePrompt")}
+              </button>
+            </div>
           </div>
 
           {/* 2) Géneros debajo del textarea */}
