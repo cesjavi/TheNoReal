@@ -193,50 +193,18 @@ export default function StoryForm() {
     setConfig({ generos: [genero], estilo, ajustes });
   };
 
-  const handleImprovePrompt = async () => {
-    if (!prompt.trim()) return;
-    setLoading(true);
+  const fetchPrompt = async (endpoint: string) => {
     try {
-      const res = await fetch("/api/prompt/improve", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
-      });
+      const res = await fetch(endpoint);
       const data = await res.json().catch(() => ({}));
-      if (typeof data?.prompt === "string") {
-        setPrompt(data.prompt);
-        setTokenCount(countTokens(data.prompt));
+      const text: string = typeof data?.text === "string" ? data.text : "";
+      if (text) {
+        setPrompt(text);
+        setTokenCount(countTokens(text));
         setPromptTruncated(false);
       }
     } catch (err) {
-      console.error("Error improving prompt", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGeneratePrompt = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/prompt/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          generos: config.generos,
-          estilo: config.estilo,
-          ajustes: config.ajustes,
-        }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (typeof data?.prompt === "string") {
-        setPrompt(data.prompt);
-        setTokenCount(countTokens(data.prompt));
-        setPromptTruncated(false);
-      }
-    } catch (err) {
-      console.error("Error generating prompt", err);
-    } finally {
-      setLoading(false);
+      console.error("Error fetching prompt", err);
     }
   };
 
@@ -386,6 +354,22 @@ export default function StoryForm() {
         <>
           {/* 1) Texto inicial */}
           <div className="flex flex-col w-full max-w-xl">
+            <div className="flex gap-2 mb-2">
+              <button
+                type="button"
+                onClick={() => fetchPrompt("/api/prompt/1")}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Prompt 1
+              </button>
+              <button
+                type="button"
+                onClick={() => fetchPrompt("/api/prompt/2")}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
+              >
+                Prompt 2
+              </button>
+            </div>
             <textarea
               className="w-full p-2 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
               placeholder="Escribe el inicio de la historia"
