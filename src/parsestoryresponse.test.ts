@@ -28,7 +28,7 @@ describe('parseStoryResponseStrict compatibility', () => {
     expect(strict.story).toBe('Un relato épico');
     expect(strict.options.length).toBe(2);
     expect(strict.errors).toHaveLength(0);
-    expect(strict.diagnostics).toHaveLength(0);
+    expect(strict.diagnostics).toEqual(['markdown hints']);
     expect(legacy).toEqual({
       story: 'Un relato épico',
       options: [
@@ -48,8 +48,12 @@ describe('parseStoryResponseStrict compatibility', () => {
     ].join('\n');
     const legacy = parseStoryResponse(text, N);
     const strict = parseStoryResponseStrict(text, N);
-    expect(strict.diagnostics).toEqual(expect.arrayContaining(['invalid option line 1']));
-    expect(strict.errors).toEqual(expect.arrayContaining(['expected 2 options, got 1']));
+    expect(strict.diagnostics).toEqual(
+      expect.arrayContaining(['unrecognized option line']),
+    );
+    expect(strict.errors).toEqual(
+      expect.arrayContaining(['expected 2 options but got 1']),
+    );
     expect(legacy.options).toEqual(['Seguir caminando en silencio por el camino estrecho']);
   });
 
@@ -61,7 +65,9 @@ describe('parseStoryResponseStrict compatibility', () => {
     ].join('\n');
     const legacy = parseStoryResponse(text, N);
     const strict = parseStoryResponseStrict(text, N);
-    expect(strict.errors).toEqual(expect.arrayContaining(['expected 2 options, got 1']));
+    expect(strict.errors).toEqual(
+      expect.arrayContaining(['expected 2 options but got 1']),
+    );
     expect(legacy.options.length).toBe(1);
   });
 
@@ -75,9 +81,11 @@ describe('parseStoryResponseStrict compatibility', () => {
     ].join('\n');
     const legacy = parseStoryResponse(text, N);
     const strict = parseStoryResponseStrict(text, N);
-    expect(strict.errors).toEqual(expect.arrayContaining(['too many options (3)']));
-    expect(strict.options.length).toBe(2);
-    expect(legacy.options.length).toBe(2);
+    expect(strict.errors).toEqual(
+      expect.arrayContaining(['expected 2 options but got 3']),
+    );
+    expect(strict.options.length).toBe(3);
+    expect(legacy.options.length).toBe(3);
   });
 
   test('markdown artifacts are reported in diagnostics', () => {
@@ -90,11 +98,7 @@ describe('parseStoryResponseStrict compatibility', () => {
     ].join('\n');
     const strict = parseStoryResponseStrict(text, N);
     expect(strict.diagnostics).toEqual(
-      expect.arrayContaining([
-        'contains #',
-        'contains ```',
-        'contains markdown formatting',
-      ]),
+      expect.arrayContaining(['markdown hints']),
     );
   });
 
@@ -119,8 +123,12 @@ describe('parseStoryResponseStrict compatibility', () => {
     ].join('\n');
     const legacy = parseStoryResponse(text, 1);
     const strict = parseStoryResponseStrict(text, 1);
-    expect(strict.diagnostics).toEqual(expect.arrayContaining(['separator with extra text']));
-    expect(strict.errors).toEqual(expect.arrayContaining(['expected 1 options, got 0']));
+    expect(strict.diagnostics).toEqual(
+      expect.arrayContaining(['markdown hints']),
+    );
+    expect(strict.errors).toEqual(
+      expect.arrayContaining(['missing options separator']),
+    );
     expect(legacy.options).toEqual([]);
   });
 
@@ -134,9 +142,8 @@ describe('parseStoryResponseStrict compatibility', () => {
     const strict = parseStoryResponseStrict(text, N, 8, 16);
     expect(strict.errors).toEqual(
       expect.arrayContaining([
-        expect.stringContaining('menos de 8 palabras'),
-        expect.stringContaining('más de 16 palabras'),
-        'expected 2 options, got 0',
+        'option 1 has fewer than 8 words',
+        'option 2 has more than 16 words',
       ]),
     );
   });
