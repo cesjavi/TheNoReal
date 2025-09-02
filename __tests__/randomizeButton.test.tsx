@@ -12,6 +12,17 @@ jest.mock('../app/providers/LanguageProvider', () => ({
 import StoryForm from '../app/components/StoryForm';
 
 describe('StoryForm randomizer', () => {
+  beforeEach(() => {
+    (global.fetch as jest.Mock) = jest.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({ top: [], bottom: [] }),
+    });
+  });
+
+  afterEach(() => {
+    jest.resetAllMocks();
+  });
+
   test('muestra botón Randomizar', () => {
     render(<StoryForm />);
     expect(screen.getByRole('button', { name: /randomize/i })).toBeInTheDocument();

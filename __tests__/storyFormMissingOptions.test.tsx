@@ -24,6 +24,10 @@ describe('StoryForm fetches missing options', () => {
       .fn()
       .mockResolvedValueOnce({
         ok: true,
+        json: () => Promise.resolve({ top: [], bottom: [] }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
         json: () => Promise.resolve({ text: initialText }),
       })
       .mockResolvedValueOnce({

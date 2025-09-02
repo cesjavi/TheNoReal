@@ -18,6 +18,7 @@ describe('Story options regeneration', () => {
     (global.fetch as jest.Mock) = jest
       .fn()
       .mockResolvedValueOnce({
+        ok: true,
         json: () =>
           Promise.resolve({
             story: 'Nuevo capítulo',
@@ -26,6 +27,7 @@ describe('Story options regeneration', () => {
           }),
       })
       .mockResolvedValueOnce({
+        ok: true,
         json: () =>
           Promise.resolve({
             options: ['Investigar las antiguas ruinas de la ciudad perdida'],
