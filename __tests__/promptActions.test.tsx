@@ -12,7 +12,7 @@ jest.mock('../app/providers/LanguageProvider', () => ({
 
 import StoryForm from '../app/components/StoryForm';
 
-describe('StoryForm prompt buttons', () => {
+describe('StoryForm prompt actions', () => {
   beforeEach(() => {
     (global.fetch as jest.Mock) = jest.fn((url: string) => {
       if (url === '/api/backgrounds') {
@@ -21,16 +21,16 @@ describe('StoryForm prompt buttons', () => {
           json: () => Promise.resolve({ top: [], bottom: [] }),
         });
       }
-      if (url === '/api/prompt/1') {
+      if (url === '/api/prompt/improve') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ text: 'Primer prompt' }),
+          json: () => Promise.resolve({ text: 'Prompt mejorado' }),
         });
       }
-      if (url === '/api/prompt/2') {
+      if (url === '/api/prompt/generate') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ text: 'Segundo prompt' }),
+          json: () => Promise.resolve({ text: 'Prompt generado' }),
         });
       }
       return Promise.reject(new Error('Unknown endpoint'));
@@ -41,25 +41,23 @@ describe('StoryForm prompt buttons', () => {
     jest.resetAllMocks();
   });
 
-  it('muestra botones y actualiza el textarea con cada endpoint', async () => {
+  it('mejora y genera prompts desde la API', async () => {
     render(<StoryForm />);
 
-    const prompt1 = screen.getByRole('button', { name: 'Prompt 1' });
-    const prompt2 = screen.getByRole('button', { name: 'Prompt 2' });
+    const textarea = screen.getByPlaceholderText('Escribe el inicio de la historia');
 
-    expect(prompt1).toBeInTheDocument();
-    expect(prompt2).toBeInTheDocument();
+    fireEvent.change(textarea, { target: { value: 'Inicio' } });
 
-    fireEvent.click(prompt1);
+    fireEvent.click(screen.getByRole('button', { name: 'improvePrompt' }));
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/prompt/1');
-      expect(screen.getByPlaceholderText('Escribe el inicio de la historia')).toHaveValue('Primer prompt');
+      expect(global.fetch).toHaveBeenCalledWith('/api/prompt/improve', expect.any(Object));
+      expect(textarea).toHaveValue('Prompt mejorado');
     });
 
-    fireEvent.click(prompt2);
+    fireEvent.click(screen.getByRole('button', { name: 'generatePrompt' }));
     await waitFor(() => {
-      expect(global.fetch).toHaveBeenCalledWith('/api/prompt/2');
-      expect(screen.getByPlaceholderText('Escribe el inicio de la historia')).toHaveValue('Segundo prompt');
+      expect(global.fetch).toHaveBeenCalledWith('/api/prompt/generate', expect.any(Object));
+      expect(textarea).toHaveValue('Prompt generado');
     });
   });
 });
