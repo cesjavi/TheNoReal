@@ -448,45 +448,13 @@ export default function StoryForm() {
                 disabled={loading}
                 className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark disabled:opacity-50"
               >
-                Mejorar Prompt
+                {t("improvePrompt")}
               </button>
               <button
                 type="button"
                 onClick={handleGeneratePrompt}
                 disabled={loading}
                 className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark disabled:opacity-50"
-              >
-                Generar Prompt
-              </button>
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => {}}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-              >
-                {t("improvePrompt")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {}}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-              >
-                {t("generatePrompt")}
-              </button>
-            </div>
-            <div className="flex gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => {}}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
-              >
-                {t("improvePrompt")}
-              </button>
-              <button
-                type="button"
-                onClick={() => {}}
-                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
               >
                 {t("generatePrompt")}
               </button>
