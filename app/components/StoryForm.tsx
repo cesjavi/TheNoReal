@@ -12,18 +12,14 @@ import StorySettings, {
 } from "./StorySettings";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 
-type EndingMode = "capitulos" | "sin_final_definido" | "final_sorpresa" | "infinita";
-
 const MODALITY_HELP = {
   capitulos: "Divide la historia en capítulos.",
   final_sorpresa: "Añade un giro inesperado al final.",
-  final_abierto: "La historia queda abierta a interpretación.",
-  final_cerrado: "La historia tiene un desenlace definido.",
   sin_final_definido: "La historia no tiene un final predeterminado.",
   infinita: "La historia continúa indefinidamente.",
 } as const;
 
-type Modality = keyof typeof MODALITY_HELP;
+type EndingMode = keyof typeof MODALITY_HELP;
 
 const GENRES = [
   "Aventura",
@@ -81,7 +77,7 @@ export default function StoryForm() {
   const [prompt, setPrompt] = useState("");
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
-  const [modality, setModality] = useState<Modality>("capitulos");
+  const [modality, setModality] = useState<EndingMode>("capitulos");
   const [chapters, setChapters] = useState("3");
   const [targetWords, setTargetWords] = useState<number>(220);
   const [loading, setLoading] = useState(false);
@@ -213,20 +209,7 @@ export default function StoryForm() {
       }
       setUserPrompt(effectivePrompt);
 
-      const final: EndingMode = (() => {
-        switch (modality) {
-          case "final_abierto":
-            return "sin_final_definido";
-          case "final_cerrado":
-            return chaptersNum ? "capitulos" : "sin_final_definido";
-          case "sin_final_definido":
-          case "infinita":
-          case "capitulos":
-          case "final_sorpresa":
-          default:
-            return modality;
-        }
-      })();
+      const final: EndingMode = modality;
 
       const { creatividad, topP, ...restAjustes } = config.ajustes;
       const ajustesPayload: any = {
@@ -462,13 +445,11 @@ export default function StoryForm() {
               <select
                 id="modality"
                 value={modality}
-                onChange={(e) => setModality(e.target.value as Modality)}
+                onChange={(e) => setModality(e.target.value as EndingMode)}
                 className="p-2 border rounded-lg border-black/30 hover:border-black/60 focus:ring-2 focus:ring-accent"
               >
                 <option value="capitulos">Capítulos</option>
                 <option value="final_sorpresa">Final sorpresa</option>
-                <option value="final_abierto">Final abierto</option>
-                <option value="final_cerrado">Final cerrado</option>
                 <option value="sin_final_definido">Sin final definido</option>
                 <option value="infinita">Historia infinita</option>
               </select>
