@@ -174,6 +174,53 @@ export default function StoryForm() {
     setConfig({ generos: [genero], estilo, ajustes });
   };
 
+  const handleImprovePrompt = async () => {
+    if (!prompt.trim()) return;
+    setLoading(true);
+    try {
+      const res = await fetch("/api/prompt/improve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (typeof data?.prompt === "string") {
+        setPrompt(data.prompt);
+        setTokenCount(countTokens(data.prompt));
+        setPromptTruncated(false);
+      }
+    } catch (err) {
+      console.error("Error improving prompt", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGeneratePrompt = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/prompt/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          generos: config.generos,
+          estilo: config.estilo,
+          ajustes: config.ajustes,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (typeof data?.prompt === "string") {
+        setPrompt(data.prompt);
+        setTokenCount(countTokens(data.prompt));
+        setPromptTruncated(false);
+      }
+    } catch (err) {
+      console.error("Error generating prompt", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
@@ -335,6 +382,24 @@ export default function StoryForm() {
             <div className="flex justify-between text-sm text-gray-600">
               <span>{tokenCount}/{TOKEN_LIMIT} tokens</span>
               {tokenCount >= TOKEN_LIMIT && (<span className="text-red-600">Límite alcanzado</span>)}
+            </div>
+            <div className="flex gap-2 mt-2">
+              <button
+                type="button"
+                onClick={handleImprovePrompt}
+                disabled={loading}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark disabled:opacity-50"
+              >
+                Mejorar Prompt
+              </button>
+              <button
+                type="button"
+                onClick={handleGeneratePrompt}
+                disabled={loading}
+                className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark disabled:opacity-50"
+              >
+                Generar Prompt
+              </button>
             </div>
           </div>
 
