@@ -1,0 +1,10 @@
+{
+  "appId": "ar.com.thenonreal",
+  "appName": "The Non Real",
+  "webDir": "dist",
+  "plugins": {
+    "SplashScreen": {
+      "launchAutoHide": false
+    }
+  }
+}
