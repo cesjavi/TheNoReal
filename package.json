@@ -8,10 +8,15 @@
     "prisma:gen": "prisma generate --schema=prisma/schema.prisma",
     "start": "next start",
     "lint": "next lint",
-    "db:push": "DATABASE_URL=$DATABASE_URL_UNPOOLED prisma db push",
+    "db:push:unix": "sh -lc 'DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" npx prisma db push'",
+    "db:push:win": "powershell -NoProfile -Command \"$env:DATABASE_URL=$env:DATABASE_URL_UNPOOLED; npx prisma db push\"",
+    "db:push": "npm run -s db:push:unix || npm run -s db:push:win",
     "build": "npm run db:push && next build"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.3",
+    "@capacitor/cli": "^7.4.3",
+    "@capacitor/core": "^7.4.3",
     "@prisma/client": "^6.14.0",
     "@vercel/speed-insights": "^1.2.0",
     "expo": "^53.0.20",

@@ -1,44 +1,45 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
-import { useLanguage } from "../providers/LanguageProvider";
-import Story from "./Story";
+import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { useTranslations } from 'next-intl';
+import { useLanguage } from '../providers/LanguageProvider';
+import Story from './Story';
 import StorySettings, {
   ConfigGeneracion,
   ESTILO_SECTIONS,
   AJUSTES_SECTIONS,
   Ajustes,
-} from "./StorySettings";
-import { parseStoryResponse } from "@/lib/parseStoryResponse";
+} from './StorySettings';
+import { parseStoryResponse } from '@/lib/parseStoryResponse';
 
 const MODALITY_HELP = {
-  capitulos: "Divide la historia en capítulos.",
-  final_sorpresa: "Añade un giro inesperado al final.",
-  sin_final_definido: "La historia no tiene un final predeterminado.",
-  infinita: "La historia continúa indefinidamente.",
+  capitulos: 'Divide la historia en capítulos.',
+  final_sorpresa: 'Añade un giro inesperado al final.',
+  sin_final_definido: 'La historia no tiene un final predeterminado.',
+  infinita: 'La historia continúa indefinidamente.',
 } as const;
 
 type EndingMode = keyof typeof MODALITY_HELP;
 
 const GENRES = [
-  "Aventura",
-  "Ciencia ficción",
-  "Terror",
-  "Fantasía",
-  "Misterio",
-  "Romance",
-  "Comedia",
+  'Aventura',
+  'Ciencia ficción',
+  'Terror',
+  'Fantasía',
+  'Misterio',
+  'Romance',
+  'Comedia',
 ] as const;
 
 const GENRE_ICONS: Record<string, string> = {
-  Aventura: "/icons/aventura.svg",
-  "Ciencia ficción": "/icons/ciencia-ficcion.svg",
-  Terror: "/icons/terror.svg",
-  Fantasía: "/icons/fantasia.svg",
-  Misterio: "/icons/misterio.svg",
-  Romance: "/icons/romance.svg",
-  Comedia: "/icons/comedia.svg",
+  Aventura: '/icons/aventura.svg',
+  'Ciencia ficción': '/icons/ciencia-ficcion.svg',
+  Terror: '/icons/terror.svg',
+  Fantasía: '/icons/fantasia.svg',
+  Misterio: '/icons/misterio.svg',
+  Romance: '/icons/romance.svg',
+  Comedia: '/icons/comedia.svg',
 };
 
 const TOKEN_LIMIT = 500;
@@ -50,35 +51,55 @@ function countTokens(text: string) {
 function randomPick<T>(arr: T[]): T {
   return arr[Math.floor(Math.random() * arr.length)];
 }
-const toArray = <T,>(v: T | T[] | undefined | null): T[] =>
-  Array.isArray(v) ? v : v == null ? [] : [v];
-const isNonEmptyArray = (v: unknown): v is unknown[] =>
-  Array.isArray(v) && v.length > 0;
-const clamp = (n: number, min: number, max: number) =>
-  Math.max(min, Math.min(max, n));
-const normalizeLocale = (loc: string) =>
-  (loc || "es").toLowerCase().split("-")[0];
+const toArray = <T,>(v: T | T[] | undefined | null): T[] => (Array.isArray(v) ? v : v == null ? [] : [v]);
+const isNonEmptyArray = (v: unknown): v is unknown[] => Array.isArray(v) && v.length > 0;
+const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
+const normalizeLocale = (loc: string) => (loc || 'es').toLowerCase().split('-')[0];
+
+function isObject(x: unknown): x is Record<string, unknown> {
+  return typeof x === 'object' && x !== null;
+}
+function isStoryAPI(x: unknown): x is { story: string; options?: unknown } {
+  return !!x && typeof (x as { story?: unknown }).story === 'string';
+}
+function hasText(x: unknown): x is { text: string } {
+  return !!x && typeof (x as { text?: unknown }).text === 'string';
+}
+function normalizeStringArray(a: unknown): string[] {
+  if (!Array.isArray(a)) return [];
+  return a.filter((v): v is string => typeof v === 'string').map((s) => s.trim()).filter(Boolean);
+}
 
 const defaults: ConfigGeneracion = {
   generos: [],
   estilo: { tono: [], ritmo: [], voz: [], tiempo: [], formato: [], descripcion: [], dialogo: [], matiz: [] },
   ajustes: {
-    publico: [], epoca: [], ambito: [], estructura: [], incluir: [], evitar: [], clasificacion: [], idioma: [], registro: [],
-    creatividad: 0.75, topP: 0.9, opcionesPorCapitulo: [],
+    publico: [],
+    epoca: [],
+    ambito: [],
+    estructura: [],
+    incluir: [],
+    evitar: [],
+    clasificacion: [],
+    idioma: [],
+    registro: [],
+    creatividad: 0.75,
+    topP: 0.9,
+    opcionesPorCapitulo: [],
     targetWords: 220,
   },
 };
 
 export default function StoryForm() {
-  const t = useTranslations("StoryForm");
+  const t = useTranslations('StoryForm');
   const { locale } = useLanguage();
 
-  const [userPrompt, setUserPrompt] = useState<string>("");  
-  const [prompt, setPrompt] = useState("");
+  const [userPrompt, setUserPrompt] = useState<string>('');
+  const [prompt, setPrompt] = useState('');
   const [tokenCount, setTokenCount] = useState(0);
   const [numOptions, setNumOptions] = useState(2);
-  const [modality, setModality] = useState<EndingMode>("capitulos");
-  const [chapters, setChapters] = useState("3");
+  const [modality, setModality] = useState<EndingMode>('capitulos');
+  const [chapters, setChapters] = useState('3');
   const [targetWords, setTargetWords] = useState<number>(220);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,18 +117,19 @@ export default function StoryForm() {
   const [bottomSvgs, setBottomSvgs] = useState<string[] | null>([]);
   const [topSvg, setTopSvg] = useState<string | null>(null);
   const [bottomSvg, setBottomSvg] = useState<string | null>(null);
-  const [topDelay, setTopDelay] = useState<string>("0s");
-  const [bottomDelay, setBottomDelay] = useState<string>("0s");
+  const [topDelay, setTopDelay] = useState<string>('0s');
+  const [bottomDelay, setBottomDelay] = useState<string>('0s');
 
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch("/api/backgrounds");
-        const data = await res.json();
-        setTopSvgs(Array.isArray(data?.top) ? data.top : []);
-        setBottomSvgs(Array.isArray(data?.bottom) ? data.bottom : []);
+        const res = await fetch('/api/backgrounds');
+        const data = (await res.json()) as unknown;
+        setTopSvgs(Array.isArray((data as Record<string, unknown>)?.top) ? ((data as { top: string[] }).top) : []);
+        setBottomSvgs(Array.isArray((data as Record<string, unknown>)?.bottom) ? ((data as { bottom: string[] }).bottom) : []);
       } catch (err) {
-        console.error("Error fetching backgrounds", err);
+        // eslint-disable-next-line no-console
+        console.error('Error fetching backgrounds', err);
       }
     };
     load();
@@ -133,14 +155,12 @@ export default function StoryForm() {
     setStoryConfig(null);
   };
 
-  const showChapters = modality === "capitulos" || modality === "final_sorpresa";
+  const showChapters = modality === 'capitulos' || modality === 'final_sorpresa';
 
   const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
       ...prev,
-      generos: prev.generos.includes(genre)
-        ? prev.generos.filter((g) => g !== genre)
-        : [...prev.generos, genre],
+      generos: prev.generos.includes(genre) ? prev.generos.filter((g) => g !== genre) : [...prev.generos, genre],
     }));
   };
 
@@ -148,13 +168,11 @@ export default function StoryForm() {
 
   const randomizeConfig = () => {
     const genero = randomPick([...GENRES]);
-    const estilo = ESTILO_SECTIONS.reduce(
-      (acc, { key, options }) => {
-        acc[key] = [randomPick(options)];
-        return acc;
-      },
-      {} as ConfigGeneracion["estilo"]
-    );
+    const estilo = ESTILO_SECTIONS.reduce((acc, { key, options }) => {
+      acc[key] = [randomPick(options)];
+      return acc;
+    }, {} as ConfigGeneracion['estilo']);
+
     const ajustes: Ajustes = {
       publico: [],
       epoca: [],
@@ -171,6 +189,7 @@ export default function StoryForm() {
     AJUSTES_SECTIONS.forEach(({ key, options }) => {
       ajustes[key] = [randomPick(options)];
     });
+
     setConfig({ generos: [genero], estilo, ajustes });
   };
 
@@ -183,20 +202,21 @@ export default function StoryForm() {
     try {
       const trimmed = prompt.trim();
       if (!trimmed) {
-        setError("El inicio no puede estar vacío");
+        setError('El inicio no puede estar vacío');
         setLoading(false);
         return;
       }
 
       // Permitir que el usuario fije N opciones desde Configuración (ajustes.opcionesPorCapitulo)
-      const opcionesCfg = Number((config.ajustes as any)?.opcionesPorCapitulo?.[0]);
+      const opcionesCfgRaw = toArray<string>(config.ajustes.opcionesPorCapitulo)[0];
+      const opcionesCfg = opcionesCfgRaw ? Number(opcionesCfgRaw) : NaN;
       const optionsPerDecision = clamp(opcionesCfg || (Number(numOptions) || 2), 2, 6);
 
-      const requiresChapters = modality === "capitulos" || modality === "final_sorpresa";
+      const requiresChapters = modality === 'capitulos' || modality === 'final_sorpresa';
       const chaptersNum = requiresChapters ? Number(chapters) : undefined;
 
       if (requiresChapters && (!chaptersNum || chaptersNum < 1)) {
-        setError("Ingresá un número de capítulos válido (>= 1)");
+        setError('Ingresá un número de capítulos válido (>= 1)');
         setLoading(false);
         return;
       }
@@ -204,7 +224,7 @@ export default function StoryForm() {
       let effectivePrompt = trimmed;
       if (tokenCount > TOKEN_LIMIT) {
         const words = trimmed.split(/\s+/).filter(Boolean).slice(0, TOKEN_LIMIT);
-        effectivePrompt = words.join(" ");
+        effectivePrompt = words.join(' ');
         setPromptTruncated(true);
       }
       setUserPrompt(effectivePrompt);
@@ -212,65 +232,62 @@ export default function StoryForm() {
       const final: EndingMode = modality;
 
       const { creatividad, topP, ...restAjustes } = config.ajustes;
-      const ajustesPayload: any = {
+      const ajustesPayload = {
         ...restAjustes,
-        temperature: typeof creatividad === "number" ? creatividad : 0.75,
-        top_p: typeof topP === "number" ? topP : 0.9,
-        targetWords: targetWords,
-      };
+        temperature: typeof creatividad === 'number' ? creatividad : 0.75,
+        top_p: typeof topP === 'number' ? topP : 0.9,
+        targetWords,
+      } satisfies Record<string, unknown>;
 
       // Si el usuario eligió un idioma en ajustes, priorizarlo (ej: "es-AR")
-      const langFromCfg = toArray(config.ajustes.idioma as any)[0] as string | undefined;
+      const langFromCfg = toArray<string>(config.ajustes.idioma)[0];
       const lang = normalizeLocale(langFromCfg || locale);
 
       const payload = {
         story: effectivePrompt,
-        option: "",
+        option: '',
         optionsPerDecision,
         genres: config.generos,
         estilo: config.estilo,
         ajustes: ajustesPayload,
         language: lang,
         endingMode: final,
-        chaptersCount: (final === "capitulos" || final === "final_sorpresa") ? chaptersNum : undefined,
+        chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
         finalize: false, // dejar explícito para la API
       } as const;
 
-      // Útil para depurar en Network tab y en logs del server
       // eslint-disable-next-line no-console
-      console.log("/api/story payload", payload);
+      console.log('/api/story payload', payload);
 
-      const response = await fetch("/api/story", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+      const response = await fetch('/api/story', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
-      const data: any = await response.json().catch(() => ({}));
+      const dataUnknown = await response.json().catch(() => ({}));
+      const data = dataUnknown as unknown;
 
-      if (!response.ok) {
-        setError((data?.error as string) || "Error al obtener la historia inicial");
+     if (!response.ok) {
+        let errMsg: string = 'Error al obtener la historia inicial';
+        if (isObject(data) && typeof (data as Record<string, unknown>).error === 'string') {
+          errMsg = (data as Record<string, unknown>).error as string;
+        }
+        setError(errMsg);
       } else {
         // ✅ Compatibilidad: nueva API ({story, options}) o vieja API ({text})
-        let firstChapter = "";
+        let firstChapter = '';
         let firstOptions: string[] = [];
 
-        if (typeof data?.story === "string") {
-          firstChapter = data.story || "";
-
-          // Tipado explícito para evitar 'any'
-          const rawOptsUnknown: unknown[] = Array.isArray(data.options) ? data.options : [];
-          const normalized: string[] = rawOptsUnknown
-            .filter((o: unknown): o is string => typeof o === "string")
-            .map((o: string) => o.trim())
-            .filter(Boolean);
-
-          firstOptions = Array.from(new Set(normalized));
-        } else {
-          const raw: string = (data?.text as string) || "";
-          const parsed = parseStoryResponse(raw, optionsPerDecision);
+        if (isStoryAPI(data)) {
+          firstChapter = data.story || '';
+          firstOptions = Array.from(new Set(normalizeStringArray((data as { options?: unknown }).options)));
+        } else if (hasText(data)) {
+          const parsed = parseStoryResponse(data.text, optionsPerDecision);
           firstChapter = parsed.story;
           firstOptions = parsed.options;
+        } else {
+          throw new Error('Respuesta inesperada del servidor');
         }
 
         setInitialStory(firstChapter);
@@ -278,45 +295,46 @@ export default function StoryForm() {
         setStoryConfig({
           optionsPerDecision,
           endingMode: final,
-          chaptersCount:
-            final === "capitulos" || final === "final_sorpresa" ? chaptersNum : undefined,
+          chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
         });
 
-        setPrompt("");
+        setPrompt('');
         setTokenCount(0);
         setNumOptions(2);
-        setModality("capitulos");
-        setChapters("");
+        setModality('capitulos');
+        setChapters('');
       }
     } catch {
-      setError("Error al conectar con el servidor");
+      setError('Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex flex-col items-center p-8 gap-4">      
-      <div >
-       {topSvg && (
-  <img
-    src={topSvg}
-    style={{ animationDelay: topDelay }}
-    alt="T"
-    className="fixed left-1/2 top-0 -translate-x-1/2 -translate-y-0 object-cover h-80 w-200 pointer-events-none opacity-40"
-  />
-)}
+    <main className="flex flex-col items-center p-8 gap-4">
+      <div>
+        {topSvg && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={topSvg}
+            style={{ animationDelay: topDelay }}
+            alt="T"
+            className="fixed left-1/2 top-0 -translate-x-1/2 -translate-y-0 object-cover h-80 w-200 pointer-events-none opacity-40"
+          />
+        )}
 
-{bottomSvg && (
-  <img
-    src={bottomSvg}
-    style={{ animationDelay: bottomDelay }}
-    alt="B"
-    className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none"
-  />
-)}
-
+        {bottomSvg && (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={bottomSvg}
+            style={{ animationDelay: bottomDelay }}
+            alt="B"
+            className="absolute bottom-0 left-0 w-full h-40 z-0 pointer-events-none"
+          />
+        )}
       </div>
+
       {!initialStory && (
         <>
           {/* 1) Texto inicial */}
@@ -333,8 +351,10 @@ export default function StoryForm() {
               }}
             />
             <div className="flex justify-between text-sm text-gray-600">
-              <span>{tokenCount}/{TOKEN_LIMIT} tokens</span>
-              {tokenCount >= TOKEN_LIMIT && (<span className="text-red-600">Límite alcanzado</span>)}
+              <span>
+                {tokenCount}/{TOKEN_LIMIT} tokens
+              </span>
+              {tokenCount >= TOKEN_LIMIT && <span className="text-red-600">Límite alcanzado</span>}
             </div>
           </div>
 
@@ -342,20 +362,28 @@ export default function StoryForm() {
           <div className="w-full max-w-xl rounded-lg border border-black/30 p-4">
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {GENRES.map((genre) => {
-                const selected = config.generos.includes(genre as any);
+                const selected = config.generos.includes(genre);
                 return (
                   <button
-                    key={genre as any}
+                    key={genre}
                     type="button"
-                    aria-pressed={selected ? "true" : "false"}
-                    onClick={() => toggleGenre(genre as any)}
-                    title={selected ? "Quitar género" : "Agregar género"}
+                    aria-pressed={selected ? 'true' : 'false'}
+                    onClick={() => toggleGenre(genre)}
+                    title={selected ? 'Quitar género' : 'Agregar género'}
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl border transition ${
-                      selected ? "bg-accent text-black border-black/40 shadow-inner"
-                              : "bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40"}`}
+                      selected
+                        ? 'bg-accent text-black border-black/40 shadow-inner'
+                        : 'bg-white/40 hover:bg-white/70 border-black/20 hover:border-black/40'
+                    }`}
                   >
-                    <img src={GENRE_ICONS[genre as any] ?? "/icons/generico.svg"} alt="" className="w-6 h-6" />
-                    <span className="truncate">{genre as any}</span>
+                    <Image
+                      src={GENRE_ICONS[genre] ?? '/icons/generico.svg'}
+                      alt=""
+                      width={24}
+                      height={24}
+                      className="w-6 h-6"
+                    />
+                    <span className="truncate">{genre}</span>
                     {selected && (
                       <span className="ml-auto inline-flex h-5 w-5 items-center justify-center rounded-full border border-black/30">
                         ✓
@@ -379,7 +407,7 @@ export default function StoryForm() {
                 onClick={randomizeConfig}
                 className="px-2 py-1 text-sm rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark"
               >
-                {t("randomize")}
+                {t('randomize')}
               </button>
               <button
                 type="button"
@@ -400,11 +428,17 @@ export default function StoryForm() {
                     <button
                       key={`chip-${genre}`}
                       type="button"
-                      onClick={() => toggleGenre(genre as any)}
+                      onClick={() => toggleGenre(genre)}
                       className="inline-flex items-center gap-2 rounded-full border border-black/30 bg-accent/90 px-3 py-1 text-sm text-black hover:bg-accent"
                       title="Quitar"
                     >
-                      <img src={GENRE_ICONS[genre] ?? "/icons/generico.svg"} alt="" className="h-4 w-4" />
+                      <Image
+                        src={GENRE_ICONS[genre] ?? '/icons/generico.svg'}
+                        alt=""
+                        width={16}
+                        height={16}
+                        className="h-4 w-4"
+                      />
                       <span>{genre}</span>
                       <span className="ml-1 leading-none">×</span>
                     </button>
@@ -420,7 +454,7 @@ export default function StoryForm() {
             disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
             className="px-4 py-2 rounded-lg bg-accent text-black border border-black/30 hover:border-black/60 hover:bg-accent-dark transition-colors focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
           >
-            {loading ? t("sending") : t("createStory")}
+            {loading ? t('sending') : t('createStory')}
           </button>
 
           {/* 4) Controles en una sola línea */}
@@ -463,7 +497,7 @@ export default function StoryForm() {
                   id="chapters"
                   type="number"
                   min={1}
-                  required={modality === "capitulos"}
+                  required={modality === 'capitulos'}
                   value={chapters}
                   onChange={(e) => setChapters(e.target.value)}
                   className="w-20 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
@@ -496,18 +530,24 @@ export default function StoryForm() {
             Object.values(config.ajustes).some(isNonEmptyArray)) && (
             <div className="flex flex-wrap gap-2 max-w-xl">
               {config.generos.map((genre) => (
-                <span key={`genero-${genre}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{genre}</span>
+                <span key={`genero-${genre}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">
+                  {genre}
+                </span>
               ))}
 
               {Object.entries(config.estilo).flatMap(([key, values]) =>
                 toArray(values as string[]).map((v) => (
-                  <span key={`estilo-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
+                  <span key={`estilo-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">
+                    {v}
+                  </span>
                 )),
               )}
 
               {Object.entries(config.ajustes).flatMap(([key, values]) =>
                 toArray(values as string[]).map((v) => (
-                  <span key={`ajuste-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">{v}</span>
+                  <span key={`ajuste-${key}-${v}`} className="px-2 py-1 text-sm rounded-full bg-accent text-black">
+                    {v}
+                  </span>
                 )),
               )}
             </div>
@@ -530,11 +570,15 @@ export default function StoryForm() {
         />
       )}
 
-      {promptTruncated && <p className="text-yellow-600">{t("promptTruncated", { limit: TOKEN_LIMIT })}</p>}
+      {promptTruncated && (
+        <p className="text-yellow-600">{t('promptTruncated', { limit: TOKEN_LIMIT })}</p>
+      )}
 
       {error && (
         <p className="text-red-500">
-          {error === "GROQ_API_KEY no configurada" ? "La clave de la API de Groq no está configurada." : error}
+          {error === 'GROQ_API_KEY no configurada'
+            ? 'La clave de la API de Groq no está configurada.'
+            : error}
         </p>
       )}
 
