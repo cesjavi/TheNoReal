@@ -127,6 +127,10 @@ export default function Story({
         }),
       });
 
+      if (!response.ok) {
+        throw new Error('Error al consultar la API de Groq');
+      }
+
       const data = await response.json();
       const {
         story: newStory = '',
@@ -153,26 +157,26 @@ export default function Story({
         let attempts = 0;
 
         while (opts.length < optionsPerDecision && attempts < MAX_RETRIES) {
-          try {
-            setRegeneratingOptions(true);
-            const missing = optionsPerDecision - opts.length;
-            const optRes = await fetch('/api/options', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                prompt: nextStory,
-                numOptions: missing,
-                temperature: ajustesPayload.temperature,
-                top_p: ajustesPayload.top_p,
-              }),
-            });
-            const optData = await optRes.json();
-            const extra = Array.from(new Set((optData.options as string[]) || []));
-            opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
-          } catch (err) {
-            console.error('Error al regenerar opciones', err);
-            break;
+          setRegeneratingOptions(true);
+          const missing = optionsPerDecision - opts.length;
+          const optRes = await fetch('/api/options', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              prompt: nextStory,
+              numOptions: missing,
+              temperature: ajustesPayload.temperature,
+              top_p: ajustesPayload.top_p,
+            }),
+          });
+
+          if (!optRes.ok) {
+            throw new Error('Error al regenerar opciones');
           }
+
+          const optData = await optRes.json();
+          const extra = Array.from(new Set((optData.options as string[]) || []));
+          opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
           attempts++;
         }
 
@@ -208,10 +212,12 @@ export default function Story({
       }
 
       setOptions(opts as string[]);
+      setLoading(false);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
-    } finally {
+      alert('Ocurrió un error al continuar la historia. Inténtalo de nuevo.');
       setLoading(false);
+      setRegeneratingOptions(false);
     }
   };
 
@@ -240,6 +246,11 @@ export default function Story({
           ajustes: ajustesPayload,
         }),
       });
+
+      if (!response.ok) {
+        throw new Error('Error al consultar la API de Groq');
+      }
+
       const data = await response.json();
       const finalText = (data.story as string) || '';
 
@@ -254,9 +265,10 @@ export default function Story({
       setChapters((prev) => [...prev, { texto: finalText, imageUrl }]);
       setOptions([]);
       setFinalized(true);
+      setLoading(false);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
-    } finally {
+      alert('Ocurrió un error al finalizar la historia. Inténtalo de nuevo.');
       setLoading(false);
     }
   };
