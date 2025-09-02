@@ -4,6 +4,7 @@ import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
 import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
+import { limitTemperature, limitTopP } from "@/lib/sampling";
 
 export async function POST(req: Request) {
   if (!process.env.GROQ_API_KEY) {
@@ -18,7 +19,7 @@ export async function POST(req: Request) {
       optionsPerDecision = 2,
       genres = [],
       estilo = {},
-      ajustes = {},
+      ajustes = {} as { temperature?: number; top_p?: number; targetWords?: number },
       language = "es",
       endingMode,
       chaptersCount,
@@ -27,8 +28,8 @@ export async function POST(req: Request) {
 
     // Sampling y targets
     const optionsCount: number = Number(optionsPerDecision) || 2;
-    const temperature: number = typeof ajustes?.temperature === "number" ? ajustes.temperature : 0.75;
-    const top_p: number = typeof ajustes?.top_p === "number" ? ajustes.top_p : 0.9;
+    const temperature = limitTemperature(ajustes?.temperature) ?? 0.75;
+    const top_p = limitTopP(ajustes?.top_p) ?? 0.9;
     const targetWords: number = typeof ajustes?.targetWords === "number" ? ajustes.targetWords : 220;
 
     // META base (tu helper)
