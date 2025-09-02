@@ -209,6 +209,7 @@ export default function StoryForm() {
   };
 
   const handleImprovePrompt = async () => {
+    if (!prompt.trim()) return;
     setLoading(true);
     setError(null);
     try {
@@ -222,9 +223,9 @@ export default function StoryForm() {
         const errMsg = typeof data?.error === 'string' ? data.error : 'Error al mejorar el prompt';
         throw new Error(errMsg);
       }
-      const text: string = typeof data?.text === 'string' ? data.text : '';
-      const tokens = countTokens(text);
-      setPrompt(text);
+      const improvedPrompt: string = typeof data?.prompt === 'string' ? data.prompt : '';
+      const tokens = countTokens(improvedPrompt);
+      setPrompt(improvedPrompt);
       setTokenCount(tokens);
       setPromptTruncated(tokens > TOKEN_LIMIT);
     } catch (err) {
