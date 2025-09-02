@@ -249,7 +249,7 @@ export default function StoryForm() {
         const errMsg = typeof data?.error === 'string' ? data.error : 'Error al generar el prompt';
         throw new Error(errMsg);
       }
-      const text: string = typeof data?.text === 'string' ? data.text : '';
+      const text = typeof data?.prompt === 'string' ? data.prompt : '';
       const tokens = countTokens(text);
       setPrompt(text);
       setTokenCount(tokens);
