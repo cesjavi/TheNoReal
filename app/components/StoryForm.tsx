@@ -208,6 +208,60 @@ export default function StoryForm() {
     }
   };
 
+  const handleImprovePrompt = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/prompt/improve', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errMsg = typeof data?.error === 'string' ? data.error : 'Error al mejorar el prompt';
+        throw new Error(errMsg);
+      }
+      const text: string = typeof data?.text === 'string' ? data.text : '';
+      const tokens = countTokens(text);
+      setPrompt(text);
+      setTokenCount(tokens);
+      setPromptTruncated(tokens > TOKEN_LIMIT);
+    } catch (err) {
+      console.error('Error improving prompt', err);
+      setError(err instanceof Error ? err.message : 'Error al mejorar el prompt');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGeneratePrompt = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/prompt/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ config }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const errMsg = typeof data?.error === 'string' ? data.error : 'Error al generar el prompt';
+        throw new Error(errMsg);
+      }
+      const text: string = typeof data?.text === 'string' ? data.text : '';
+      const tokens = countTokens(text);
+      setPrompt(text);
+      setTokenCount(tokens);
+      setPromptTruncated(tokens > TOKEN_LIMIT);
+    } catch (err) {
+      console.error('Error generating prompt', err);
+      setError(err instanceof Error ? err.message : 'Error al generar el prompt');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSubmit = async () => {
     setLoading(true);
     setError(null);
