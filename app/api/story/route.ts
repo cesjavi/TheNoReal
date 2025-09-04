@@ -5,6 +5,8 @@ import { buildMeta } from "@/lib/meta";
 import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 // ---------- Tipos auxiliares ----------
 type Ajustes = {
@@ -59,6 +61,10 @@ function isStoryRequest(x: unknown): x is StoryRequest {
 
 // ---------- Handler ----------
 export async function POST(req: Request) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
   }
