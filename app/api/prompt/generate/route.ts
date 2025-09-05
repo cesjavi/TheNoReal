@@ -5,9 +5,9 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
       { error: "GROQ_API_KEY is not configured" },
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         {
           role: "system",
           content:
-            "Genera una semilla de historia creativa basada en la configuración proporcionada.",
+            "Genera una semilla de historia creativa basada en la configuración proporcionada. La semilla debe ser un texto corto y conciso, de alrededor de 30 palabras.",
         },
         { role: "user", content: JSON.stringify(config) },
       ],

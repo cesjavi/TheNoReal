@@ -5,9 +5,9 @@ import { authOptions } from "../../auth/[...nextauth]/route";
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
       { error: "GROQ_API_KEY is not configured" },
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
         {
           role: "system",
           content:
-            "Eres un asistente que mejora prompts manteniendo la intención original.",
+            "Eres un asistente que mejora prompts manteniendo la intención original. La semilla debe ser un texto corto y conciso, de alrededor de 30 palabras.",
         },
         { role: "user", content: prompt },
       ],
