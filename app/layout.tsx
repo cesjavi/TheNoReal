@@ -17,6 +17,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+
 export const metadata: Metadata = {
   title: "Crea y cuenta historias con IA",
   description: "Describe algo y deja que la IA te ayude a crear una historia paso a paso.",
@@ -28,6 +29,9 @@ export const metadata: Metadata = {
     ],
     apple: "/icons/icon-192x192.png",
     shortcut: "/icon-192x192.png"
+  },
+  other: {
+    'google-adsense-account': 'ca-pub-9368869720669033',
   },
 };
 

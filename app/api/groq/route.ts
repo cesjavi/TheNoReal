@@ -4,9 +4,9 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
     return NextResponse.json(

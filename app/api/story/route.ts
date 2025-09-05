@@ -68,9 +68,9 @@ function isStoryRequest(x: unknown): x is StoryRequest {
 // ---------- Handler ----------
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
   }
@@ -147,7 +147,7 @@ export async function POST(req: Request) {
     ];
 
     const model =
-      process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct"; // fallback
+      process.env.GROQ_MODEL || "openai/gpt-oss-120b";//"moonshotai/kimi-k2-instruct"; // fallback
 
     const maxRetries = 2;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {

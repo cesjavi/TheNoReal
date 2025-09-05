@@ -139,12 +139,12 @@ export default function Story({
       } = data as { story?: string; options?: string[]; isFinal?: boolean };
 
       let imageUrl: string | null = null;
-      try {
+      /*try {
         const { url } = await generateImage(newStory, genres);
         imageUrl = url;
       } catch (err) {
         console.error('No se pudo generar la imagen', err);
-      }
+      }*/
 
       setChapters((prev) => [...prev, { texto: newStory, imageUrl }]);
       setChoices((prev) => [...prev, option]);
@@ -255,12 +255,12 @@ export default function Story({
       const finalText = (data.story as string) || '';
 
       let imageUrl: string | null = null;
-      try {
+      /*try {
         const { url } = await generateImage(finalText, genres);
         imageUrl = url;
       } catch (err) {
         console.error('No se pudo generar la imagen', err);
-      }
+      }*/
 
       setChapters((prev) => [...prev, { texto: finalText, imageUrl }]);
       setOptions([]);

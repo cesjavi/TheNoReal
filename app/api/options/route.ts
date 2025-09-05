@@ -8,9 +8,9 @@ const MAX_OPTIONS = 5;
 
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   try {
     const { prompt, numOptions, temperature, top_p } = await req.json();
     const safeTemperature = limitTemperature(temperature);
