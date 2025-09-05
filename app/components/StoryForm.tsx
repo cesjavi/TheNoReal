@@ -286,9 +286,10 @@ export default function StoryForm() {
 
       const final: EndingMode = modality;
 
-      const { creatividad, topP, ...restAjustes } = config.ajustes;
+      const { creatividad, topP, evitar, ...restAjustes } = config.ajustes;
       const ajustesPayload = {
         ...restAjustes,
+        evitar: normalizeStringArray(evitar),
         temperature: typeof creatividad === 'number' ? creatividad : 0.75,
         top_p: typeof topP === 'number' ? topP : 0.9,
         targetWords,

@@ -12,11 +12,13 @@ export function buildMeta({
   targetWords,
   recentFingerprints,
   bannedCliches,
+  bannedKeywords,
 }: {
   optionsCount: number;
   targetWords?: number;
   recentFingerprints?: Fingerprint[];
   bannedCliches?: string[];
+  bannedKeywords?: string[];
 }): string {
   const lines: string[] = [];
   lines.push(`options_count=${optionsCount}`);
@@ -37,6 +39,10 @@ export function buildMeta({
   if (bannedCliches && bannedCliches.length > 0) {
     const list = bannedCliches.map(s => `"${(s || "").replace(/"/g, '\"')}"`).join(", ");
     lines.push(`cliches_prohibidos:[${list}]`);
+  }
+  if (bannedKeywords && bannedKeywords.length > 0) {
+    const list = bannedKeywords.map(s => `"${(s || "").replace(/"/g, '\"')}"`).join(", ");
+    lines.push(`banned_keywords:[${list}]`);
   }
   return lines.join("\n");
 }
