@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import createChatCompletion from "@/lib/groqClient";
 import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
-import { computeFingerprint, pushFingerprint, getRecentFingerprints } from "@/lib/fingerprint";
+import {
+  computeFingerprint,
+  pushFingerprint,
+  getRecentFingerprints,
+  isFingerprintTooSimilar,
+} from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 import { getServerSession } from "next-auth";
@@ -137,35 +142,50 @@ export async function POST(req: Request) {
     const model =
       process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct"; // fallback
 
-    const completion = (await createChatCompletion({
-      model,
-      messages, // ← ya no es `any`
-      temperature,
-      top_p,
-    })) as ChatCompletion;
+    const maxRetries = 2;
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      const completion = (await createChatCompletion({
+        model,
+        messages, // ← ya no es `any`
+        temperature,
+        top_p,
+      })) as ChatCompletion;
 
-    // Debug (servidor). Si no querés logs, remové esta línea.
-    // eslint-disable-next-line no-console
-    console.dir(completion.choices, { depth: null });
+      // Debug (servidor). Si no querés logs, remové esta línea.
+      // eslint-disable-next-line no-console
+      console.dir(completion.choices, { depth: null });
 
-    const text: string = completion?.choices?.[0]?.message?.content ?? "";
-    if (!text) {
-      return NextResponse.json(
-        { error: "Respuesta vacía del modelo" },
-        { status: 502 }
-      );
+      const text: string = completion?.choices?.[0]?.message?.content ?? "";
+      if (!text) {
+        return NextResponse.json(
+          { error: "Respuesta vacía del modelo" },
+          { status: 502 }
+        );
+      }
+
+      // Parseo formato (capítulo + --- + opciones)
+      const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
+
+      if (!isFinal && story) {
+        const fp = computeFingerprint({ chapterText: story, genres });
+        const similar = isFingerprintTooSimilar(
+          fp,
+          getRecentFingerprints()
+        );
+        if (similar) {
+          if (attempt < maxRetries) {
+            continue; // reintentar
+          }
+          return NextResponse.json(
+            { error: "Historia muy similar" },
+            { status: 409 }
+          );
+        }
+        pushFingerprint(fp);
+      }
+
+      return NextResponse.json({ story, options, isFinal, raw: text });
     }
-
-    // Parseo formato (capítulo + --- + opciones)
-    const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
-
-    // Huellas para antirrep (si corresponde)
-    if (!isFinal && story) {
-      const fp = computeFingerprint({ chapterText: story, genres });
-      pushFingerprint(fp);
-    }
-
-    return NextResponse.json({ story, options, isFinal, raw: text });
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : "Unknown error";
     // eslint-disable-next-line no-console

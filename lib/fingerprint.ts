@@ -25,7 +25,7 @@ export function pushFingerprint(fp: Fingerprint): void {
   const ring = getRing();
   // evitar duplicados simples por primera oración
   if (fp.firstSentence) {
-    const exists = ring.some(r => r.firstSentence === fp.firstSentence);
+    const exists = ring.some((r) => r.firstSentence === fp.firstSentence);
     if (exists) return;
   }
   ring.push(fp);
@@ -38,7 +38,47 @@ function firstSentenceOf(text: string): string {
   return (m ? m[1] : cleaned).slice(0, 240);
 }
 
-// Heurística mínima; puedes mejorar con NER/keywords si quieres
+function extractEscenario(text: string): string {
+  const m = text.match(/en\s+(?:un|una|el|la)\s+([^.,;!?]+)/i);
+  return m ? m[1].trim().toLowerCase() : "desconocido";
+}
+
+function extractEpoca(text: string): string {
+  const m = text.match(
+    /(\d{3,4}|edad media|prehistoria|futuro|actualidad|presente|siglo\s+[xiv0-9]+)/i
+  );
+  return m ? m[1].toLowerCase() : "desconocida";
+}
+
+function extractProtagonista(text: string): string {
+  const stop = new Set([
+    "El",
+    "La",
+    "Los",
+    "Las",
+    "Un",
+    "Una",
+    "En",
+    "Y",
+    "Pero",
+    "Cuando",
+    "Mientras",
+    "A",
+  ]);
+  const words = firstSentenceOf(text).split(/[\s,]+/);
+  const found = words.find(
+    (w) => /^[A-ZÁÉÍÓÚÑ][a-záéíóúñ]+$/.test(w) && !stop.has(w)
+  );
+  return found ? found : "desconocido";
+}
+
+function extractDispositivo(text: string): string {
+  const m = text.match(
+    /(espada|arma|pistola|rifle|computadora|ordenador|tel[eé]fono|m[óo]vil|tableta|tablet|reloj|varita|libro|amuleto)/i
+  );
+  return m ? m[1].toLowerCase() : "ninguno";
+}
+
 export function computeFingerprint({
   chapterText,
   genres,
@@ -48,11 +88,27 @@ export function computeFingerprint({
 }): Fingerprint {
   const firstSentence = firstSentenceOf(chapterText);
   return {
-    escenario: "desconocido",
-    epoca: "desconocida",
-    protagonista: "desconocido",
-    dispositivo: "desconocido",
-    tono: (genres && genres.length ? genres[0] : "neutro"),
+    escenario: extractEscenario(chapterText),
+    epoca: extractEpoca(chapterText),
+    protagonista: extractProtagonista(chapterText),
+    dispositivo: extractDispositivo(chapterText),
+    tono: genres && genres.length ? genres[0] : "neutro",
     firstSentence,
   };
+}
+
+function similarityScore(a: Fingerprint, b: Fingerprint): number {
+  let score = 0;
+  if (a.escenario && a.escenario === b.escenario) score++;
+  if (a.epoca && a.epoca === b.epoca) score++;
+  if (a.protagonista && a.protagonista === b.protagonista) score++;
+  if (a.dispositivo && a.dispositivo === b.dispositivo) score++;
+  return score;
+}
+
+export function isFingerprintTooSimilar(
+  fp: Fingerprint,
+  others: Fingerprint[]
+): boolean {
+  return others.some((o) => similarityScore(fp, o) >= 3);
 }
