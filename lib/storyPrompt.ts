@@ -21,6 +21,7 @@ Antes de escribir, planifica mentalmente 4–6 beats: situación inicial, objeti
 - Mantén persona y tiempo verbal consistentes con lo ya escrito.
 - Respeta géneros y restricciones de [META].
 - Evita clichés listados en [META.cliches_prohibidos].
+- Evita las palabras o tramas listadas en [META.banned_keywords].
 
 === OPCIONES (CALIDAD) ===
 - Genera EXACTAMENTE [META.options_count] opciones.

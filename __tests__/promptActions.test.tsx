@@ -24,13 +24,13 @@ describe('StoryForm prompt actions', () => {
       if (url === '/api/prompt/improve') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ text: 'Prompt mejorado' }),
+          json: () => Promise.resolve({ prompt: 'Prompt mejorado' }),
         });
       }
       if (url === '/api/prompt/generate') {
         return Promise.resolve({
           ok: true,
-          json: () => Promise.resolve({ text: 'Prompt generado' }),
+          json: () => Promise.resolve({ prompt: 'Prompt generado' }),
         });
       }
       return Promise.reject(new Error('Unknown endpoint'));

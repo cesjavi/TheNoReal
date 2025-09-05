@@ -13,6 +13,7 @@ type Ajustes = {
   temperature?: number;
   top_p?: number;
   targetWords?: number;
+  evitar?: string[];
 };
 
 type StoryRequest = {
@@ -96,6 +97,11 @@ export async function POST(req: Request) {
       typeof ajustes?.targetWords === "number" ? ajustes.targetWords : 220;
 
     // META base
+    const { evitar = [], ...ajustesRest } = ajustes || {};
+    const bannedKeywords = Array.isArray(evitar)
+      ? evitar.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+      : [];
+
     const metaBase = buildMeta({
       optionsCount,
       targetWords,
@@ -105,6 +111,7 @@ export async function POST(req: Request) {
         "llamadas sin identificador",
         "hospital psiquiátrico abandonado",
       ],
+      bannedKeywords,
     });
 
     // Extensión de META en el mismo bloque
@@ -114,7 +121,7 @@ export async function POST(req: Request) {
       endingMode ? `ending_mode=${endingMode}` : null,
       Number.isFinite(chaptersCount) ? `chapters_count=${chaptersCount}` : null,
       `estilo=${JSON.stringify(estilo)}`,
-      `ajustes=${JSON.stringify(ajustes)}`,
+      `ajustes=${JSON.stringify(ajustesRest)}`,
       finalize ? `finalize_now=true` : null,
     ].filter(Boolean) as string[];
 
