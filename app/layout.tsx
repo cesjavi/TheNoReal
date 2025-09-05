@@ -14,6 +14,16 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
 });
+export const metadata = {
+  title: 'Crea y cuenta historias con IA',
+  description: 'Describe algo y deja que la IA te ayude a crear una historia paso a paso.',
+  manifest: '/manifest.json',
+  icons: { /* lo que ya tenés */ },
+  other: {
+    'google-adsense-account': 'ca-pub-9368869720669033',
+  },
+} as const;
+
 
 export const metadata: Metadata = {
   title: "Crea y cuenta historias con IA",
