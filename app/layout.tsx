@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     shortcut: "/icon-192x192.png"
   },
   other: {
-    'google-adsense-account': 'ca-pub-9368869720669033',
+    'google-adsense-account': 'ca-pub-9368869720669033', 
   },
 };
 
@@ -43,6 +43,7 @@ export default function RootLayout({
   return (
     <html lang="en">
     <head>
+       <meta name="google-adsense-account" content="ca-pub-9368869720669033" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
