@@ -2,7 +2,7 @@ import createChatCompletion from "@/lib/groqClient";
 import { validateOptions } from "@/lib/optionGuard";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
 
 const MAX_OPTIONS = 5;
 
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     while (validOptions.length < count && attempts < maxAttempts) {
       attempts++;
       const completion = await createChatCompletion({
-        model: "openai/gpt-oss-120b",
+        model: "moonshotai/kimi-k2-instruct",
         messages: [{ role: "user", content: prompt }],
         n: 1,
         temperature: safeTemperature,

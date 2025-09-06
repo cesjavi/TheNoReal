@@ -12,7 +12,8 @@ import {
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
