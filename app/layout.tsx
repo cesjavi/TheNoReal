@@ -44,6 +44,7 @@ export default function RootLayout({
     <html lang="en">
     <head>
        <meta name="google-adsense-account" content="ca-pub-9368869720669033" />
+       <meta name="monetag" content="4643aa80204b58950281fa93f7e174b9"></meta>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
