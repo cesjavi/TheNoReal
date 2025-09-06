@@ -61,7 +61,7 @@ export async function POST(req: Request) {
   /* if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); */
 
   if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
+    return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });  
   }
 
   try {
