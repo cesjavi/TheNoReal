@@ -108,7 +108,7 @@ export default function StoryForm() {
   const [storyConfig, setStoryConfig] = useState<{
     optionsPerDecision: number;
     endingMode: EndingMode;
-    chaptersCount?: number;
+    chaptersCount?: number; 
   } | null>(null);
   const [promptTruncated, setPromptTruncated] = useState(false);
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
