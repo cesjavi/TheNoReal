@@ -8,9 +8,9 @@ import { authOptions } from "../auth/[...nextauth]/route";
 
 export async function GET() {
   const session = await getServerSession(authOptions);
-  if (!session) {
+  /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  }*/
   try {
     const publicDir = path.join(process.cwd(), "public");
     const topDir = path.join(publicDir, "top");

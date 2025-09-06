@@ -1,5 +1,6 @@
+// app/api/story/route.ts
 import { NextResponse } from "next/server";
-import createChatCompletion from "@/lib/groqClient";
+import Groq from "groq-sdk";
 import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
 import {
@@ -13,14 +14,15 @@ import { limitTemperature, limitTopP } from "@/lib/sampling";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]/route";
 
-// ---------- Tipos auxiliares ----------
-type Ajustes = {
-  temperature?: number;
-  top_p?: number;
-  targetWords?: number;
-  evitar?: string[];
-};
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
+// ---- Groq client
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
+
+// ---- Tipos
+type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
+type Ajustes = { temperature?: number; top_p?: number; targetWords?: number; evitar?: string[] };
 type StoryRequest = {
   story?: string;
   option?: string;
@@ -34,52 +36,37 @@ type StoryRequest = {
   finalize?: boolean;
 };
 
-// Minimal, sólo lo que usamos
-type ChatMessage = { role: "system" | "user"; content: string };
-
-type ChatChoice = {
-  index?: number;
-  message?: { role?: string; content?: string };
-  finish_reason?: string | null;
-};
-
-type ChatCompletion = {
-  id?: string;
-  model?: string;
-  choices: ChatChoice[];
-};
-
+// ---- helpers
 function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === "object" && x !== null;
 }
-
 function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((v) => typeof v === "string");
 }
-
 function isStoryRequest(x: unknown): x is StoryRequest {
-  if (!isObject(x)) return false;
-  // `story` puede ser cadena vacía; lo único “obligatorio” para nosotros
-  // es que exista el objeto y que no tenga tipos imposibles.
-  if ("genres" in x && !isStringArray((x as StoryRequest).genres)) return false;
-  return true;
+  return isObject(x) && (!("genres" in x) || isStringArray((x as any).genres));
+}
+async function withTimeout<T>(p: Promise<T>, ms = 30000): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
+  ]);
 }
 
-// ---------- Handler ----------
+// Intentamos en este orden
+const MODEL_PRIORITY = [process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct", "gpt-oss-20b"];
+
 export async function POST(req: Request) {
   const session = await getServerSession(authOptions);
-  /*if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }*/
+  /* if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); */
+
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });
   }
 
   try {
     const raw = (await req.json()) as unknown;
-    if (!isStoryRequest(raw)) {
-      return NextResponse.json({ error: "Bad request" }, { status: 400 });
-    }
+    if (!isStoryRequest(raw)) return NextResponse.json({ error: "Bad request" }, { status: 400 });
 
     const {
       story: storyText = "",
@@ -94,17 +81,23 @@ export async function POST(req: Request) {
       finalize = false,
     } = raw;
 
-    // Sampling y targets
-    const optionsCount: number = Number(optionsPerDecision) || 2;
-    const temperature = limitTemperature(ajustes?.temperature) ?? 0.75;
-    const top_p = limitTopP(ajustes?.top_p) ?? 0.9;
-    const targetWords: number =
+    // 👇 Solo pedimos "option" a partir del segundo turno.
+    // Heurística: si el texto ya incluye líneas de elección con ">\s"
+    const isFirstTurn = !/\n>\s*/.test(storyText);
+    if (!finalize && !isFirstTurn && !chosenOption?.trim()) {
+      return NextResponse.json({ error: "Missing option" }, { status: 400 });
+    }
+
+    const baseTemp = limitTemperature(ajustes?.temperature) ?? 0.75;
+    const baseTopP = limitTopP(ajustes?.top_p) ?? 0.9;
+    const optionsCount = Number(optionsPerDecision) || 2;
+    const targetWords =
       typeof ajustes?.targetWords === "number" ? ajustes.targetWords : 220;
 
-    // META base
+    // META y filtros
     const { evitar = [], ...ajustesRest } = ajustes || {};
-    const bannedKeywords = Array.isArray(evitar)
-      ? evitar.filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    const bannedKeywords: string[] = Array.isArray(evitar)
+      ? evitar.map(String).map((s) => s.trim()).filter((s) => s.length > 0)
       : [];
 
     const metaBase = buildMeta({
@@ -119,7 +112,6 @@ export async function POST(req: Request) {
       bannedKeywords,
     });
 
-    // Extensión de META en el mismo bloque
     const metaConfigLines = [
       `language=${language}`,
       `genres=[${genres.map((g) => JSON.stringify(g)).join(", ")}]`,
@@ -132,73 +124,79 @@ export async function POST(req: Request) {
 
     const metaBlock = [metaBase.trim(), ...metaConfigLines].join("\n");
 
-    // Mensaje de usuario (con [META])
-    const userContent = buildUserMessage({
+    const userContentBase = buildUserMessage({
       text: [storyText, finalize ? "\nFinaliza ahora." : ""].join(""),
-      chosenOption,
+      chosenOption, // puede ir vacío en el primer turno
       optionsCount,
       targetWords,
       metaBlock,
     });
 
-    const messages: ChatMessage[] = [
-      { role: "system", content: SYSTEM_PROMPT_V3 },
-      { role: "user", content: userContent },
-    ];
+    const maxRetriesPerModel = 3;
 
-    const model =
-      process.env.GROQ_MODEL || "openai/gpt-oss-120b";//"moonshotai/kimi-k2-instruct"; // fallback
+    for (const model of MODEL_PRIORITY) {
+      for (let attempt = 0; attempt <= maxRetriesPerModel; attempt++) {
+        const temperature = Math.min(baseTemp + attempt * 0.15, 1.3);
+        const top_p = Math.min(baseTopP + attempt * 0.05, 1.0);
 
-    const maxRetries = 2;
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      const completion = (await createChatCompletion({
-        model,
-        messages, // ← ya no es `any`
-        temperature,
-        top_p,
-      })) as ChatCompletion;
+        const antiRepetition =
+          attempt > 0
+            ? `
 
-      // Debug (servidor). Si no querés logs, remové esta línea.
-      // eslint-disable-next-line no-console
-      console.dir(completion.choices, { depth: null });
+[ANTI_REPETITION]
+Evita repetir tramas o giros usados antes. Sé más específico, original y ligado a ${JSON.stringify(
+                genres
+              )}.`
+            : "";
 
-      const text: string = completion?.choices?.[0]?.message?.content ?? "";
-      if (!text) {
-        return NextResponse.json(
-          { error: "Respuesta vacía del modelo" },
-          { status: 502 }
-        );
-      }
+        const messages: ChatMsg[] = [
+          { role: "system", content: SYSTEM_PROMPT_V3 },
+          { role: "user", content: userContentBase + antiRepetition },
+        ];
 
-      // Parseo formato (capítulo + --- + opciones)
-      const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
-
-      if (!isFinal && story) {
-        const fp = computeFingerprint({ chapterText: story, genres });
-        const similar = isFingerprintTooSimilar(
-          fp,
-          getRecentFingerprints()
-        );
-        if (similar) {
-          if (attempt < maxRetries) {
-            continue; // reintentar
-          }
-          return NextResponse.json(
-            { error: "Historia muy similar" },
-            { status: 409 }
+        try {
+          const completion: any = await withTimeout(
+            groq.chat.completions.create({
+              model,
+              messages,
+              temperature,
+              top_p,
+            }),
+            30000
           );
-        }
-        pushFingerprint(fp);
-      }
 
-      return NextResponse.json({ story, options, isFinal, raw: text });
+          const text: string = completion?.choices?.[0]?.message?.content ?? "";
+          if (!text) {
+            if (attempt < maxRetriesPerModel) continue;
+            break; // siguiente modelo
+          }
+
+          const { story, options, isFinal } = parseStoryResponse(text, optionsCount);
+
+          if (!isFinal && !finalize && story) {
+            const fp = computeFingerprint({ chapterText: story, genres });
+            const similar = isFingerprintTooSimilar(fp, getRecentFingerprints());
+            if (similar) {
+              if (attempt < maxRetriesPerModel) continue;
+              pushFingerprint(fp);
+              return NextResponse.json({ story, options, isFinal, similar: true });
+            }
+            pushFingerprint(fp);
+          }
+
+          return NextResponse.json({ story, options, isFinal });
+        } catch (err: any) {
+          console.error(`Error con modelo ${model} (intento ${attempt}):`, err?.message ?? err);
+          if (attempt >= maxRetriesPerModel) break; // probamos otro modelo
+        }
+      }
     }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Unknown error";
-    // eslint-disable-next-line no-console
-    console.error("api/story error:", msg);
+
+    return NextResponse.json({ error: "Todos los modelos fallaron" }, { status: 502 });
+  } catch (err: any) {
+    console.error("api/story error:", err?.message ?? err);
     return NextResponse.json(
-      { error: "Error al procesar la solicitud" },
+      { error: "Error al procesar la solicitud", detail: err?.message ?? String(err) },
       { status: 500 }
     );
   }

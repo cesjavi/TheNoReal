@@ -215,7 +215,7 @@ export default function Story({
       setLoading(false);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
-      alert('Ocurrió un error al continuar la historia. Inténtalo de nuevo.');
+      alert('Ocurrió un error al continuar1 la historia. Inténtalo de nuevo.');
       setLoading(false);
       setRegeneratingOptions(false);
     }
@@ -268,7 +268,7 @@ export default function Story({
       setLoading(false);
     } catch (error) {
       console.error('Error al consultar la API de Groq', error);
-      alert('Ocurrió un error al finalizar la historia. Inténtalo de nuevo.');
+      alert('Ocurrió un error al finalizar 2la historia. Inténtalo de nuevo.');
       setLoading(false);
     }
   };
