@@ -1,6 +1,9 @@
 import SplashScreen from './components/SplashScreen';
 
 export default function Loading() {
-  return <SplashScreen />;
+  const handleOnFinish = () => {
+    console.log('Loading finished');
+  };
+  return <SplashScreen onFinish={handleOnFinish} />;
 }
 
