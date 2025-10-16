@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useTranslations } from 'next-intl';
 import { useLanguage } from '../providers/LanguageProvider';
@@ -12,6 +12,7 @@ import StorySettings, {
   Ajustes,
 } from './StorySettings';
 import { parseStoryResponse } from '@/lib/parseStoryResponse';
+import { resolveLanguagePreference } from '@/lib/language';
 
 const MODALITY_HELP = {
   capitulos: 'Divide la historia en capítulos.',
@@ -54,7 +55,6 @@ function randomPick<T>(arr: T[]): T {
 const toArray = <T,>(v: T | T[] | undefined | null): T[] => (Array.isArray(v) ? v : v == null ? [] : [v]);
 const isNonEmptyArray = (v: unknown): v is unknown[] => Array.isArray(v) && v.length > 0;
 const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n));
-const normalizeLocale = (loc: string) => (loc || 'es').toLowerCase().split('-')[0];
 
 function isObject(x: unknown): x is Record<string, unknown> {
   return typeof x === 'object' && x !== null;
@@ -100,7 +100,7 @@ export default function StoryForm() {
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<EndingMode>('capitulos');
   const [chapters, setChapters] = useState('3');
-  const [targetWords, setTargetWords] = useState<number>(220);
+  const [targetWords, setTargetWords] = useState<number>(defaults.ajustes.targetWords);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -119,6 +119,15 @@ export default function StoryForm() {
   const [bottomSvg, setBottomSvg] = useState<string | null>(null);
   const [topDelay, setTopDelay] = useState<string>('0s');
   const [bottomDelay, setBottomDelay] = useState<string>('0s');
+
+  useEffect(() => {
+    const nextTarget =
+      typeof config.ajustes.targetWords === 'number' && Number.isFinite(config.ajustes.targetWords)
+        ? config.ajustes.targetWords
+        : defaults.ajustes.targetWords;
+
+    setTargetWords((prev) => (prev === nextTarget ? prev : nextTarget));
+  }, [config.ajustes.targetWords]);
 
   useEffect(() => {
     const load = async () => {
@@ -156,6 +165,13 @@ export default function StoryForm() {
   };
 
   const showChapters = modality === 'capitulos' || modality === 'final_sorpresa';
+  const tokenLimitReached = tokenCount >= TOKEN_LIMIT;
+  const tokenWarningId = tokenLimitReached ? 'prompt-token-warning' : undefined;
+  const errorMessageId = error ? 'storyform-error' : undefined;
+  const promptDescribedBy = useMemo(() => {
+    const ids = [tokenWarningId, errorMessageId].filter(Boolean);
+    return ids.length ? ids.join(' ') : undefined;
+  }, [errorMessageId, tokenWarningId]);
 
   const toggleGenre = (genre: string) => {
     setConfig((prev) => ({
@@ -191,6 +207,15 @@ export default function StoryForm() {
     });
 
     setConfig({ generos: [genero], estilo, ajustes });
+  };
+
+  const updateTargetWords = (value: number) => {
+    const clampedValue = clamp(value, 80, 600);
+    setTargetWords(clampedValue);
+    setConfig((prev) => ({
+      ...prev,
+      ajustes: { ...prev.ajustes, targetWords: clampedValue },
+    }));
   };
 
   const handleImprovePrompt = async () => {
@@ -296,8 +321,7 @@ export default function StoryForm() {
       } satisfies Record<string, unknown>;
 
       // Si el usuario eligió un idioma en ajustes, priorizarlo (ej: "es-AR")
-      const langFromCfg = toArray<string>(config.ajustes.idioma)[0];
-      const lang = normalizeLocale(langFromCfg || locale);
+      const lang = resolveLanguagePreference({ forced: config.ajustes.idioma, locale });
 
       const payload = {
         story: effectivePrompt,
@@ -324,44 +348,49 @@ export default function StoryForm() {
       const dataUnknown = await response.json().catch(() => ({}));
       const data = dataUnknown as unknown;
 
-     if (!response.ok) {
-        let errMsg: string = 'Error al obtener la historia inicial';
-        if (isObject(data) && typeof (data as Record<string, unknown>).error === 'string') {
-          errMsg = (data as Record<string, unknown>).error as string;
+      if (!response.ok) {
+        let errMsg = 'Error al obtener la historia inicial';
+        if (isObject(data)) {
+          const record = data as Record<string, unknown>;
+          if (typeof record.error === 'string') {
+            errMsg = record.error;
+          }
         }
-        setError(errMsg);
-      } else {
-        // ✅ Compatibilidad: nueva API ({story, options}) o vieja API ({text})
-        let firstChapter = '';
-        let firstOptions: string[] = [];
-
-        if (isStoryAPI(data)) {
-          firstChapter = data.story || '';
-          firstOptions = Array.from(new Set(normalizeStringArray((data as { options?: unknown }).options)));
-        } else if (hasText(data)) {
-          const parsed = parseStoryResponse(data.text, optionsPerDecision);
-          firstChapter = parsed.story;
-          firstOptions = parsed.options;
-        } else {
-          throw new Error('Respuesta inesperada del servidor');
-        }
-
-        setInitialStory(firstChapter);
-        setInitialOptions(firstOptions);
-        setStoryConfig({
-          optionsPerDecision,
-          endingMode: final,
-          chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
-        });
-
-        setPrompt('');
-        setTokenCount(0);
-        setNumOptions(2);
-        setModality('capitulos');
-        setChapters('');
+        throw new Error(errMsg);
       }
-    } catch {
-      setError('Error al conectar con el servidor');
+
+      // ✅ Compatibilidad: nueva API ({story, options}) o vieja API ({text})
+      let firstChapter = '';
+      let firstOptions: string[] = [];
+
+      if (isStoryAPI(data)) {
+        firstChapter = data.story || '';
+        firstOptions = Array.from(new Set(normalizeStringArray((data as { options?: unknown }).options)));
+      } else if (hasText(data)) {
+        const parsed = parseStoryResponse(data.text, optionsPerDecision);
+        firstChapter = parsed.story;
+        firstOptions = parsed.options;
+      } else {
+        throw new Error('Respuesta inesperada del servidor');
+      }
+
+      setInitialStory(firstChapter);
+      setInitialOptions(firstOptions);
+      setStoryConfig({
+        optionsPerDecision,
+        endingMode: final,
+        chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
+      });
+
+      setPrompt('');
+      setTokenCount(0);
+      setNumOptions(2);
+      setModality('capitulos');
+      setChapters('');
+    } catch (err) {
+      console.error('Error al iniciar la historia', err);
+      const message = err instanceof Error ? err.message : 'Error al conectar con el servidor';
+      setError(message || 'Error al conectar con el servidor');
     } finally {
       setLoading(false);
     }
@@ -396,6 +425,7 @@ export default function StoryForm() {
           {/* 1) Texto inicial */}
           <div className="flex flex-col w-full max-w-xl">
             <textarea
+              id="story-initial-prompt"
               className="w-full p-2 mb-2 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
               placeholder="Escribe el inicio de la historia"
               value={prompt}
@@ -405,12 +435,24 @@ export default function StoryForm() {
                 setTokenCount(countTokens(value));
                 setPromptTruncated(false);
               }}
+              aria-invalid={tokenLimitReached}
+              aria-describedby={promptDescribedBy}
+              disabled={loading}
             />
             <div className="flex justify-between text-sm text-gray-600">
               <span>
                 {tokenCount}/{TOKEN_LIMIT} tokens
               </span>
-              {tokenCount >= TOKEN_LIMIT && <span className="text-red-600">Límite alcanzado</span>}
+              {tokenLimitReached && (
+                <span
+                  id={tokenWarningId}
+                  className="text-red-600"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Límite alcanzado
+                </span>
+              )}
             </div>
             <div className="flex gap-2 mt-2">
               <button
@@ -588,7 +630,7 @@ export default function StoryForm() {
                 min={80}
                 max={600}
                 value={targetWords}
-                onChange={(e) => setTargetWords(Math.max(80, Math.min(600, Number(e.target.value) || 220)))}
+                onChange={(e) => updateTargetWords(Number(e.target.value) || defaults.ajustes.targetWords)}
                 className="w-24 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
               />
             </div>
@@ -649,7 +691,7 @@ export default function StoryForm() {
       )}
 
       {error && (
-        <p className="text-red-500">
+        <p id="storyform-error" className="text-red-500" role="alert" aria-live="assertive">
           {error === 'GROQ_API_KEY no configurada'
             ? 'La clave de la API de Groq no está configurada.'
             : error}
@@ -696,7 +738,6 @@ export default function StoryForm() {
             },
           };
           setConfig(normalized);
-          setTargetWords(normalized.ajustes.targetWords ?? 220);
           setOpen(false);
         }}
       />

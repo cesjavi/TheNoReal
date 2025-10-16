@@ -13,13 +13,24 @@ import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
+import { randomUUID } from "crypto";
 
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // ---- Groq client
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY ?? "" });
+let groqClient: Groq | null = null;
+
+function getGroqClient(): Groq {
+  if (!groqClient) {
+    if (!process.env.GROQ_API_KEY) {
+      throw new Error("GROQ_API_KEY no configurada");
+    }
+    groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return groqClient;
+}
 
 // ---- Tipos
 type ChatMsg = { role: "system" | "user" | "assistant"; content: string };
@@ -36,6 +47,7 @@ type StoryRequest = {
   chaptersCount?: number;
   finalize?: boolean;
 };
+type ChatCompletionResult = Awaited<ReturnType<Groq["chat"]["completions"]["create"]>>;
 
 // ---- helpers
 function isObject(x: unknown): x is Record<string, unknown> {
@@ -45,9 +57,16 @@ function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((v) => typeof v === "string");
 }
 function isStoryRequest(x: unknown): x is StoryRequest {
-  return isObject(x) && (!("genres" in x) || isStringArray((x as any).genres));
+  if (!isObject(x)) return false;
+  if ("genres" in x) {
+    const value = (x as { genres?: unknown }).genres;
+    if (!isStringArray(value)) return false;
+  }
+  return true;
 }
-async function withTimeout<T>(p: Promise<T>, ms = 30000): Promise<T> {
+const REQUEST_TIMEOUT_MS = Number(process.env.GROQ_REQUEST_TIMEOUT_MS ?? "30000");
+
+async function withTimeout<T>(p: Promise<T>, ms = REQUEST_TIMEOUT_MS): Promise<T> {
   return Promise.race([
     p,
     new Promise<T>((_, rej) => setTimeout(() => rej(new Error("timeout")), ms)),
@@ -58,16 +77,22 @@ async function withTimeout<T>(p: Promise<T>, ms = 30000): Promise<T> {
 const MODEL_PRIORITY = [process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct", "gpt-oss-20b"];
 
 export async function POST(req: Request) {
+  const requestId = randomUUID();
   const session = await getServerSession(authOptions);
-  /* if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 }); */
+  const allowAnonymous = process.env.ALLOW_ANON_STORY_API === "1";
+
+  if (!allowAnonymous && !session) {
+    return NextResponse.json({ error: "Unauthorized", requestId }, { status: 401 });
+  }
 
   if (!process.env.GROQ_API_KEY) {
-    return NextResponse.json({ error: "GROQ_API_KEY no configurada" }, { status: 400 });  
+    return NextResponse.json({ error: "GROQ_API_KEY no configurada", requestId }, { status: 400 });
   }
 
   try {
+    const groq = getGroqClient();
     const raw = (await req.json()) as unknown;
-    if (!isStoryRequest(raw)) return NextResponse.json({ error: "Bad request" }, { status: 400 });
+    if (!isStoryRequest(raw)) return NextResponse.json({ error: "Bad request", requestId }, { status: 400 });
 
     const {
       story: storyText = "",
@@ -86,7 +111,7 @@ export async function POST(req: Request) {
     // Heurística: si el texto ya incluye líneas de elección con ">\s"
     const isFirstTurn = !/\n>\s*/.test(storyText);
     if (!finalize && !isFirstTurn && !chosenOption?.trim()) {
-      return NextResponse.json({ error: "Missing option" }, { status: 400 });
+      return NextResponse.json({ error: "Missing option", requestId }, { status: 400 });
     }
 
     const baseTemp = limitTemperature(ajustes?.temperature) ?? 0.75;
@@ -156,14 +181,13 @@ Evita repetir tramas o giros usados antes. Sé más específico, original y liga
         ];
 
         try {
-          const completion: any = await withTimeout(
+          const completion = await withTimeout<ChatCompletionResult>(
             groq.chat.completions.create({
               model,
               messages,
               temperature,
               top_p,
-            }),
-            30000
+            })
           );
 
           const text: string = completion?.choices?.[0]?.message?.content ?? "";
@@ -179,25 +203,29 @@ Evita repetir tramas o giros usados antes. Sé más específico, original y liga
             const similar = isFingerprintTooSimilar(fp, getRecentFingerprints());
             if (similar) {
               if (attempt < maxRetriesPerModel) continue;
-              pushFingerprint(fp);
               return NextResponse.json({ story, options, isFinal, similar: true });
             }
             pushFingerprint(fp);
           }
 
           return NextResponse.json({ story, options, isFinal });
-        } catch (err: any) {
-          console.error(`Error con modelo ${model} (intento ${attempt}):`, err?.message ?? err);
+        } catch (err: unknown) {
+          const message = err instanceof Error ? err.message : String(err);
+          console.error(
+            `[${requestId}] Error con modelo ${model} (intento ${attempt}):`,
+            message
+          );
           if (attempt >= maxRetriesPerModel) break; // probamos otro modelo
         }
       }
     }
 
-    return NextResponse.json({ error: "Todos los modelos fallaron" }, { status: 502 });
-  } catch (err: any) {
-    console.error("api/story error:", err?.message ?? err);
+    return NextResponse.json({ error: "Todos los modelos fallaron", requestId }, { status: 502 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error(`[${requestId}] api/story error:`, message);
     return NextResponse.json(
-      { error: "Error al procesar la solicitud", detail: err?.message ?? String(err) },
+      { error: "Error al procesar la solicitud", detail: message, requestId },
       { status: 500 }
     );
   }

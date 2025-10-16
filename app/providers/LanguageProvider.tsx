@@ -55,20 +55,31 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
 
   const initialLocale = normalizeLocale(initialRequested);
 
-  const [locale, setLocale] = useState<Locale>(initialLocale);
+  const [requestedLocale, setRequestedLocale] = useState<Locale>(initialLocale);
+  const [resolvedLocale, setResolvedLocale] = useState<Locale>(initialLocale);
   const [messages, setMessages] = useState<Messages>({});
   const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoaded(false);
+      setLoadError(null);
 
       // Calculamos el "resolved" en base al locale actual
       // e intentamos cargar en orden: full -> base -> default
-      const full = locale;
-      const base = baseOf(locale);
-      const candidates = Array.from(new Set([full, base as Locale, DEFAULT_LOCALE]));
+      const full = requestedLocale;
+      const base = baseOf(requestedLocale);
+      const candidates = Array.from(
+        new Set<Locale>([
+          full,
+          SUPPORTED.find((l) => l.toLowerCase() === base) ?? DEFAULT_LOCALE,
+          DEFAULT_LOCALE,
+        ])
+      );
+
+      let lastError: unknown;
 
       async function tryFetch(loc: Locale): Promise<Messages> {
         const res = await fetch(`/locales/${loc}/messages.json`, { cache: 'no-store' });
@@ -82,39 +93,54 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
           const data = await tryFetch(candidate);
           if (cancelled) return;
 
-          // Si candidate resolvió distinto al actual, actualizamos locale una sola vez
-          if (candidate !== locale) {
-            setLocale(candidate);
-          }
-
+          setResolvedLocale(candidate);
           setMessages(data);
           setLoaded(true);
           return;
-        } catch {
+        } catch (err) {
+          lastError = err;
           // probar siguiente candidate
         }
       }
 
       // Si nada cargó, al menos marcamos como cargado para no bloquear el render
       if (!cancelled) {
+        setResolvedLocale(DEFAULT_LOCALE);
         setMessages({});
         setLoaded(true);
+        setLoadError('No se pudieron cargar los mensajes de idioma. Se mostrarán textos por defecto.');
+        if (lastError) {
+          console.error('LanguageProvider: no se pudieron cargar los mensajes', lastError);
+        }
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [locale]);
+  }, [requestedLocale]);
 
   if (!loaded) return null;
 
   const timeZone =
     (typeof Intl !== 'undefined' && Intl.DateTimeFormat().resolvedOptions().timeZone) || 'UTC';
 
+  const handleLocaleChange = (loc: Locale) => {
+    setRequestedLocale(normalizeLocale(loc));
+  };
+
   return (
-    <LanguageContext.Provider value={{ locale, setLocale }}>
-      <NextIntlClientProvider locale={locale} messages={messages} timeZone={timeZone}>
+    <LanguageContext.Provider value={{ locale: resolvedLocale, setLocale: handleLocaleChange }}>
+      <NextIntlClientProvider locale={resolvedLocale} messages={messages} timeZone={timeZone}>
+        {loadError && (
+          <div
+            role="alert"
+            aria-live="assertive"
+            className="bg-red-50 px-4 py-2 text-sm text-red-800"
+          >
+            {loadError}
+          </div>
+        )}
         {children}
       </NextIntlClientProvider>
     </LanguageContext.Provider>
