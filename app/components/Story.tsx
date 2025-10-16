@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { generateImage } from '@/lib/imageGenerator';
 import type { Estilo, Ajustes } from '@/types/story';
 import { useLanguage } from '../providers/LanguageProvider';
+import { resolveLanguagePreference } from '@/lib/language';
 
 interface StoryProps {
   userPrompt: string;
@@ -31,6 +31,8 @@ interface HistoryEntry {
   choices: string[];
 }
 
+const OPTIONS_RETRY_TIMEOUT_MS = 15_000;
+
 export default function Story({
   userPrompt,
   initialStory,
@@ -45,22 +47,51 @@ export default function Story({
 }: StoryProps) {
   const t = useTranslations('Story');
   const { locale } = useLanguage();
-  const [chapters, setChapters] = useState<Chapter[]>([
-    { texto: userPrompt, imageUrl: null },
-    { texto: initialStory, imageUrl: null },
-  ]);
-  const [choices, setChoices] = useState<string[]>([]);
-  const [options, setOptions] = useState(
-    Array.from(new Set(initialOptions)).slice(0, optionsPerDecision)
+  const initialChapters = useMemo(
+    () => [
+      { texto: userPrompt, imageUrl: null },
+      { texto: initialStory, imageUrl: null },
+    ],
+    [initialStory, userPrompt]
   );
+  const [chapters, setChapters] = useState<Chapter[]>(initialChapters);
+  const [choices, setChoices] = useState<string[]>([]);
+  const sanitizedInitialOptions = useMemo(
+    () => Array.from(new Set(initialOptions)).slice(0, optionsPerDecision),
+    [initialOptions, optionsPerDecision]
+  );
+  const [options, setOptions] = useState(sanitizedInitialOptions);
   const [loading, setLoading] = useState(false);
   const [regeneratingOptions, setRegeneratingOptions] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [isReading, setIsReading] = useState(false);
   const [finalized, setFinalized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const totalPlanned = chaptersCount ?? Math.max(chapters.length, 3);
+  useEffect(() => {
+    setChapters(initialChapters);
+    setChoices([]);
+    setCurrentChapter(1);
+    setFinalized(false);
+    setError(null);
+  }, [initialChapters]);
+
+  useEffect(() => {
+    setOptions(sanitizedInitialOptions);
+  }, [sanitizedInitialOptions]);
+
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
+    };
+  }, []);
+
+  const language = useMemo(
+    () => resolveLanguagePreference({ forced: ajustes.idioma, locale }),
+    [ajustes.idioma, locale]
+  );
+
   const progress = useMemo(() => {
     // Progreso aproximado (si no hay chaptersCount, usa longitud actual)
     const denom = chaptersCount ? chaptersCount : Math.max(chapters.length, 1);
@@ -92,16 +123,19 @@ export default function Story({
 
   const handleSelect = async (option: string) => {
     if (loading || finalized) return;
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
-    setHistory((prev) => [
-      ...prev,
-      {
-        chapters: chapters.map((c) => ({ ...c })),
-        options,
-        currentChapter,
-        choices: [...choices],
-      },
-    ]);
+    setError(null);
+
+    const snapshot: HistoryEntry = {
+      chapters: chapters.map((c) => ({ ...c })),
+      options: [...options],
+      currentChapter,
+      choices: [...choices],
+    };
 
     const currentStory = chapters
       .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
@@ -123,22 +157,27 @@ export default function Story({
           genres,
           estilo,
           ajustes: ajustesPayload,
-          language: locale,
+          language,
         }),
+        signal: controller.signal,
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error('Error al consultar la API de Groq');
+        let message = 'Error al consultar la API de Groq';
+        if (data && typeof (data as { error?: unknown }).error === 'string') {
+          message = (data as { error: string }).error;
+        }
+        throw new Error(message);
       }
 
-      const data = await response.json();
       const {
         story: newStory = '',
         options: newOptions = [],
         isFinal = false,
       } = data as { story?: string; options?: string[]; isFinal?: boolean };
 
-      let imageUrl: string | null = null;
+      const imageUrl: string | null = null;
       /*try {
         const { url } = await generateImage(newStory, genres);
         imageUrl = url;
@@ -155,35 +194,51 @@ export default function Story({
       if (!isFinal) {
         const MAX_RETRIES = 3;
         let attempts = 0;
-
-        while (opts.length < optionsPerDecision && attempts < MAX_RETRIES) {
-          setRegeneratingOptions(true);
-          const missing = optionsPerDecision - opts.length;
-          const optRes = await fetch('/api/options', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              prompt: nextStory,
-              numOptions: missing,
-              temperature: ajustesPayload.temperature,
-              top_p: ajustesPayload.top_p,
-            }),
-          });
-
-          if (!optRes.ok) {
-            throw new Error('Error al regenerar opciones');
-          }
-
-          const optData = await optRes.json();
-          const extra = Array.from(new Set((optData.options as string[]) || []));
-          opts = Array.from(new Set([...opts, ...extra].filter(Boolean)));
-          attempts++;
-        }
-
-        setRegeneratingOptions(false);
+        const deadline = Date.now() + OPTIONS_RETRY_TIMEOUT_MS;
 
         if (opts.length < optionsPerDecision) {
-          console.error('La API devolvió menos opciones de las esperadas');
+          setRegeneratingOptions(true);
+          try {
+            while (
+              opts.length < optionsPerDecision &&
+              attempts < MAX_RETRIES &&
+              Date.now() < deadline
+            ) {
+              attempts++;
+              const missing = optionsPerDecision - opts.length;
+              const optRes = await fetch('/api/options', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  prompt: nextStory,
+                  numOptions: missing,
+                  temperature: ajustesPayload.temperature,
+                  top_p: ajustesPayload.top_p,
+                }),
+                signal: controller.signal,
+              });
+
+              const optData = await optRes.json().catch(() => ({}));
+              if (!optRes.ok) {
+                let message = 'Error al regenerar opciones';
+                if (optData && typeof (optData as { error?: unknown }).error === 'string') {
+                  message = (optData as { error: string }).error;
+                }
+                throw new Error(message);
+              }
+
+              const extra = Array.from(
+                new Set(((optData as { options?: string[] }).options ?? []).filter(Boolean))
+              );
+              opts = Array.from(new Set([...opts, ...extra]));
+            }
+          } finally {
+            setRegeneratingOptions(false);
+          }
+        }
+
+        if (opts.length < optionsPerDecision) {
+          setError((prev) => prev ?? 'La API devolvió menos opciones de las esperadas');
         }
         opts = opts.slice(0, optionsPerDecision);
 
@@ -198,24 +253,34 @@ export default function Story({
         } else if (endingMode === 'infinita') {
           // no termina por contador
         } else if (endingMode === 'sin_final_definido') {
-          // termina de forma variable (se respeta la salida del modelo)
+          // depende del modelo
         }
 
         if (end) {
-          opts = [];
           setFinalized(true);
+          setOptions([]);
+        } else {
+          setOptions(opts);
         }
       } else {
-        // El modelo indicó fin de la historia
-        opts = [];
+        setOptions([]);
         setFinalized(true);
       }
-
-      setOptions(opts as string[]);
-      setLoading(false);
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error al consultar la API de Groq', error);
-      alert('Ocurrió un error al continuar1 la historia. Inténtalo de nuevo.');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al continuar la historia. Inténtalo de nuevo.';
+      setError(message);
+      setChapters(snapshot.chapters);
+      setChoices(snapshot.choices);
+      setOptions(snapshot.options);
+      setCurrentChapter(snapshot.currentChapter);
+    } finally {
       setLoading(false);
       setRegeneratingOptions(false);
     }
@@ -223,7 +288,12 @@ export default function Story({
 
   const handleFinalize = async () => {
     if (loading || finalized) return;
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     setLoading(true);
+    setError(null);
 
     const currentStory = chapters
       .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
@@ -244,17 +314,22 @@ export default function Story({
           genres,
           estilo,
           ajustes: ajustesPayload,
+          language,
         }),
+        signal: controller.signal,
       });
 
+      const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        throw new Error('Error al consultar la API de Groq');
+        let message = 'Error al consultar la API de Groq';
+        if (data && typeof (data as { error?: unknown }).error === 'string') {
+          message = (data as { error: string }).error;
+        }
+        throw new Error(message);
       }
-
-      const data = await response.json();
       const finalText = (data.story as string) || '';
 
-      let imageUrl: string | null = null;
+      const imageUrl: string | null = null;
       /*try {
         const { url } = await generateImage(finalText, genres);
         imageUrl = url;
@@ -265,21 +340,30 @@ export default function Story({
       setChapters((prev) => [...prev, { texto: finalText, imageUrl }]);
       setOptions([]);
       setFinalized(true);
-      setLoading(false);
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
       console.error('Error al consultar la API de Groq', error);
-      alert('Ocurrió un error al finalizar 2la historia. Inténtalo de nuevo.');
+      const message =
+        error instanceof Error
+          ? error.message
+          : 'Ocurrió un error al finalizar la historia. Inténtalo de nuevo.';
+      setError(message);
+    } finally {
       setLoading(false);
     }
   };
 
   const handleBack = () => {
-    setChapters([{ texto: initialStory, imageUrl: null }]);
+    abortControllerRef.current?.abort();
+    setChapters(initialChapters);
     setChoices([]);
-    setOptions(initialOptions.slice(0, optionsPerDecision));
+    setOptions(sanitizedInitialOptions);
     setCurrentChapter(1);
-    setHistory([]);
     setFinalized(false);
+    setError(null);
+    setRegeneratingOptions(false);
     onBack();
   };
 
@@ -333,6 +417,16 @@ export default function Story({
           </div>
         )}
       </div>
+
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800"
+        >
+          {error}
+        </div>
+      )}
 
       {/* Chapters */}
       <div className="space-y-6">
