@@ -44,6 +44,7 @@ const GENRE_ICONS: Record<string, string> = {
 };
 
 const TOKEN_LIMIT = 500;
+const DEFAULT_TARGET_WORDS = 220;
 
 /** Helpers */
 function countTokens(text: string) {
@@ -86,7 +87,7 @@ const defaults: ConfigGeneracion = {
     creatividad: 0.75,
     topP: 0.9,
     opcionesPorCapitulo: [],
-    targetWords: 220,
+    targetWords: DEFAULT_TARGET_WORDS,
   },
 };
 
@@ -100,7 +101,7 @@ export default function StoryForm() {
   const [numOptions, setNumOptions] = useState(2);
   const [modality, setModality] = useState<EndingMode>('capitulos');
   const [chapters, setChapters] = useState('3');
-  const [targetWords, setTargetWords] = useState<number>(defaults.ajustes.targetWords);
+  const [targetWords, setTargetWords] = useState<number>(DEFAULT_TARGET_WORDS);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [initialStory, setInitialStory] = useState<string | null>(null);
@@ -124,7 +125,7 @@ export default function StoryForm() {
     const nextTarget =
       typeof config.ajustes.targetWords === 'number' && Number.isFinite(config.ajustes.targetWords)
         ? config.ajustes.targetWords
-        : defaults.ajustes.targetWords;
+        : DEFAULT_TARGET_WORDS;
 
     setTargetWords((prev) => (prev === nextTarget ? prev : nextTarget));
   }, [config.ajustes.targetWords]);
@@ -630,7 +631,7 @@ export default function StoryForm() {
                 min={80}
                 max={600}
                 value={targetWords}
-                onChange={(e) => updateTargetWords(Number(e.target.value) || defaults.ajustes.targetWords)}
+                onChange={(e) => updateTargetWords(Number(e.target.value) || DEFAULT_TARGET_WORDS)}
                 className="w-24 p-1 border border-black/30 hover:border-black/60 rounded-lg focus:ring-2 focus:ring-accent"
               />
             </div>
@@ -734,7 +735,7 @@ export default function StoryForm() {
               consistenciaSaga: cfg.ajustes.consistenciaSaga,
               estiloVisual: cfg.ajustes.estiloVisual,
               paleta: cfg.ajustes.paleta,
-              targetWords: cfg.ajustes.targetWords ?? 220,
+              targetWords: cfg.ajustes.targetWords ?? DEFAULT_TARGET_WORDS,
             },
           };
           setConfig(normalized);
