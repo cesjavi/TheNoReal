@@ -80,7 +80,7 @@ const MODEL_PRIORITY = [process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct",
 export async function POST(req: Request) {
   const requestId = randomUUID();
   const session = await getServerSession(authOptions);
-  const allowAnonymous = process.env.ALLOW_ANON_STORY_API === "1";
+  const allowAnonymous = process.env.ALLOW_ANON_STORY_API !== "0";
 
   if (!allowAnonymous && !session) {
     return NextResponse.json({ error: "Unauthorized", requestId }, { status: 401 });
