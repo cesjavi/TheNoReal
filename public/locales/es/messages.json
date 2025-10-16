@@ -12,6 +12,8 @@
     "cancel": "Cancelar"
   },
   "Story": {
+    "immersiveExperience": "Experiencia inmersiva",
+    "progress": "Progreso",
     "chooseContinuation": "Elegí cómo continúa:",
     "suggestion": "Sugerencia #{index}",
     "finalized": "La historia ha finalizado. Podés descargarla o volver al inicio.",
