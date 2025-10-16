@@ -383,180 +383,202 @@ export default function Story({
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-6">
-      {/* Header */}
-      <div className="mb-6 flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold tracking-tight">
-            Historia interactiva
-          </h1>
-          <span className="text-xs text-muted-foreground">
-            Cap. {chapters.length}{chaptersCount ? ` / ${chaptersCount}` : ''}
-          </span>
+    <div className="relative">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-gradient-to-b from-accent/20 via-background to-background" />
+      <div className="pointer-events-none absolute -right-10 top-32 -z-10 h-56 w-56 rounded-full bg-gradient-to-br from-accent/10 via-transparent to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -left-10 top-64 -z-10 h-60 w-60 rounded-full bg-gradient-to-br from-purple-300/30 via-transparent to-transparent blur-3xl" />
+
+      <div className="relative mx-auto max-w-3xl px-4 py-10">
+        {/* Header */}
+        <div className="mb-8 overflow-hidden rounded-3xl border bg-background/70 p-6 shadow-xl shadow-accent/10 backdrop-blur">
+          <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-2">
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+                {t('immersiveExperience')}
+              </p>
+              <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
+                Historia interactiva
+              </h1>
+            </div>
+            <div className="flex items-center gap-4 rounded-2xl border bg-card/60 p-4 shadow-inner">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                <span className="text-2xl" aria-hidden>
+                  ✨
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                  {t('progress')}
+                </p>
+                <p className="text-lg font-semibold">
+                  Cap. {chapters.length}
+                  {chaptersCount ? ` / ${chaptersCount}` : ''}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Progress */}
+          <div className="mt-6 h-2 w-full overflow-hidden rounded-full bg-muted">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-accent via-accent/80 to-purple-500 transition-all duration-300"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Genres */}
+          {genres?.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {genres.map((g) => (
+                <span
+                  key={g}
+                  className="rounded-full border border-accent/40 bg-accent/5 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm"
+                >
+                  {g}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Progress */}
-        <div className="h-2 w-full overflow-hidden rounded-full bg-muted">
+        {error && (
           <div
-            className="h-full rounded-full bg-accent transition-all duration-300"
-            style={{ width: `${progress}%` }}
-          />
+            role="alert"
+            aria-live="assertive"
+            className="mb-6 rounded-2xl border border-red-200/70 bg-red-50/90 p-4 text-sm text-red-800 shadow-sm"
+          >
+            {error}
+          </div>
+        )}
+
+        {/* Chapters */}
+        <div className="relative space-y-8 pl-6">
+          <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-muted-foreground/20 to-transparent" />
+          {chapters.map(({ texto, imageUrl }, idx) => (
+            <article
+              key={idx}
+              className="relative ml-4 overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+            >
+              <div className="absolute -left-8 top-8 flex h-8 w-8 items-center justify-center rounded-full border border-accent/40 bg-background text-sm font-semibold text-accent shadow-md">
+                {idx + 1}
+              </div>
+              {imageUrl ? (
+                <div className="overflow-hidden rounded-b-[2.2rem]">
+                  <img
+                    src={imageUrl}
+                    alt={`Ilustración capítulo ${idx + 1}`}
+                    className="h-56 w-full object-cover"
+                  />
+                </div>
+              ) : null}
+
+              <div className="space-y-4 px-6 py-7">
+                {idx > 0 && (
+                  <p className="flex items-start gap-2 text-sm text-muted-foreground">
+                    <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
+                    <span className="italic">“{choices[idx - 1]}”</span>
+                  </p>
+                )}
+
+                {/* Texto del capítulo */}
+                <div className="prose prose-invert max-w-none leading-relaxed">
+                  <p className="whitespace-pre-line text-base text-foreground/90">{texto}</p>
+                </div>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <button
+                    onClick={() => handleSpeak(texto)}
+                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-background/70 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
+                    aria-label={isReading ? t('reading.stop') : t('reading.read')}
+                  >
+                    <span aria-hidden>🔊</span>
+                    {isReading ? t('reading.stop') : t('reading.read')}
+                  </button>
+                </div>
+              </div>
+            </article>
+          ))}
         </div>
 
-        {/* Genres */}
-        {genres?.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {genres.map((g) => (
-              <span
-                key={g}
-                className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground hover:bg-muted/60"
+        {/* Opciones */}
+        {options.length > 0 && (
+          <div className="mt-12 rounded-3xl border bg-background/80 p-6 shadow-lg shadow-accent/10">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {t('chooseContinuation')}
+            </h2>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {options.map((opt, idx) => (
+                <button
+                  key={`${idx}-${opt}`}
+                  onClick={() => handleSelect(opt)}
+                  disabled={loading || finalized}
+                  className="group relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-background via-background to-accent/5 px-4 py-4 text-left text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-lg disabled:opacity-60"
+                >
+                  <span className="absolute right-4 top-4 text-xs font-semibold text-accent/70">
+                    #{idx + 1}
+                  </span>
+                  <span className="block font-semibold text-foreground/90">{opt}</span>
+                  <span className="mt-2 block text-xs text-muted-foreground">
+                    {t('suggestion', { index: idx + 1 })}
+                  </span>
+                  <span
+                    className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+                    style={{ background: 'radial-gradient(circle at top right, rgba(255,255,255,0.2), transparent 55%)' }}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Estado finalizado */}
+        {finalized && (
+          <div className="mt-8 rounded-3xl border border-accent/30 bg-accent/10 p-5 text-sm text-accent shadow-inner">
+            {t('finalized')}
+          </div>
+        )}
+
+        {/* Barra de acciones sticky */}
+        <div className="sticky bottom-6 mt-12">
+          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-3xl border border-accent/20 bg-background/80 p-3 shadow-2xl shadow-accent/10 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <button
+              onClick={handleBack}
+              disabled={loading}
+              className="rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
+            >
+              {t('back')}
+            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                onClick={handleDownload}
+                disabled={loading}
+                className="rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
               >
-                {g}
-              </span>
-            ))}
+                {t('download')}
+              </button>
+              <button
+                onClick={handleFinalize}
+                disabled={loading || finalized}
+                className="rounded-2xl bg-gradient-to-r from-accent to-purple-500 px-5 py-2 text-sm font-semibold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60"
+              >
+                {t('finalize')}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Overlay de carga (sutil) */}
+        {loading && (
+          <div
+            className="fixed inset-x-0 bottom-24 flex justify-center"
+            style={{ pointerEvents: 'none' }}
+          >
+            <div className="animate-pulse rounded-full border border-accent/30 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+              {regeneratingOptions ? t('regeneratingOptions') : t('generating')}
+            </div>
           </div>
         )}
       </div>
-
-      {error && (
-        <div
-          role="alert"
-          aria-live="assertive"
-          className="mb-4 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800"
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Chapters */}
-      <div className="space-y-6">
-        {chapters.map(({ texto, imageUrl }, idx) => (
-          <article
-            key={idx}
-            className="rounded-2xl border bg-card transition-shadow hover:[box-shadow:0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-2px_rgba(0,0,0,0.1)]"
-            style={{ boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)' }}
-          >
-            {imageUrl ? (
-              <div className="overflow-hidden rounded-t-2xl">
-                <img
-                  src={imageUrl}
-                  alt={`Ilustración capítulo ${idx + 1}`}
-                  className="h-56 w-full object-cover"
-                />
-              </div>
-            ) : null}
-
-            <div className="space-y-4 p-5">
-              {idx > 0 && (
-                <p className="text-sm text-muted-foreground">
-                  <span className="mr-2 select-none text-muted-foreground/70">↳</span>
-                  <span className="italic">“{choices[idx - 1]}”</span>
-                </p>
-              )}
-
-              {/* Texto del capítulo */}
-              <div className="leading-relaxed prose prose-invert max-w-none">
-                <p className="whitespace-pre-line">{texto}</p>
-              </div>
-
-              <div className="flex flex-wrap gap-2 pt-1">
-                <button
-                  onClick={() => handleSpeak(texto)}
-                  className="inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                  aria-label={isReading ? t('reading.stop') : t('reading.read')}
-                >
-                  {isReading ? t('reading.stop') : t('reading.read')}
-                </button>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-
-      {/* Opciones */}
-      {options.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-medium text-muted-foreground">
-            {t('chooseContinuation')}
-          </h2>
-          <div className="grid gap-2 sm:grid-cols-2">
-            {options.map((opt, idx) => (
-              <button
-                key={`${idx}-${opt}`}
-                onClick={() => handleSelect(opt)}
-                disabled={loading || finalized}
-                className="group rounded-xl border px-4 py-3 text-left text-sm transition-all shadow-sm hover:-translate-y-0.5 hover:shadow-md">
-                <span className="block font-medium">{opt}</span>
-                <span className="mt-0.5 block text-xs text-muted-foreground">
-                  {t('suggestion', { index: idx + 1 })}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Estado finalizado */}
-      {finalized && (
-        <div className="mt-6 rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-          {t('finalized')}
-        </div>
-      )}
-
-      {/* Barra de acciones sticky */}
-      <div className="sticky bottom-4 mt-10">
-        <div
-          className="mx-auto flex max-w-2xl items-center justify-between gap-2 rounded-2xl border bg-background/80 p-2 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-          style={{
-            boxShadow:
-              '0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1)',
-          }}
-        >
-          <button
-            onClick={handleBack}
-            disabled={loading}
-            className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
-            {t('back')}
-          </button>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={handleDownload}
-              disabled={loading}
-              className="rounded-xl border px-4 py-2 text-sm hover:bg-muted disabled:opacity-50">
-              {t('download')}
-            </button>
-            <button
-              onClick={handleFinalize}
-              disabled={loading || finalized}
-              className="rounded-xl bg-accent px-4 py-2 text-sm text-white hover:bg-accent/90 disabled:opacity-50"
-              style={{
-                boxShadow:
-                  '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
-              }}
-            >
-              {t('finalize')}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Overlay de carga (sutil) */}
-      {loading && (
-        <div
-          className="fixed inset-x-0 bottom-24 flex justify-center"
-          style={{ pointerEvents: 'none' }}
-        >
-          <div
-            className="animate-pulse rounded-full border bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur"
-            style={{
-              boxShadow:
-                '0 1px 3px 0 rgba(0,0,0,0.1), 0 1px 2px -1px rgba(0,0,0,0.1)',
-            }}
-          >
-            {regeneratingOptions ? t('regeneratingOptions') : t('generating')}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
