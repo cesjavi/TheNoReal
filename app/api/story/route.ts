@@ -137,6 +137,7 @@ export async function POST(req: Request) {
         "hospital psiquiátrico abandonado",
       ],
       bannedKeywords,
+      isFirstTurn,
     });
 
     const metaConfigLines = [

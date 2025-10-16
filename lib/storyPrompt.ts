@@ -34,6 +34,9 @@ Antes de escribir, planifica mentalmente 4–6 beats: situación inicial, objeti
 - No reutilices más de 6 palabras consecutivas del input del usuario (n-gram 7).
 - Varía combinaciones de {escenario, época, protagonista, dispositivo de misterio, tono} si [META.huella] indica similitudes recientes.
 - No repitas la misma oración inicial ni el mismo tipo de giro en capítulos consecutivos.
+- Si [META.rotate_protagonists] existe y introduces personajes nuevos, elige nombres distintos a los listados.
+- Si [META.rotate_escenarios] existe y el capítulo abre una nueva trama, usa ubicaciones distintas a las listadas.
+- Si [META.rotate_dispositivos] existe, introduce elementos narrativos diferentes a los listados.
 
 === INTERPRETACIÓN DE [META] (NO IMPRIMIR) ===
 - Usa SOLO como guía: language, genres, ending_mode, chapter_index, max_chapters, options_count, target_words (±10%), cliches_prohibidos, estilo, ajustes, huella.
