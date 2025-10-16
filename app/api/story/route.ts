@@ -1,6 +1,7 @@
 // app/api/story/route.ts
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
+import type { ChatCompletion } from "groq-sdk/resources/chat/completions";
 import { SYSTEM_PROMPT_V3, buildUserMessage } from "@/lib/storyPrompt";
 import { buildMeta } from "@/lib/meta";
 import {
@@ -47,7 +48,7 @@ type StoryRequest = {
   chaptersCount?: number;
   finalize?: boolean;
 };
-type ChatCompletionResult = Awaited<ReturnType<Groq["chat"]["completions"]["create"]>>;
+type ChatCompletionResult = ChatCompletion;
 
 // ---- helpers
 function isObject(x: unknown): x is Record<string, unknown> {
@@ -187,6 +188,7 @@ Evita repetir tramas o giros usados antes. Sé más específico, original y liga
               messages,
               temperature,
               top_p,
+              stream: false,
             })
           );
 
