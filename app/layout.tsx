@@ -4,8 +4,6 @@ import "./globals.css";
 import LanguageProvider from "./providers/LanguageProvider";
 import AuthProvider from "./providers/AuthProvider";
 import LanguageSelector from "./components/LanguageSelector";
-import LoginButton from "./components/LoginButton";
-import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,9 +47,8 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
           <LanguageProvider>
-            <div className="p-4 flex justify-end gap-2">
+            <div className="p-4 flex justify-end">
               <LanguageSelector />
-              <LoginButton />
             </div>
             {children}
           </LanguageProvider>
