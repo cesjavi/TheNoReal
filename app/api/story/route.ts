@@ -12,8 +12,6 @@ import {
 } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { randomUUID } from "crypto";
 
 
@@ -79,11 +77,17 @@ const MODEL_PRIORITY = [process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct",
 
 export async function POST(req: Request) {
   const requestId = randomUUID();
-  const session = await getServerSession(authOptions);
   const allowAnonymous = process.env.ALLOW_ANON_STORY_API !== "0";
 
-  if (!allowAnonymous && !session) {
-    return NextResponse.json({ error: "Unauthorized", requestId }, { status: 401 });
+  if (!allowAnonymous) {
+    return NextResponse.json(
+      {
+        error: "Unauthorized",
+        detail: "Set ALLOW_ANON_STORY_API to enable unauthenticated access.",
+        requestId,
+      },
+      { status: 401 }
+    );
   }
 
   if (!process.env.GROQ_API_KEY) {

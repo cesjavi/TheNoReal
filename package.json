@@ -8,9 +8,7 @@
     "prisma:gen": "prisma generate --schema=prisma/schema.prisma",
     "start": "next start",
     "lint": "next lint",
-    "db:push:unix": "sh -lc 'DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" npx prisma db push'",
-    "db:push:win": "powershell -NoProfile -Command \"$env:DATABASE_URL=$env:DATABASE_URL_UNPOOLED; npx prisma db push\"",
-    "db:push": "npm run -s db:push:unix || npm run -s db:push:win",
+    "db:push": "node ./scripts/db-push.js",
     "build": "npm run db:push && next build"
   },
   "dependencies": {
@@ -24,7 +22,6 @@
     "firebase-admin": "^13.5.0",
     "groq-sdk": "^0.30.0",
     "next": "15.4.6",
-    "next-auth": "^4.24.11",
     "next-intl": "^3.26.5",
     "next-pwa": "^5.6.0",
     "react": "19.1.0",
