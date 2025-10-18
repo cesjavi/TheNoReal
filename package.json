@@ -11,7 +11,8 @@
     "db:push:unix": "sh -lc 'DATABASE_URL=\"$DATABASE_URL_UNPOOLED\" npx prisma db push'",
     "db:push:win": "powershell -NoProfile -Command \"$env:DATABASE_URL=$env:DATABASE_URL_UNPOOLED; npx prisma db push\"",
     "db:push": "npm run -s db:push:unix || npm run -s db:push:win",
-    "build": "npm run db:push && next build"
+    "build": "npm run db:push && next build",
+    "export": "next export"
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
