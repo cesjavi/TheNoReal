@@ -1,4 +1,5 @@
 // app/api/story/route.ts
+export const revalidate = 0;  // Required for static; generates once at build
 import { NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import type { ChatCompletion } from "groq-sdk/resources/chat/completions";
@@ -12,13 +13,12 @@ import {
 } from "@/lib/fingerprint";
 import { parseStoryResponse } from "@/lib/parseStoryResponse";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
+//import { getServerSession } from "next-auth";
+//import { authOptions } from "@/lib/auth";
 import { randomUUID } from "crypto";
 
 
 export const runtime = "nodejs";
-export const dynamic = "force-dynamic";
 
 // ---- Groq client
 let groqClient: Groq | null = null;
@@ -79,12 +79,12 @@ const MODEL_PRIORITY = [process.env.GROQ_MODEL || "moonshotai/kimi-k2-instruct",
 
 export async function POST(req: Request) {
   const requestId = randomUUID();
-  const session = await getServerSession(authOptions);
+  //const session = await getServerSession(authOptions);
   const allowAnonymous = process.env.ALLOW_ANON_STORY_API !== "0";
 
-  if (!allowAnonymous && !session) {
+  /*if (!allowAnonymous && !session) {
     return NextResponse.json({ error: "Unauthorized", requestId }, { status: 401 });
-  }
+  }*/
 
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json({ error: "GROQ_API_KEY no configurada", requestId }, { status: 400 });

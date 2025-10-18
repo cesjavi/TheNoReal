@@ -7,9 +7,9 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['@prisma/client', 'prisma'],
   eslint: { ignoreDuringBuilds: true },
   reactStrictMode: true,
-
-  // Static Export (Next 15+)
   output: 'export',
+  // Static Export (Next 15+)
+  
   images: { unoptimized: true }, // requerido para export estático
 };
 

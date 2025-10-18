@@ -1,8 +1,8 @@
 // lib/auth.ts
-import type { NextAuthOptions } from "next-auth";
-import GitHubProvider from "next-auth/providers/github"; // o los providers que uses
+//import type { NextAuthOptions } from "next-auth";
+//import GitHubProvider from "next-auth/providers/github"; // o los providers que uses
 
-export const authOptions: NextAuthOptions = {
+/*export const authOptions: NextAuthOptions = {
   providers: [
     GitHubProvider({
       clientId: process.env.GITHUB_ID!,
@@ -13,3 +13,4 @@ export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
   // callbacks, pages, session, etc. si los usas
 };
+*/
