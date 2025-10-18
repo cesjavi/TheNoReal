@@ -1,16 +1,10 @@
 import createChatCompletion from "@/lib/groqClient";
 import { validateOptions } from "@/lib/optionGuard";
 import { limitTemperature, limitTopP } from "@/lib/sampling";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 const MAX_OPTIONS = 5;
 
 export async function POST(req: Request) {
-  const session = await getServerSession(authOptions);
-  /*if (!session) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }*/
   try {
     const { prompt, numOptions, temperature, top_p } = await req.json();
     const safeTemperature = limitTemperature(temperature);
