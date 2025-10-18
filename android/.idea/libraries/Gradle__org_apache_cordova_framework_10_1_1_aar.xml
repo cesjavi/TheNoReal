@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="Gradle: org.apache.cordova:framework:10.1.1@aar" external-system-id="GRADLE">
+    <CLASSES>
+      <root url="file://$USER_HOME$/.gradle/caches/8.13/transforms/ef5bbf2450098e5008e049eb64284794/transformed/framework-10.1.1/AndroidManifest.xml" />
+      <root url="jar://$USER_HOME$/.gradle/caches/8.13/transforms/ef5bbf2450098e5008e049eb64284794/transformed/framework-10.1.1/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="jar://$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.apache.cordova/framework/10.1.1/a5702f8549012eed0daa3a1edad30ef6f377324d/framework-10.1.1-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

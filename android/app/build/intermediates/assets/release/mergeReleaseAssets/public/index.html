@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>The Non Real</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.ico" />
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #11071f;
+        --card: rgba(255, 255, 255, 0.08);
+        --text: #f1e6ff;
+        --accent: #5dbb63;
+        font-family: "Geist", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: radial-gradient(circle at top, rgba(93, 187, 99, 0.15), transparent 55%),
+          radial-gradient(circle at bottom, rgba(94, 59, 145, 0.35), transparent 60%),
+          var(--bg);
+        color: var(--text);
+      }
+      main {
+        width: min(520px, 92vw);
+        padding: 2.5rem 2.25rem;
+        border-radius: 28px;
+        backdrop-filter: blur(14px);
+        background: var(--card);
+        box-shadow: 0 25px 65px rgba(17, 7, 31, 0.55);
+        display: grid;
+        gap: 1.5rem;
+        text-align: center;
+      }
+      h1 {
+        margin: 0;
+        font-size: clamp(2rem, 5vw, 2.75rem);
+        line-height: 1.1;
+      }
+      p {
+        margin: 0;
+        font-size: 1.05rem;
+        line-height: 1.6;
+      }
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+      a.button {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.9rem 1.35rem;
+        border-radius: 999px;
+        background: linear-gradient(120deg, rgba(93, 187, 99, 0.85), rgba(94, 59, 145, 0.85));
+        color: inherit;
+        text-decoration: none;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        transition: transform 150ms ease, box-shadow 150ms ease;
+      }
+      a.button:focus-visible,
+      a.button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 28px rgba(93, 187, 99, 0.35);
+      }
+      code {
+        font-family: "Geist Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        background: rgba(255, 255, 255, 0.08);
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.75rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Activa la aplicación web</h1>
+      <p>
+        Para ejecutar <strong>The Non Real</strong> dentro de Capacitor necesitas compilar primero la app de Next.js y copiar los
+        assets generados a la carpeta <code>public/</code> con <code>npx cap sync android</code>.
+      </p>
+      <div class="actions">
+        <p>Desde la raíz del proyecto ejecuta:</p>
+        <code>npm run build && npx cap sync android</code>
+        <p>
+          Si prefieres apuntar a una URL desplegada, configura <code>server.url</code> en <code>capacitor.config.ts</code> y vuelve a
+          sincronizar.
+        </p>
+      </div>
+      <p style="font-size:0.9rem;opacity:0.8">
+        Este marcador de posición se mostrará hasta que la compilación de Next.js genere el contenido final.
+      </p>
+    </main>
+  </body>
+</html>
