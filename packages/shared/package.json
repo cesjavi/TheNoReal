@@ -4,8 +4,13 @@
   "private": true,
   "type": "module",
   "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
     "./*": "./src/*"
   },
+  "types": "./src/index.ts",
   "typesVersions": {
     "*": {
       "*": ["src/*"]
