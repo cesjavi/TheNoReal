@@ -5,7 +5,20 @@ import type {
 } from 'groq-sdk/resources/chat/completions';
 import type { Stream } from 'groq-sdk/lib/streaming';
 
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+type ChatCompletionsClient = Groq['chat']['completions'];
+type CompletionParams = Parameters<ChatCompletionsClient['create']>[0];
+
+let cachedClient: Groq | null = null;
+
+function getClient(): Groq {
+  if (cachedClient) return cachedClient;
+  const apiKey = process.env.GROQ_API_KEY;
+  if (!apiKey) {
+    throw new Error('GROQ_API_KEY environment variable is not set');
+  }
+  cachedClient = new Groq({ apiKey });
+  return cachedClient;
+}
 
 export function filterSensitive(data: unknown): unknown {
   const secret = process.env.GROQ_API_KEY;
@@ -29,19 +42,20 @@ export function filterSensitive(data: unknown): unknown {
 }
 
 export async function createChatCompletion(
-  params: { stream: true } & Parameters<typeof groq.chat.completions.create>[0]
+  params: { stream: true } & CompletionParams
 ): Promise<Stream<ChatCompletionChunk>>;
 export async function createChatCompletion(
-  params: { stream?: false } & Parameters<typeof groq.chat.completions.create>[0]
+  params: { stream?: false } & CompletionParams
 ): Promise<ChatCompletion>;
 export async function createChatCompletion(
-  params: Parameters<typeof groq.chat.completions.create>[0]
+  params: CompletionParams
 ) {
   console.log('groq.chat.completions.create called', {
     model: params.model,
     messages: filterSensitive(params.messages),
   });
-  const result = await groq.chat.completions.create(params);
+  const client = getClient();
+  const result = await client.chat.completions.create(params);
   console.log('groq.chat.completions.create result', filterSensitive(result));
   return result;
 }
