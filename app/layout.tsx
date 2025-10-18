@@ -44,7 +44,16 @@ export default function RootLayout({
        <meta name="monetag" content="4643aa80204b58950281fa93f7e174b9"></meta>
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+<<<<<<< HEAD
         
+=======
+        <LanguageProvider>
+          <div className="p-4 flex justify-end">
+            <LanguageSelector />
+          </div>
+          {children}
+        </LanguageProvider>
+>>>>>>> f573bd87d09192a21be05b10bcfbd25e06bcabec
       </body>
     </html>
   );

@@ -1,4 +1,5 @@
 // app/api/sd/generate/route.ts
+<<<<<<< HEAD
 //import { getServerSession } from "next-auth";
 //import { authOptions } from "@/lib/auth";
 
@@ -7,6 +8,9 @@ export async function POST(req: Request) {
   /*if (!session) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }*/
+=======
+export async function POST(req: Request) {
+>>>>>>> f573bd87d09192a21be05b10bcfbd25e06bcabec
   const body = await req.json();
 
   // Tu backend de SDXL (ponelo en .env si querés)

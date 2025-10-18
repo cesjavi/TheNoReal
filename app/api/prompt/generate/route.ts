@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import createChatCompletion from "@/lib/groqClient";
+<<<<<<< HEAD
 //import { getServerSession } from "next-auth";
 //import { authOptions } from "@/lib/auth";
 
@@ -8,6 +9,10 @@ export async function POST(req: Request) {
   /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }*/
+=======
+
+export async function POST(req: Request) {
+>>>>>>> f573bd87d09192a21be05b10bcfbd25e06bcabec
   if (!process.env.GROQ_API_KEY) {
     return NextResponse.json(
       { error: "GROQ_API_KEY is not configured" },

@@ -4,6 +4,7 @@ export const revalidate = 0;
 import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+<<<<<<< HEAD
 //import { getServerSession } from "next-auth";
 //import { authOptions } from "@/lib/auth";
 
@@ -12,6 +13,10 @@ export async function GET() {
   /*if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }*/
+=======
+
+export async function GET() {
+>>>>>>> f573bd87d09192a21be05b10bcfbd25e06bcabec
   try {
     const publicDir = path.join(process.cwd(), "public");
     const topDir = path.join(publicDir, "top");
