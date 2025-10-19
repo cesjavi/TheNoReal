@@ -11,6 +11,9 @@
     "./*": "./src/*"
   },
   "types": "./src/index.ts",
+  "dependencies": {
+    "groq-sdk": "^0.11.0"  
+    },    
   "typesVersions": {
     "*": {
       "*": ["src/*"]
