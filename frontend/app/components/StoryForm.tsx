@@ -12,7 +12,7 @@ import StorySettings, {
   Ajustes,
 } from './StorySettings';
 import { parseStoryResponse } from '@/lib/parseStoryResponse';
-import { resolveLanguagePreference } from '@/lib/language';
+import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
 
 const MODALITY_HELP = {

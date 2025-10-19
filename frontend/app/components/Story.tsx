@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslations } from 'next-intl';
-import type { Estilo, Ajustes } from '@/types/story';
+import type { Estilo, Ajustes } from '@thenoreal/shared'
 import { useLanguage } from '../providers/LanguageProvider';
-import { resolveLanguagePreference } from '@/lib/language';
+import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
 
 interface StoryProps {
