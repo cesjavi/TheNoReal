@@ -1,7 +1,5 @@
 // lib/prisma.ts
-import PrismaPkg from '@prisma/client';
-
-const { PrismaClient } = PrismaPkg;
+import { PrismaClient } from '@prisma/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -10,7 +8,7 @@ const globalForPrisma = globalThis as unknown as {
 export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient({
-    // log: ['query', 'info', 'warn', 'error'], // opcional
+    // log: ['query', 'info', 'warn', 'error'], // opcional, descomentá para debug
   });
 
 if (process.env.NODE_ENV !== 'production') {
