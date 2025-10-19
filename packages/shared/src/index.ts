@@ -8,5 +8,4 @@ export * from './lib/parseStoryResponse';
 export * from './lib/sampling';
 export * from './lib/story-config';
 export * from './lib/storyPrompt';
-export * from './lib/prisma';
 export * from './types/story';

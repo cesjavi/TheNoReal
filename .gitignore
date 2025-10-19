@@ -16,7 +16,8 @@
 # next.js
 /.next/
 /out/
-
+frontend/.next/
+/.next/cache/
 # production
 /build
 
@@ -51,3 +52,5 @@ prisma/dev.db
 *.pyc
 /venv
 /frontend/.next
+/frontend/.next
+frontend/.next/trace
