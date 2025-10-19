@@ -68,7 +68,12 @@ Copia el ejemplo existente y completa tus valores:
 cp frontend/.env.example frontend/.env.local
 ```
 
-Añade `NEXT_PUBLIC_API_BASE_URL` apuntando a la URL del backend (por ejemplo `http://localhost:4000/api`). Esta variable se usa para construir todas las peticiones `fetch` desde la UI.
+Asegúrate de que `NEXT_PUBLIC_API_BASE_URL` apunte al backend que quieres consumir:
+
+* Desarrollo local: `http://localhost:4000/api` (valor por defecto en el ejemplo).
+* Backend desplegado en Vercel: `https://the-no-real-backend.vercel.app/api`.
+
+La variable se usa para construir todas las peticiones `fetch` desde la UI, así que cada vez que cambies de entorno actualiza su valor.
 
 ## Scripts principales
 
