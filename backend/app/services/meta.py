@@ -41,7 +41,9 @@ def _collect_frequent_values(
 
 
 def _quote_list(values: Sequence[str]) -> str:
-    return ", ".join(f'"{(value or "").replace("\"", r"\\\"")}"' for value in values)
+    #return ", ".join(f'"{(value or "").replace("\"", r"\\\"")}"' for value in values)
+    return ", ".join('"' + (value or "").replace('"', '\\"') + '"' for value in values)
+
 
 
 def build_meta(args: BuildMetaArgs) -> str:

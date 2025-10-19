@@ -50,3 +50,4 @@ prisma/migrations/20250817065941_init_story/migration.sql
 prisma/dev.db
 *.pyc
 /venv
+/frontend/.next
