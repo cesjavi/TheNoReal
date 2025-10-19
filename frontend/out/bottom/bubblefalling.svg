@@ -1,0 +1,36 @@
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" style="background:transparent">
+  <!-- Burbuja 1 -->
+  <circle cx="120" cy="-20" r="10" fill="#3b82f6" opacity="0.4">
+    <animate attributeName="cy" values="-20;220" dur="9s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="10;14;10" dur="6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.8;0.4" dur="6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Burbuja 2 -->
+  <circle cx="280" cy="-20" r="8" fill="#06b6d4" opacity="0.3">
+    <animate attributeName="cy" values="-20;220" dur="11s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="8;12;8" dur="5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.7;0.3" dur="5s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Burbuja 3 -->
+  <circle cx="450" cy="-20" r="12" fill="#6366f1" opacity="0.35">
+    <animate attributeName="cy" values="-20;220" dur="13s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="12;18;12" dur="7s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.35;0.75;0.35" dur="7s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Burbuja 4 -->
+  <circle cx="620" cy="-20" r="9" fill="#9333ea" opacity="0.4">
+    <animate attributeName="cy" values="-20;220" dur="10s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="9;13;9" dur="6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.4;0.8;0.4" dur="6s" repeatCount="indefinite"/>
+  </circle>
+
+  <!-- Burbuja 5 -->
+  <circle cx="760" cy="-20" r="7" fill="#ec4899" opacity="0.3">
+    <animate attributeName="cy" values="-20;220" dur="12s" repeatCount="indefinite"/>
+    <animate attributeName="r" values="7;10;7" dur="4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite"/>
+  </circle>
+</svg>

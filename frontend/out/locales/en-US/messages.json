@@ -1,0 +1,35 @@
+{
+  "StoryForm": {
+    "randomize": "Randomize",
+    "improvePrompt": "Improve Prompt",
+    "generatePrompt": "Generate Prompt",
+    "createStory": "Create story",
+    "sending": "Sending...",
+    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens."
+  },
+  "StorySettings": {
+    "save": "Save",
+    "cancel": "Cancel"
+  },
+  "Story": {
+    "immersiveExperience": "Immersive experience",
+    "progress": "Progress",
+    "chooseContinuation": "Choose how it continues:",
+    "suggestion": "Suggestion #{index}",
+    "finalized": "The story has finished. You can download it or return to the start.",
+    "back": "Go back",
+    "download": "Download",
+    "finalize": "Finish",
+    "reading": {
+      "stop": "Stop reading",
+      "read": "Read aloud"
+    },
+    "generating": "Generating content…",
+    "regeneratingOptions": "Regenerating options…"
+  },
+  "LanguageSelector": {
+    "selectLanguage": "Select language",
+    "english": "English",
+    "spanish": "Spanish"
+  }
+}
