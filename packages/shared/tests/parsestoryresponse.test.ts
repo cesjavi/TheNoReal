@@ -1,4 +1,4 @@
-import { parseStoryResponse, parseStoryResponseStrict } from '../lib/parseStoryResponse';
+import { parseStoryResponse, parseStoryResponseStrict } from '@thenoreal/shared'
 
 describe('parseStoryResponseStrict compatibility', () => {
   const N = 2;

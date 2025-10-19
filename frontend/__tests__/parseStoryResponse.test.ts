@@ -1,7 +1,7 @@
 import {
   parseStoryResponse,
   parseStoryResponseStrict,
-} from '@thenoreal/shared/lib/parseStoryResponse';
+} from '@thenoreal/shared'
 
 describe('parseStoryResponse', () => {
   it('separates historia y opciones con ---', () => {

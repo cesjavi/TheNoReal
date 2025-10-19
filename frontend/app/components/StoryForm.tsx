@@ -11,7 +11,7 @@ import StorySettings, {
   AJUSTES_SECTIONS,
   Ajustes,
 } from './StorySettings';
-import { parseStoryResponse } from '@/lib/parseStoryResponse';
+import { parseStoryResponse } from '@thenoreal/shared'
 import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
 
