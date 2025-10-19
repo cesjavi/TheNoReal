@@ -1,4 +1,3 @@
-export * from './lib/apiLocale';
 export * from './lib/fingerprint';
 export * from './lib/imageGenerator';
 export * from './lib/language';
