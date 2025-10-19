@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100%" height="400">
+  <defs>
+    <!-- Camino de vuelo -->
+    <path id="flyPath" d="M 50 350 Q 200 50 400 300 T 800 100" fill="none" stroke="none"/>
+  </defs>
+
+  <!-- Pluma fuente -->
+  <g>
+    <g id="fountainPen" transform="scale(1)">
+      <!-- Cuerpo de la pluma -->
+      <rect x="-8" y="-60" width="16" height="60" rx="4" fill="#2E2A78" stroke="#1F1B4D" stroke-width="2"/>
+      <!-- Anillo decorativo -->
+      <rect x="-8" y="-20" width="16" height="6" fill="#F4B400"/>
+      <!-- Punta metálica -->
+      <path d="M-8,0 L0,20 L8,0 Z" fill="#F7CF66" stroke="#1F1B4D" stroke-width="2"/>
+      <!-- Hendidura de la punta -->
+      <line x1="0" y1="0" x2="0" y2="12" stroke="#1F1B4D" stroke-width="1.5"/>
+      <!-- Orificio -->
+      <circle cx="0" cy="14" r="2" fill="#1F1B4D"/>
+    </g>
+
+    <!-- Animación de vuelo -->
+    <animateMotion dur="20s" repeatCount="indefinite" rotate="auto">
+      <mpath href="#flyPath"/>
+    </animateMotion>
+  </g>
+</svg>

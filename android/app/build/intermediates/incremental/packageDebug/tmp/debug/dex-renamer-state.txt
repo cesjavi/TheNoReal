@@ -1,0 +1,19 @@
+#Sat Oct 18 16:44:25 ART 2025
+base.0=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeExtDexDebug\\classes.dex
+base.1=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\2\\classes.dex
+base.2=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\5\\classes.dex
+base.3=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeLibDexDebug\\8\\classes.dex
+base.4=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\0\\classes.dex
+base.5=D\:\\sistemas\\TheNoReal\\android\\app\\build\\intermediates\\dex\\debug\\mergeProjectDexDebug\\10\\classes.dex
+path.0=classes.dex
+path.1=2/classes.dex
+path.2=5/classes.dex
+path.3=8/classes.dex
+path.4=0/classes.dex
+path.5=10/classes.dex
+renamed.0=classes.dex
+renamed.1=classes2.dex
+renamed.2=classes3.dex
+renamed.3=classes4.dex
+renamed.4=classes5.dex
+renamed.5=classes6.dex

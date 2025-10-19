@@ -1,0 +1,28 @@
+<svg viewBox="0 0 800 200" xmlns="http://www.w3.org/2000/svg" style="background:transparent">
+  <defs>
+    <linearGradient id="neonGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3b82f6">
+        <animate attributeName="stop-color" values="#3b82f6;#9333ea;#ec4899;#3b82f6" dur="12s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="#06b6d4">
+        <animate attributeName="stop-color" values="#06b6d4;#ec4899;#6366f1;#06b6d4" dur="12s" repeatCount="indefinite"/>
+      </stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Onda principal -->
+  <path fill="url(#neonGrad)" opacity="0.5">
+    <animate attributeName="d" dur="10s" repeatCount="indefinite"
+      values="M0,160 Q200,120 400,160 T800,160 V200 H0 Z;
+              M0,150 Q200,180 400,150 T800,150 V200 H0 Z;
+              M0,160 Q200,120 400,160 T800,160 V200 H0 Z"/>
+  </path>
+
+  <!-- Onda secundaria -->
+  <path fill="url(#neonGrad)" opacity="0.3">
+    <animate attributeName="d" dur="14s" repeatCount="indefinite"
+      values="M0,170 Q250,130 500,170 T800,170 V200 H0 Z;
+              M0,160 Q250,190 500,160 T800,160 V200 H0 Z;
+              M0,170 Q250,130 500,170 T800,170 V200 H0 Z"/>
+  </path>
+</svg>
