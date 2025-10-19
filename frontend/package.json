@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,7 +13,7 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
-    "@thenoreal/shared": "workspace:*",
+    "@thenoreal/shared": "file:../packages/shared",
     "@vercel/speed-insights": "^1.2.0",
     "expo": "^53.0.20",
     "firebase": "^12.2.1",
