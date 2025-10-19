@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" width="100%" height="200" preserveAspectRatio="none">
+  <!-- Definimos el camino de la ola -->
+  <defs>
+    <path id="wavePath" d="M0,160 Q360,220 720,160 T1440,160" fill="none"/>
+  </defs>
+
+  <!-- Ola animada -->
+  <path fill="#6A63D5" fill-opacity="0.3">
+    <animate attributeName="d" dur="120s" repeatCount="indefinite"
+      values="
+        M0,160 Q360,220 720,160 T1440,160 V320 H0 Z;
+        M0,180 Q360,120 720,180 T1440,160 V320 H0 Z;
+        M0,160 Q360,220 720,160 T1440,160 V320 H0 Z" />
+  </path>
+
+  <!-- Barco -->
+  <g>
+    <g id="boat">
+      <!-- Casco -->
+      <path d="M-40,40 L40,40 L25,65 L-25,65 Z" fill="#2E2A78" stroke="#1F1B4D" stroke-width="2"/>
+      <!-- Mástil -->
+      <rect x="-2" y="-20" width="4" height="60" fill="#1F1B4D"/>
+      <!-- Vela -->
+      <path d="M0,-20 L0,40 L35,40 Z" fill="#F4B400" stroke="#1F1B4D" stroke-width="2"/>      
+    </g>
+
+    <!-- Animación: seguir la ola -->
+    <animateMotion dur="60s" repeatCount="indefinite" rotate="auto">
+      <mpath href="#wavePath"/>
+    </animateMotion>
+  </g>
+</svg>

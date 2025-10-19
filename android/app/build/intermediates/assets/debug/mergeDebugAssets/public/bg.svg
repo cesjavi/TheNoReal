@@ -1,0 +1,36 @@
+<!-- bg-tnr-tile.svg — 160x160, seamless -->
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160">
+  <!-- Fondo claro -->
+  <rect width="160" height="160" fill="#F7F8FF"/>
+
+  <!-- Grid de puntos (seamless) -->
+  <g fill="#2E2A78" opacity="0.08">
+    <!-- Dots cada 20px -->
+    <circle cx="10" cy="10" r="2"/><circle cx="30" cy="10" r="2"/><circle cx="50" cy="10" r="2"/><circle cx="70" cy="10" r="2"/><circle cx="90" cy="10" r="2"/><circle cx="110" cy="10" r="2"/><circle cx="130" cy="10" r="2"/><circle cx="150" cy="10" r="2"/>
+    <circle cx="10" cy="30" r="2"/><circle cx="30" cy="30" r="2"/><circle cx="50" cy="30" r="2"/><circle cx="70" cy="30" r="2"/><circle cx="90" cy="30" r="2"/><circle cx="110" cy="30" r="2"/><circle cx="130" cy="30" r="2"/><circle cx="150" cy="30" r="2"/>
+    <circle cx="10" cy="50" r="2"/><circle cx="30" cy="50" r="2"/><circle cx="50" cy="50" r="2"/><circle cx="70" cy="50" r="2"/><circle cx="90" cy="50" r="2"/><circle cx="110" cy="50" r="2"/><circle cx="130" cy="50" r="2"/><circle cx="150" cy="50" r="2"/>
+    <circle cx="10" cy="70" r="2"/><circle cx="30" cy="70" r="2"/><circle cx="50" cy="70" r="2"/><circle cx="70" cy="70" r="2"/><circle cx="90" cy="70" r="2"/><circle cx="110" cy="70" r="2"/><circle cx="130" cy="70" r="2"/><circle cx="150" cy="70" r="2"/>
+    <circle cx="10" cy="90" r="2"/><circle cx="30" cy="90" r="2"/><circle cx="50" cy="90" r="2"/><circle cx="70" cy="90" r="2"/><circle cx="90" cy="90" r="2"/><circle cx="110" cy="90" r="2"/><circle cx="130" cy="90" r="2"/><circle cx="150" cy="90" r="2"/>
+    <circle cx="10" cy="110" r="2"/><circle cx="30" cy="110" r="2"/><circle cx="50" cy="110" r="2"/><circle cx="70" cy="110" r="2"/><circle cx="90" cy="110" r="2"/><circle cx="110" cy="110" r="2"/><circle cx="130" cy="110" r="2"/><circle cx="150" cy="110" r="2"/>
+    <circle cx="10" cy="130" r="2"/><circle cx="30" cy="130" r="2"/><circle cx="50" cy="130" r="2"/><circle cx="70" cy="130" r="2"/><circle cx="90" cy="130" r="2"/><circle cx="110" cy="130" r="2"/><circle cx="130" cy="130" r="2"/><circle cx="150" cy="130" r="2"/>
+    <circle cx="10" cy="150" r="2"/><circle cx="30" cy="150" r="2"/><circle cx="50" cy="150" r="2"/><circle cx="70" cy="150" r="2"/><circle cx="90" cy="150" r="2"/><circle cx="110" cy="150" r="2"/><circle cx="130" cy="150" r="2"/><circle cx="150" cy="150" r="2"/>
+  </g>
+
+  <!-- Ondas suaves (violeta) -->
+  <g fill="none" stroke="#6A63D5" stroke-width="2" opacity="0.2">
+    <path d="M-10 40 Q40 20 90 40 T190 40"/>
+    <path d="M-10 120 Q40 100 90 120 T190 120"/>
+  </g>
+
+  <!-- Estrellitas y puntos dorados (distribución controlada, lejos del borde para evitar seams visibles) -->
+  <g fill="#F4B400" opacity="0.7">
+    <circle cx="36" cy="38" r="2.5"/>
+    <circle cx="120" cy="52" r="2.5"/>
+    <circle cx="88" cy="126" r="2.5"/>
+    <circle cx="52" cy="104" r="2.5"/>
+  </g>
+  <g fill="#F4B400" opacity="0.9">
+    <path d="M112 28 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z"/>
+    <path d="M62 86 l1.6 4 4 1.6 -4 1.6 -1.6 4 -1.6 -4 -4 -1.6 4 -1.6z"/>
+  </g>
+</svg>

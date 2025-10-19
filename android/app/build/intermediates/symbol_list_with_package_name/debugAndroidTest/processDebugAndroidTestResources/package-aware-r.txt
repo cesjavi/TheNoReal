@@ -1,0 +1,3 @@
+ar.com.thenonreal.app.test
+style WhiteBackgroundDialogTheme
+style WhiteBackgroundTheme
