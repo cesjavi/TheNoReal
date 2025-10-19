@@ -24,15 +24,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/lib/*": [
-        "../packages/shared/src/lib/*"
-      ],
-      "@/types/*": [
-        "../packages/shared/src/types/*"
-      ],
-      "@/*": [
-        "./*"
-      ]
+      "@thenoreal/shared": ["../packages/shared/dist"],
+      "@thenoreal/shared/*": ["../packages/shared/dist/*"]
     }
   },
   "include": [
