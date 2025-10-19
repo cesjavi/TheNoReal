@@ -142,8 +142,9 @@ async def create_story(payload: StoryPayload):
 
         meta_block = "\n".join([line for line in [meta_base.strip()] + meta_config_lines if line])
 
+        finalize_suffix = "\nFinaliza ahora." if finalize else ""
         user_content = build_user_message(
-            text=f"{story_text}{'\nFinaliza ahora.' if finalize else ''}",
+            text=f"{story_text}{finalize_suffix}",
             chosen_option=chosen_option,
             options_count=options_count,
             target_words=target_words,
