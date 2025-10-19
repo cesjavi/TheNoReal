@@ -15,13 +15,20 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title="TheNoReal API")
 
+DEFAULT_CORS_ORIGINS = [
+    "https://localhost",
+    "http://localhost",
+    "http://localhost:3000",
+    "capacitor://localhost",
+]
+
 raw_origins = os.getenv("CORS_ALLOW_ORIGINS", "")
 origins: List[str] = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 if origins:
     logger.info("Using explicit CORS origins: %s", origins)
 else:
-    origins = ["*"]
-    logger.info("CORS_ALLOW_ORIGINS not set; allowing all origins")
+    origins = DEFAULT_CORS_ORIGINS
+    logger.info("CORS_ALLOW_ORIGINS not set; using default origins: %s", origins)
 
 app.add_middleware(
     CORSMiddleware,
