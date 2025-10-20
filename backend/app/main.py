@@ -13,24 +13,31 @@ from app.routes.story import router as story_router
 # keeping local paths usable without the prefix.
 app = FastAPI(title="TheNoReal Backend", root_path="/api")
 
-# Abrir CORS para validar preflight (sin credentials)
+# ⭐ MODIFICAR CORS - quitar credentials cuando usas wildcard
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,
+    allow_credentials=False,  # ⭐ Cambiar a False cuando usas "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
 @app.options("/{path:path}")
-async def catch_all_preflight(path: str) -> Response:  # pragma: no cover - simple header helper
+async def catch_all_preflight(path: str) -> Response:
     """Return an empty 204 so Vercel passes CORS preflight checks."""
-    return Response(status_code=204)
+    return Response(
+        status_code=204,
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "*",
+            "Access-Control-Allow-Headers": "*",
+        }
+    )
 
 # Routers
 app.include_router(prompt_router)
 app.include_router(story_router)
 app.include_router(backgrounds_router)
-app.include_router(options_router)  # catcher OPTIONS
-app.include_router(ping_router)     # ping de verificación rápida
+app.include_router(options_router)
+app.include_router(ping_router)

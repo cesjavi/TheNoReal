@@ -55,3 +55,9 @@ prisma/dev.db
 /frontend/.next
 frontend/.next/trace
 /frontend/out
+/frontend/out
+frontend/out/sw.js
+frontend/out/index.txt
+frontend/out/index.html
+frontend/out/_next/static/css/9d6b2a164da5d9b8.css
+frontend/out/404.html
