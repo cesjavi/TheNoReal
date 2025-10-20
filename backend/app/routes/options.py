@@ -15,7 +15,7 @@ from app.services.sampling import limit_temperature, limit_top_p
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/options", tags=["options"])
+router = APIRouter(prefix="/options", tags=["options"])
 MAX_OPTIONS = 5
 DEFAULT_MODEL = os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct")
 

@@ -15,7 +15,7 @@ from app.services.groq_client import run_chat_completion
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/prompt", tags=["prompt"])
+router = APIRouter(prefix="/prompt", tags=["prompt"])
 DEFAULT_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 

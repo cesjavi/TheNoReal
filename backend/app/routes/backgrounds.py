@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/backgrounds", tags=["backgrounds"])
+router = APIRouter(prefix="/backgrounds", tags=["backgrounds"])
 
 
 def _resolve_public_dir() -> Path:

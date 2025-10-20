@@ -26,7 +26,7 @@ from app.services.story_prompt import SYSTEM_PROMPT_V3, build_user_message
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/api/story", tags=["story"])
+router = APIRouter(prefix="/story", tags=["story"])
 REQUEST_TIMEOUT_MS = int(os.getenv("GROQ_REQUEST_TIMEOUT_MS", "30000"))
 MODEL_PRIORITY = [os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct"), "gpt-oss-20b"]
 
