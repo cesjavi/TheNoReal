@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 import os
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ from app.services.sampling import limit_temperature, limit_top_p
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/options", tags=["options"])
 MAX_OPTIONS = 5
 DEFAULT_MODEL = os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct")
 
@@ -26,12 +26,13 @@ class OptionsPayload(BaseModel):
     temperature: float | None = None
     top_p: float | None = None
 
-@router.api_route("/{rest_of_path:path}", methods=["OPTIONS"])  
-def handle_preflight(rest_of_path: str):
+@router.options("")
+def handle_preflight():
+    """Handle CORS preflight requests for the options endpoint."""
     # CORSMiddleware agregará los headers. 204 es estándar para preflight OK.
     return Response(status_code=204)
 
-@router.post("/")
+@router.post("")
 async def generate_options(payload: OptionsPayload):
     if not os.getenv("GROQ_API_KEY"):
         return JSONResponse(status_code=400, content={"error": "GROQ_API_KEY is not configured"})

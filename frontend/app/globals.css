@@ -33,6 +33,32 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+input,
+textarea,
+select {
+  color: #1f2937; /* slate-800 for contrast on light backgrounds */
+  background-color: #ffffff;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: rgba(17, 24, 39, 0.6);
+}
+
+@media (prefers-color-scheme: dark) {
+  input,
+  textarea,
+  select {
+    color: #111827; /* keep text dark for readability on white fields */
+    background-color: #f9fafb;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: rgba(17, 24, 39, 0.5);
+  }
+}
+
 @keyframes splash-pulse {
   0%, 100% {
     opacity: 1;

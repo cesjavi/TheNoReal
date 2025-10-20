@@ -26,7 +26,7 @@ from app.services.story_prompt import SYSTEM_PROMPT_V3, build_user_message
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/story", tags=["story"])
 REQUEST_TIMEOUT_MS = int(os.getenv("GROQ_REQUEST_TIMEOUT_MS", "30000"))
 MODEL_PRIORITY = [os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct"), "gpt-oss-20b"]
 
@@ -61,7 +61,7 @@ def _normalize_banned_keywords(values: list[str] | None) -> list[str]:
     return [str(value).strip() for value in values if str(value).strip()]
 
 
-@router.post("/")
+@router.post("")
 async def create_story(payload: StoryPayload):
     request_id = str(uuid4())
     if not _allow_anonymous():

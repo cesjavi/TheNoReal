@@ -11,7 +11,7 @@ from fastapi.concurrency import run_in_threadpool
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/backgrounds", tags=["backgrounds"])
 
 
 def _resolve_public_dir() -> Path:
@@ -32,7 +32,7 @@ def _list_svg_files(directory: Path, prefix: str) -> List[str]:
     return results
 
 
-@router.get("/")
+@router.get("")
 async def list_backgrounds() -> dict[str, List[str]]:
     """Return the available top/bottom background SVGs."""
     public_dir = _resolve_public_dir()
