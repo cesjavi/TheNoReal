@@ -16,9 +16,11 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="TheNoReal API")
 
 DEFAULT_CORS_ORIGINS = [
+    "http://the-no-real-backend.vercel.app",
+    "https://the-no-real-frontend.vercel.app",
     "https://localhost",
     "http://localhost",
-    "http://localhost:3000",
+    "http://localhost:3000",    
     "capacitor://localhost",
 ]
 
