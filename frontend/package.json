@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@capacitor/android": "^7.4.3",
-    "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
-    "@capacitor/http": "^0.0.2",
+    "@capacitor/filesystem": "^7.1.4",
+    "@capacitor/ios": "^7.4.3",
+    "@capacitor/preferences": "^7.0.2",
     "@thenoreal/shared": "file:../packages/shared",
     "@vercel/speed-insights": "^1.2.0",
     "expo": "^53.0.20",
@@ -26,6 +27,7 @@
     "workbox-window": "^7.3.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.4.3",
     "@swc/core": "^1.13.3",
     "@swc/jest": "^0.2.36",
     "@tailwindcss/postcss": "^4",
