@@ -26,6 +26,10 @@ class OptionsPayload(BaseModel):
     temperature: float | None = None
     top_p: float | None = None
 
+@router.api_route("/{rest_of_path:path}", methods=["OPTIONS"])
+def handle_preflight(rest_of_path: str):
+    # CORSMiddleware agregará los headers. 204 es estándar para preflight OK.
+    return Response(status_code=204)
 
 @router.post("/")
 async def generate_options(payload: OptionsPayload):
