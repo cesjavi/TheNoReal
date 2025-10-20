@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -29,6 +29,13 @@ class ImprovePayload(BaseModel):
 
 def _ensure_api_key() -> bool:
     return bool(os.getenv("GROQ_API_KEY"))
+
+
+@router.options("")
+@router.options("/{_path:path}")
+async def handle_preflight(_path: str | None = None) -> Response:
+    """Return an empty response for CORS preflight checks."""
+    return Response(status_code=204)
 
 
 @router.post("/generate")
