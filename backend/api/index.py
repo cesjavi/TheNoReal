@@ -52,7 +52,7 @@ async def prompt_generate(req: Request):
 
     # Simulación: arma un texto corto a partir de config
     prompt = "Semilla breve para la historia."
-    return JSONResponse({"prompt": prompt, "echo": body})
+    return JSONResponse({"prompt": prompt, "echo": body}) 
 
 @app.post("/api/story")
 async def story(req: Request):
