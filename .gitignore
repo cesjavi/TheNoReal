@@ -54,3 +54,4 @@ prisma/dev.db
 /frontend/.next
 /frontend/.next
 frontend/.next/trace
+/frontend/out
