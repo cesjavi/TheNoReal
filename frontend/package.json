@@ -13,6 +13,7 @@
     "@capacitor/android": "^7.4.3",
     "@capacitor/cli": "^7.4.3",
     "@capacitor/core": "^7.4.3",
+    "@capacitor/http": "^0.0.2",
     "@thenoreal/shared": "file:../packages/shared",
     "@vercel/speed-insights": "^1.2.0",
     "expo": "^53.0.20",

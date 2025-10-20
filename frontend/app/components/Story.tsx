@@ -6,6 +6,8 @@ import type { Estilo, Ajustes } from '@thenoreal/shared'
 import { useLanguage } from '../providers/LanguageProvider';
 import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
+import { CapacitorHttp } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 interface StoryProps {
   userPrompt: string;
@@ -33,6 +35,40 @@ interface HistoryEntry {
 }
 
 const OPTIONS_RETRY_TIMEOUT_MS = 15_000;
+
+// Helper function para manejar peticiones en web y nativo
+async function apiRequest(url: string, options: {
+  method: string;
+  headers: Record<string, string>;
+  body?: string;
+  signal?: AbortSignal;
+}) {
+  // Si estamos en plataforma nativa (Android/iOS), usar CapacitorHttp
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const response = await CapacitorHttp.request({
+        url,
+        method: options.method,
+        headers: options.headers,
+        data: options.body ? JSON.parse(options.body) : undefined,
+      });
+      
+      // Simular la interfaz de fetch Response
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        json: async () => response.data,
+      };
+    } catch (error) {
+      console.error('CapacitorHttp error:', error);
+      throw error;
+    }
+  } else {
+    // En web, usar fetch normal
+    const response = await fetch(url, options);
+    return response;
+  }
+}
 
 export default function Story({
   userPrompt,
@@ -94,7 +130,6 @@ export default function Story({
   );
 
   const progress = useMemo(() => {
-    // Progreso aproximado (si no hay chaptersCount, usa longitud actual)
     const denom = chaptersCount ? chaptersCount : Math.max(chapters.length, 1);
     return Math.min(100, Math.round((chapters.length / denom) * 100));
   }, [chapters.length, chaptersCount]);
@@ -148,7 +183,7 @@ export default function Story({
       const { creatividad, topP, ...restAjustes } = ajustes;
       const ajustesPayload = { ...restAjustes, temperature: creatividad, top_p: topP };
 
-      const response = await fetch(resolveApiUrl('story'), {
+      const response = await apiRequest(resolveApiUrl('story'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -179,12 +214,6 @@ export default function Story({
       } = data as { story?: string; options?: string[]; isFinal?: boolean };
 
       const imageUrl: string | null = null;
-      /*try {
-        const { url } = await generateImage(newStory, genres);
-        imageUrl = url;
-      } catch (err) {
-        console.error('No se pudo generar la imagen', err);
-      }*/
 
       setChapters((prev) => [...prev, { texto: newStory, imageUrl }]);
       setChoices((prev) => [...prev, option]);
@@ -207,7 +236,7 @@ export default function Story({
             ) {
               attempts++;
               const missing = optionsPerDecision - opts.length;
-              const optRes = await fetch(resolveApiUrl('options'), {
+              const optRes = await apiRequest(resolveApiUrl('options'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -304,7 +333,7 @@ export default function Story({
       const { creatividad, topP, ...restAjustes } = ajustes;
       const ajustesPayload = { ...restAjustes, temperature: creatividad, top_p: topP };
 
-      const response = await fetch(resolveApiUrl('story'), {
+      const response = await apiRequest(resolveApiUrl('story'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -331,12 +360,6 @@ export default function Story({
       const finalText = (data.story as string) || '';
 
       const imageUrl: string | null = null;
-      /*try {
-        const { url } = await generateImage(finalText, genres);
-        imageUrl = url;
-      } catch (err) {
-        console.error('No se pudo generar la imagen', err);
-      }*/
 
       setChapters((prev) => [...prev, { texto: finalText, imageUrl }]);
       setOptions([]);
@@ -477,7 +500,7 @@ export default function Story({
                 {idx > 0 && (
                   <p className="flex items-start gap-2 text-sm text-muted-foreground">
                     <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
-                    <span className="italic">“{choices[idx - 1]}”</span>
+                    <span className="italic">"{choices[idx - 1]}"</span>
                   </p>
                 )}
 
