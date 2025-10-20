@@ -6,7 +6,7 @@ import logging
 import os
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
@@ -15,7 +15,7 @@ from app.services.groq_client import run_chat_completion
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter()
+router = APIRouter(prefix="/api/prompt", tags=["prompt"])
 DEFAULT_MODEL = os.getenv("GROQ_MODEL", "openai/gpt-oss-120b")
 
 
@@ -29,6 +29,13 @@ class ImprovePayload(BaseModel):
 
 def _ensure_api_key() -> bool:
     return bool(os.getenv("GROQ_API_KEY"))
+
+
+@router.options("")
+@router.options("/{_path:path}")
+async def handle_preflight(_path: str | None = None) -> Response:
+    """Return an empty response for CORS preflight checks."""
+    return Response(status_code=204)
 
 
 @router.post("/generate")
