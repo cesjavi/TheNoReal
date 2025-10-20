@@ -14,6 +14,8 @@ import StorySettings, {
 import { parseStoryResponse } from '@thenoreal/shared'
 import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
+import { CapacitorHttp } from '@capacitor/core';
+import { Capacitor } from '@capacitor/core';
 
 const MODALITY_HELP = {
   capitulos: 'Divide la historia en capítulos.',
@@ -46,6 +48,41 @@ const GENRE_ICONS: Record<string, string> = {
 
 const TOKEN_LIMIT = 500;
 const DEFAULT_TARGET_WORDS = 220;
+
+// Helper function para manejar peticiones en web y nativo
+async function apiRequest(url: string, options?: {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: string;
+  signal?: AbortSignal;
+}) {
+  const method = options?.method || 'GET';
+  const headers = options?.headers || {};
+  
+  // Si estamos en plataforma nativa (Android/iOS), usar CapacitorHttp
+  if (Capacitor.isNativePlatform()) {
+    try {
+      const response = await CapacitorHttp.request({
+        url,
+        method,
+        headers,
+        data: options?.body ? JSON.parse(options.body) : undefined,
+      });
+      
+      return {
+        ok: response.status >= 200 && response.status < 300,
+        status: response.status,
+        json: async () => response.data,
+      };
+    } catch (error) {
+      console.error('CapacitorHttp error:', error);
+      throw error;
+    }
+  } else {
+    // En web, usar fetch normal
+    return await fetch(url, options);
+  }
+}
 
 /** Helpers */
 function countTokens(text: string) {
@@ -173,12 +210,11 @@ export default function StoryForm() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await fetch(resolveApiUrl('backgrounds'));
+        const res = await apiRequest(resolveApiUrl('backgrounds'));
         const data = (await res.json()) as unknown;
         setTopSvgs(Array.isArray((data as Record<string, unknown>)?.top) ? ((data as { top: string[] }).top) : []);
         setBottomSvgs(Array.isArray((data as Record<string, unknown>)?.bottom) ? ((data as { bottom: string[] }).bottom) : []);
       } catch (err) {
-        // eslint-disable-next-line no-console
         console.error('Error fetching backgrounds', err);
       }
     };
@@ -301,7 +337,7 @@ export default function StoryForm() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(resolveApiUrl('prompt/improve'), {
+      const res = await apiRequest(resolveApiUrl('prompt/improve'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
@@ -328,7 +364,7 @@ export default function StoryForm() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(resolveApiUrl('prompt/generate'), {
+      const res = await apiRequest(resolveApiUrl('prompt/generate'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ config }),
@@ -365,7 +401,6 @@ export default function StoryForm() {
         return;
       }
 
-      // Permitir que el usuario fije N opciones desde Configuración (ajustes.opcionesPorCapitulo)
       const opcionesCfgRaw = toArray<string>(config.ajustes.opcionesPorCapitulo)[0];
       const opcionesCfg = opcionesCfgRaw ? Number(opcionesCfgRaw) : NaN;
       const optionsPerDecision = clamp(opcionesCfg || (Number(numOptions) || 2), 2, 6);
@@ -398,7 +433,6 @@ export default function StoryForm() {
         targetWords,
       } satisfies Record<string, unknown>;
 
-      // Si el usuario eligió un idioma en ajustes, priorizarlo (ej: "es-AR")
       const lang = resolveLanguagePreference({ forced: config.ajustes.idioma, locale });
 
       const payload = {
@@ -411,13 +445,12 @@ export default function StoryForm() {
         language: lang,
         endingMode: final,
         chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
-        finalize: false, // dejar explícito para la API
+        finalize: false,
       } as const;
 
-      // eslint-disable-next-line no-console
       console.log('/api/story payload', payload);
 
-      const response = await fetch(resolveApiUrl('story'), {
+      const response = await apiRequest(resolveApiUrl('story'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -437,7 +470,6 @@ export default function StoryForm() {
         throw new Error(errMsg);
       }
 
-      // ✅ Compatibilidad: nueva API ({story, options}) o vieja API ({text})
       let firstChapter = '';
       let firstOptions: string[] = [];
 
@@ -477,7 +509,6 @@ export default function StoryForm() {
   return (
     <main className="relative min-h-screen w-full overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
       {topSvg && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={topSvg}
           style={{ animationDelay: topDelay }}
@@ -488,7 +519,6 @@ export default function StoryForm() {
       )}
 
       {bottomSvg && (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={bottomSvg}
           style={{ animationDelay: bottomDelay }}
