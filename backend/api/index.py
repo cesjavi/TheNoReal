@@ -1,7 +1,19 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(
+    openapi_url="/api/openapi.json",  # <- mueve OpenAPI bajo /api
+    docs_url="/api/docs",             # <- mueve Swagger bajo /api
+    redoc_url=None
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/api/health")
 def health():
@@ -12,7 +24,7 @@ async def prompt_generate(req: Request):
     body = await req.json()
     return JSONResponse({"prompt": "Texto generado según config.", "echo": body})
 
-@app.post("/api/prompt/improve")   # <--- ESTA es la que falta según el 404
+@app.post("/api/prompt/improve")   # <- esta ruta faltaba
 async def prompt_improve(req: Request):
     body = await req.json()
     return JSONResponse({"improved": f"Mejora de: {body.get('prompt','')}", "echo": body})
