@@ -1,4 +1,3 @@
-# api/index.py
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -11,10 +10,9 @@ def health():
 @app.post("/api/prompt/generate")
 async def prompt_generate(req: Request):
     body = await req.json()
-    # siempre 200 para testear el roundtrip
     return JSONResponse({"prompt": "Texto generado según config.", "echo": body})
 
-@app.post("/api/prompt/improve")
+@app.post("/api/prompt/improve")   # <--- ESTA es la que falta según el 404
 async def prompt_improve(req: Request):
     body = await req.json()
     return JSONResponse({"improved": f"Mejora de: {body.get('prompt','')}", "echo": body})
@@ -22,8 +20,10 @@ async def prompt_improve(req: Request):
 @app.post("/api/story")
 async def story(req: Request):
     body = await req.json()
-    base = str(body.get("story") or "").strip()
+    base = (body.get("story") or "").strip()
     if not base:
-        # devolvemos 200 igual para no romper el cliente
-        return JSONResponse({"warning": "story vacío, usando fallback", "chapter": {"text": "Capítulo inicial (fallback)", "options": ["Opción A", "Opción B"]}})
-    return JSONResponse({"chapter": {"text": f"Capítulo inicial para: {base}", "options": ["Opción A", "Opción B"]}})
+        return JSONResponse({"warning": "story vacío, usando fallback",
+                             "chapter": {"text": "Capítulo inicial (fallback)",
+                                         "options": ["Opción A", "Opción B"]}})
+    return JSONResponse({"chapter": {"text": f"Capítulo inicial para: {base}",
+                                     "options": ["Opción A", "Opción B"]}})
