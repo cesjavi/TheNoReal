@@ -6,6 +6,8 @@
   --foreground: #3a2d4f; /* deep plum for readability */
   --accent: #c3f0ca; /* mint green accent */
   --accent-dark: #5dbb63; /* deeper mint accent */
+  --input-text: #1f2937; /* slate-800 for readable form text */
+  --placeholder-text: #6b7280; /* slate-500 placeholder */
 }
 
 @theme inline {
@@ -24,6 +26,8 @@
     --foreground: #f1e9f9; /* pale orchid text */
     --accent: #5dbb63; /* muted mint accent */
     --accent-dark: #2f855a; /* deeper mint accent */
+    --input-text: #f9f6ff; /* soft white for dark mode inputs */
+    --placeholder-text: rgba(249, 246, 255, 0.6);
   }
 }
 
@@ -31,6 +35,18 @@ body {
   background: linear-gradient(135deg, var(--background), var(--accent));
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+input,
+textarea,
+select {
+  color: var(--input-text);
+  caret-color: var(--input-text);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--placeholder-text);
 }
 
 @keyframes splash-pulse {
