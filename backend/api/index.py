@@ -1,7 +1,6 @@
 from typing import List, Optional, Dict, Any
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field, ConfigDict
 from fastapi.middleware.cors import CORSMiddleware
 from mangum import Mangum
 import logging
@@ -19,60 +18,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-# ====== MODELOS (Pydantic v2) ======
-
-class Estilo(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    tono: List[str] = Field(default_factory=list)
-    ritmo: List[str] = Field(default_factory=list)
-    voz: List[str] = Field(default_factory=list)
-    tiempo: List[str] = Field(default_factory=list)
-    formato: List[str] = Field(default_factory=list)
-    descripcion: List[str] = Field(default_factory=list)
-    dialogo: List[str] = Field(default_factory=list)
-    matiz: List[str] = Field(default_factory=list)
-
-class Ajustes(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    publico: List[str] = Field(default_factory=list)
-    epoca: List[str] = Field(default_factory=list)
-    ambito: List[str] = Field(default_factory=list)
-    estructura: List[str] = Field(default_factory=list)
-    incluir: List[str] = Field(default_factory=list)
-    evitar: List[str] = Field(default_factory=list)
-    clasificacion: List[str] = Field(default_factory=list)
-    idioma: List[str] = Field(default_factory=list)
-    registro: List[str] = Field(default_factory=list)
-    creatividad: Optional[float] = 0.75
-    topP: Optional[float] = 0.9
-    opcionesPorCapitulo: List[Any] = Field(default_factory=list)
-    targetWords: Optional[int] = 220
-    temperature: Optional[float] = None
-    top_p: Optional[float] = None
-
-class ConfigPayload(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    generos: List[str] = Field(default_factory=list)
-    estilo: Estilo = Field(default_factory=Estilo)
-    ajustes: Ajustes = Field(default_factory=Ajustes)
-
-class GeneratePromptBody(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    config: ConfigPayload
-
-class StoryBody(BaseModel):
-    model_config = ConfigDict(extra="ignore")
-    story: str
-    option: Optional[str] = ""
-    optionsPerDecision: Optional[int] = 2
-    genres: List[str] = Field(default_factory=list)
-    estilo: Estilo = Field(default_factory=Estilo)
-    ajustes: Ajustes = Field(default_factory=Ajustes)
-    language: Optional[str] = "es"
-    endingMode: Optional[str] = "capitulos"
-    chaptersCount: Optional[int] = 3
-    finalize: Optional[bool] = False
 
 # ====== ENDPOINTS ======
 
