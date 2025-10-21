@@ -19,31 +19,48 @@ logger = logging.getLogger(__name__)
 # GROQ API CLIENT
 # ============================================================================
 
-def call_groq(messages, model=None, temperature=0.7, max_tokens=2000):
+def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_count=3):
     """
-    Call Groq API for chat completions.
+    Call LLM API for chat completions with retry logic.
+    Uses OpenRouter to avoid Cloudflare blocks on Vercel.
     
     Args:
         messages: List of message dicts with 'role' and 'content'
-        model: Model name (defaults to env var or llama-3.3-70b-versatile)
+        model: Model name (defaults to env var or groq/llama-3.3-70b-versatile)
         temperature: Sampling temperature (0-2)
         max_tokens: Maximum tokens to generate
+        retry_count: Number of retries on failure
         
     Returns:
         str: Generated text content
         
     Raises:
-        Exception: If API key is missing or API call fails
+        Exception: If API key is missing or API call fails after retries
     """
-    api_key = os.environ.get('GROQ_API_KEY', '')
+    import time
+    
+    # Check for OpenRouter key first, fallback to Groq
+    api_key = os.environ.get('OPENROUTER_API_KEY') or os.environ.get('GROQ_API_KEY', '')
+    use_openrouter = bool(os.environ.get('OPENROUTER_API_KEY'))
     
     if not api_key:
-        raise Exception("GROQ_API_KEY not configured in environment variables")
+        raise Exception("OPENROUTER_API_KEY or GROQ_API_KEY not configured in environment variables")
     
     if model is None:
-        model = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+        if use_openrouter:
+            # OpenRouter format for Groq models
+            model = os.environ.get('GROQ_MODEL', 'groq/llama-3.3-70b-versatile')
+        else:
+            model = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
     
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    # Use OpenRouter if key is available (avoids Cloudflare blocks)
+    if use_openrouter:
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        # Ensure model has provider prefix for OpenRouter
+        if not any(model.startswith(p) for p in ['groq/', 'openai/', 'anthropic/', 'meta-llama/']):
+            model = f'groq/{model}'
+    else:
+        url = "https://api.groq.com/openai/v1/chat/completions"
     
     payload = {
         "model": model,
@@ -52,33 +69,68 @@ def call_groq(messages, model=None, temperature=0.7, max_tokens=2000):
         "max_tokens": max_tokens
     }
     
+    # Headers with proper User-Agent to avoid Cloudflare blocks
     headers = {
         "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "User-Agent": "TheNoReal/1.0 (https://thenonreal.app)",
+        "Accept": "application/json",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive"
     }
     
-    req = urllib.request.Request(
-        url,
-        data=json.dumps(payload).encode('utf-8'),
-        headers=headers,
-        method='POST'
-    )
+    last_error = None
     
-    try:
-        with urllib.request.urlopen(req, timeout=30) as response:
-            result = json.loads(response.read().decode('utf-8'))
-            content = result['choices'][0]['message']['content']
-            return content.strip()
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode('utf-8')
-        logger.error(f"Groq API HTTP error {e.code}: {error_body}")
-        raise Exception(f"Groq API error: {e.code} - {error_body}")
-    except urllib.error.URLError as e:
-        logger.error(f"Groq API connection error: {e.reason}")
-        raise Exception(f"Connection error: {e.reason}")
-    except Exception as e:
-        logger.error(f"Unexpected error calling Groq: {e}")
-        raise Exception(f"Error calling Groq: {str(e)}")
+    for attempt in range(retry_count):
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode('utf-8'),
+                headers=headers,
+                method='POST'
+            )
+            
+            with urllib.request.urlopen(req, timeout=30) as response:
+                result = json.loads(response.read().decode('utf-8'))
+                content = result['choices'][0]['message']['content']
+                return content.strip()
+                
+        except urllib.error.HTTPError as e:
+            error_body = e.read().decode('utf-8')
+            last_error = f"HTTP {e.code}: {error_body}"
+            
+            # Don't retry on auth errors (401, 403) unless it's Cloudflare
+            if e.code == 403 and "error code: 1010" in error_body:
+                logger.warning(f"Cloudflare block detected, attempt {attempt + 1}/{retry_count}")
+                if attempt < retry_count - 1:
+                    time.sleep(2 ** attempt)  # Exponential backoff
+                    continue
+            elif e.code in [401, 403]:
+                logger.error(f"Auth error: {last_error}")
+                raise Exception(f"Authentication error: {e.code}")
+            
+            logger.warning(f"Groq API error on attempt {attempt + 1}: {last_error}")
+            if attempt < retry_count - 1:
+                time.sleep(1 + attempt)  # Progressive backoff
+                continue
+                
+        except urllib.error.URLError as e:
+            last_error = f"Connection error: {e.reason}"
+            logger.warning(f"Connection error on attempt {attempt + 1}: {last_error}")
+            if attempt < retry_count - 1:
+                time.sleep(1 + attempt)
+                continue
+                
+        except Exception as e:
+            last_error = str(e)
+            logger.warning(f"Unexpected error on attempt {attempt + 1}: {last_error}")
+            if attempt < retry_count - 1:
+                time.sleep(1)
+                continue
+    
+    # All retries failed
+    logger.error(f"All {retry_count} attempts failed. Last error: {last_error}")
+    raise Exception(f"Groq API error after {retry_count} attempts: {last_error}")
 
 
 # ============================================================================
