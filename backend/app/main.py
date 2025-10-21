@@ -1,43 +1,35 @@
-# backend/app/services/main.py
+"""Main FastAPI application."""
+import logging
 from fastapi import FastAPI
-from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routes.backgrounds import router as backgrounds_router
-from app.routes.options import router as options_router
-from app.routes.ping import router as ping_router
-from app.routes.prompt import router as prompt_router
-from app.routes.story import router as story_router
+from app.routes import prompt, story, options, backgrounds, ping
 
-# root_path ensures Vercel's /api proxy still reaches the routes while
-# keeping local paths usable without the prefix.
-app = FastAPI(title="TheNoReal Backend", root_path="/api")
+logger = logging.getLogger(__name__)
 
-# ⭐ MODIFICAR CORS - quitar credentials cuando usas wildcard
+app = FastAPI(title="TheNoReal API")
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False,  # ⭐ Cambiar a False cuando usas "*"
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Incluir routers
+app.include_router(ping.router)
+app.include_router(prompt.router)
+app.include_router(story.router)
+app.include_router(options.router)
+app.include_router(backgrounds.router)
 
-@app.options("/{path:path}")
-async def catch_all_preflight(path: str) -> Response:
-    """Return an empty 204 so Vercel passes CORS preflight checks."""
-    return Response(
-        status_code=204,
-        headers={
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "*",
-            "Access-Control-Allow-Headers": "*",
-        }
-    )
+@app.get("/")
+@app.get("/api")
+def root():
+    return {"status": "ok", "message": "TheNoReal API"}
 
-# Routers
-app.include_router(prompt_router)
-app.include_router(story_router)
-app.include_router(backgrounds_router)
-app.include_router(options_router)
-app.include_router(ping_router)   
+@app.get("/api/health")
+def health():
+    return {"ok": True}
