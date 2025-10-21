@@ -232,7 +232,7 @@ def parse_story_response(generated_text, is_final=False):
     """
     chapter_text = ""
     options = []
-    
+    print(generated_text)
     if is_final:
         return generated_text.strip(), []
     
