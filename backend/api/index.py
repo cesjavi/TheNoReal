@@ -19,6 +19,27 @@ logger = logging.getLogger(__name__)
 # GROQ API CLIENT
 # ============================================================================
 
+# Model mappings for different providers
+MODEL_MAPPINGS = {
+    # OpenRouter models (when using OPENROUTER_API_KEY)
+    'openrouter': {
+        'llama-3.3-70b': 'meta-llama/llama-3.3-70b-instruct',
+        'llama-3.1-70b': 'meta-llama/llama-3.1-70b-instruct',
+        'qwen-32b': 'qwen/qwen-2.5-72b-instruct',
+        'gpt-4o': 'openai/gpt-4o',
+        'gpt-4o-mini': 'openai/gpt-4o-mini',
+        'claude-3.5-sonnet': 'anthropic/claude-3.5-sonnet',
+        'default': 'meta-llama/llama-3.3-70b-instruct'
+    },
+    # Groq direct models (when using GROQ_API_KEY)
+    'groq': {
+        'llama-3.3-70b': 'llama-3.3-70b-versatile',
+        'llama-3.1-70b': 'llama-3.1-70b-versatile',
+        'default': 'llama-3.3-70b-versatile'
+    }
+}
+
+
 def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_count=3):
     """
     Call LLM API for chat completions with retry logic.
@@ -26,7 +47,7 @@ def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_coun
     
     Args:
         messages: List of message dicts with 'role' and 'content'
-        model: Model name (defaults to env var or groq/llama-3.3-70b-versatile)
+        model: Model identifier (e.g., 'llama-3.3-70b', 'gpt-4o', 'qwen-32b')
         temperature: Sampling temperature (0-2)
         max_tokens: Maximum tokens to generate
         retry_count: Number of retries on failure
@@ -46,38 +67,45 @@ def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_coun
     if not api_key:
         raise Exception("OPENROUTER_API_KEY or GROQ_API_KEY not configured in environment variables")
     
+    # Resolve model name
     if model is None:
-        if use_openrouter:
-            # OpenRouter format for Groq models
-            model = os.environ.get('GROQ_MODEL', 'groq/llama-3.3-70b-versatile')
-        else:
-            model = os.environ.get('GROQ_MODEL', 'llama-3.3-70b-versatile')
+        model = os.environ.get('DEFAULT_MODEL', 'llama-3.3-70b')
     
-    # Use OpenRouter if key is available (avoids Cloudflare blocks)
+    # Map model to provider-specific format
+    provider = 'openrouter' if use_openrouter else 'groq'
+    model_map = MODEL_MAPPINGS[provider]
+    resolved_model = model_map.get(model, model_map['default'])
+    
+    logger.info(f"Using {provider} with model: {resolved_model}")
+    
+    # Set API endpoint
     if use_openrouter:
         url = "https://openrouter.ai/api/v1/chat/completions"
-        # Ensure model has provider prefix for OpenRouter
-        if not any(model.startswith(p) for p in ['groq/', 'openai/', 'anthropic/', 'meta-llama/']):
-            model = f'groq/{model}'
     else:
         url = "https://api.groq.com/openai/v1/chat/completions"
     
     payload = {
-        "model": model,
+        "model": resolved_model,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": max_tokens
     }
     
-    # Headers with proper User-Agent to avoid Cloudflare blocks
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        "User-Agent": "TheNoReal/1.0 (https://thenonreal.app)",
-        "Accept": "application/json",
-        "Accept-Encoding": "gzip, deflate",
-        "Connection": "keep-alive"
-    }
+    # Headers optimized for each provider
+    if use_openrouter:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://thenonreal.app",
+            "X-Title": "TheNoReal"
+        }
+    else:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json",
+            "User-Agent": "TheNoReal/1.0 (https://thenonreal.app)",
+            "Accept": "application/json"
+        }
     
     last_error = None
     
@@ -137,12 +165,13 @@ def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_coun
 # PROMPT GENERATION
 # ============================================================================
 
-def generate_story_prompt(config):
+def generate_story_prompt(config, model=None):
     """
     Generate a creative story seed based on configuration.
     
     Args:
         config: Dict with story configuration (genres, style, settings)
+        model: Optional model identifier to use
         
     Returns:
         str: Generated story prompt (around 30 words)
@@ -158,15 +187,16 @@ def generate_story_prompt(config):
         {"role": "user", "content": json.dumps(config, ensure_ascii=False, indent=2)}
     ]
     
-    return call_groq(messages, temperature=0.8)
+    return call_groq(messages, model=model, temperature=0.8)
 
 
-def improve_prompt(original_prompt):
+def improve_prompt(original_prompt, model=None):
     """
     Improve an existing prompt while maintaining original intent.
     
     Args:
         original_prompt: The prompt text to improve
+        model: Optional model identifier to use
         
     Returns:
         str: Improved prompt (around 30 words)
@@ -182,7 +212,7 @@ def improve_prompt(original_prompt):
         {"role": "user", "content": original_prompt}
     ]
     
-    return call_groq(messages, temperature=0.7)
+    return call_groq(messages, model=model, temperature=0.7)
 
 
 # ============================================================================
@@ -244,7 +274,7 @@ def parse_story_response(generated_text, is_final=False):
 
 
 def generate_story_chapter(story_text, chosen_option="", options_per_decision=2, 
-                          language="es", finalize=False, ajustes=None):
+                          language="es", finalize=False, ajustes=None, model=None):
     """
     Generate a story chapter with options or a final ending.
     
@@ -255,6 +285,7 @@ def generate_story_chapter(story_text, chosen_option="", options_per_decision=2,
         language: Story language (default: "es")
         finalize: Whether to generate a final ending
         ajustes: Dict with settings (temperature, targetWords, etc.)
+        model: Optional model identifier to use
         
     Returns:
         dict: {"text": chapter_text, "options": [list of options]}
@@ -320,7 +351,7 @@ Escribe en español y sé creativo."""
         {"role": "user", "content": prompt}
     ]
     
-    generated = call_groq(messages, temperature=temperature, max_tokens=2000)
+    generated = call_groq(messages, model=model, temperature=temperature, max_tokens=2000)
     chapter_text, options = parse_story_response(generated, is_final=finalize)
     
     # Ensure we have the right number of options (if not final)
@@ -344,13 +375,14 @@ Escribe en español y sé creativo."""
 # OPTIONS GENERATION
 # ============================================================================
 
-def generate_story_options(story_text, count=2):
+def generate_story_options(story_text, count=2, model=None):
     """
     Generate or regenerate options for continuing a story.
     
     Args:
         story_text: Current story text
         count: Number of options to generate
+        model: Optional model identifier to use
         
     Returns:
         list: List of option strings
@@ -375,7 +407,7 @@ Responde SOLO con las opciones en formato JSON:
         {"role": "user", "content": prompt}
     ]
     
-    response = call_groq(messages, temperature=0.8)
+    response = call_groq(messages, model=model, temperature=0.8)
     
     # Try to parse JSON from response
     try:
@@ -451,6 +483,7 @@ class Handler(BaseHTTPRequestHandler):
         routes = {
             '/api/health': lambda: {"ok": True},
             '/api/ping': lambda: {"status": "ok"},
+            '/api/models': self._get_available_models,
             '/api/backgrounds': lambda: {
                 "backgrounds": [
                     {"id": "bg1", "url": "/backgrounds/default.jpg", "name": "Default"},
@@ -464,9 +497,76 @@ class Handler(BaseHTTPRequestHandler):
         }
         
         if path in routes:
-            self._send_json(routes[path]())
+            result = routes[path]() if callable(routes[path]) else routes[path]
+            self._send_json(result)
         else:
             self._send_json({"error": "Not found"}, 404)
+    
+    def _get_available_models(self):
+        """Return list of available models based on configured provider."""
+        use_openrouter = bool(os.environ.get('OPENROUTER_API_KEY'))
+        provider = 'openrouter' if use_openrouter else 'groq'
+        
+        models_info = {
+            'openrouter': [
+                {
+                    "id": "llama-3.3-70b",
+                    "name": "Llama 3.3 70B",
+                    "provider": "Meta",
+                    "description": "Latest Llama model, excellent for creative writing"
+                },
+                {
+                    "id": "llama-3.1-70b",
+                    "name": "Llama 3.1 70B",
+                    "provider": "Meta",
+                    "description": "Stable and fast"
+                },
+                {
+                    "id": "qwen-32b",
+                    "name": "Qwen 2.5 72B",
+                    "provider": "Alibaba",
+                    "description": "Multilingual, great reasoning"
+                },
+                {
+                    "id": "gpt-4o",
+                    "name": "GPT-4o",
+                    "provider": "OpenAI",
+                    "description": "Most capable, premium pricing"
+                },
+                {
+                    "id": "gpt-4o-mini",
+                    "name": "GPT-4o Mini",
+                    "provider": "OpenAI",
+                    "description": "Fast and affordable"
+                },
+                {
+                    "id": "claude-3.5-sonnet",
+                    "name": "Claude 3.5 Sonnet",
+                    "provider": "Anthropic",
+                    "description": "Excellent for creative writing"
+                }
+            ],
+            'groq': [
+                {
+                    "id": "llama-3.3-70b",
+                    "name": "Llama 3.3 70B Versatile",
+                    "provider": "Meta",
+                    "description": "Latest Llama model on Groq"
+                },
+                {
+                    "id": "llama-3.1-70b",
+                    "name": "Llama 3.1 70B Versatile",
+                    "provider": "Meta",
+                    "description": "Stable and fast"
+                }
+            ]
+        }
+        
+        return {
+            "provider": provider,
+            "models": models_info[provider],
+            "default": os.environ.get('DEFAULT_MODEL', 'llama-3.3-70b')
+        }
 
     def do_POST(self):
         """Handle POST requests."""
@@ -495,13 +595,14 @@ class Handler(BaseHTTPRequestHandler):
     def _handle_generate_prompt(self, body):
         """Handle /api/prompt/generate endpoint."""
         config = body.get("config", {})
+        model = body.get("model")  # Optional model selection
         
         if not config:
             self._send_json({"error": "config is required"}, 400)
             return
         
         try:
-            prompt = generate_story_prompt(config)
+            prompt = generate_story_prompt(config, model=model)
             self._send_json({"prompt": prompt})
         except Exception as e:
             logger.error(f"Error generating prompt: {e}")
@@ -510,13 +611,14 @@ class Handler(BaseHTTPRequestHandler):
     def _handle_improve_prompt(self, body):
         """Handle /api/prompt/improve endpoint."""
         prompt = body.get("prompt", "")
+        model = body.get("model")  # Optional model selection
         
         if not prompt or not prompt.strip():
             self._send_json({"error": "prompt is required"}, 400)
             return
         
         try:
-            improved = improve_prompt(prompt)
+            improved = improve_prompt(prompt, model=model)
             self._send_json({"prompt": improved})
         except Exception as e:
             logger.error(f"Error improving prompt: {e}")
@@ -535,6 +637,7 @@ class Handler(BaseHTTPRequestHandler):
         language = body.get("language", "es")
         finalize = body.get("finalize", False)
         ajustes = body.get("ajustes", {})
+        model = body.get("model")  # Optional model selection
         
         try:
             chapter = generate_story_chapter(
@@ -543,7 +646,8 @@ class Handler(BaseHTTPRequestHandler):
                 options_per_decision=options_per_decision,
                 language=language,
                 finalize=finalize,
-                ajustes=ajustes
+                ajustes=ajustes,
+                model=model
             )
             self._send_json({"chapter": chapter})
         except Exception as e:
@@ -554,13 +658,14 @@ class Handler(BaseHTTPRequestHandler):
         """Handle /api/options endpoint."""
         story_text = body.get("story", "")
         count = body.get("count", 2)
+        model = body.get("model")  # Optional model selection
         
         if not story_text or not story_text.strip():
             self._send_json({"error": "story is required"}, 400)
             return
         
         try:
-            options = generate_story_options(story_text, count)
+            options = generate_story_options(story_text, count, model=model)
             self._send_json({"options": options})
         except Exception as e:
             logger.error(f"Error generating options: {e}")
