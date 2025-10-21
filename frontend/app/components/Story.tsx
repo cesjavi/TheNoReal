@@ -6,6 +6,7 @@ import type { Estilo, Ajustes } from '@thenoreal/shared'
 import { useLanguage } from '../providers/LanguageProvider';
 import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
+import { coerceStoryPayload } from '@/utils/storyPayload';
 import { CapacitorHttp } from '@capacitor/core';
 import { Capacitor } from '@capacitor/core';
 
@@ -218,11 +219,10 @@ export default function Story({
         throw new Error(message);
       }
 
-      const {
-        story: newStory = '',
-        options: newOptions = [],
-        isFinal = false,
-      } = data as { story?: string; options?: string[]; isFinal?: boolean };
+      const { story: newStory, options: newOptions, isFinal } = coerceStoryPayload(
+        data,
+        optionsPerDecision,
+      );
 
       const imageUrl: string | null = null;
 
@@ -368,7 +368,7 @@ export default function Story({
         }
         throw new Error(message);
       }
-      const finalText = (data.story as string) || '';
+      const { story: finalText } = coerceStoryPayload(data, 0);
 
       const imageUrl: string | null = null;
 
