@@ -57,7 +57,18 @@ async function apiRequest(url: string, options: {
       return {
         ok: response.status >= 200 && response.status < 300,
         status: response.status,
-        json: async () => response.data,
+        json: async () => {
+          const { data } = response;
+          if (typeof data === 'string') {
+            try {
+              return JSON.parse(data);
+            } catch (error) {
+              console.warn('CapacitorHttp JSON parse error:', error);
+              return data;
+            }
+          }
+          return data;
+        },
       };
     } catch (error) {
       console.error('CapacitorHttp error:', error);
