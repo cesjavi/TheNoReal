@@ -3,6 +3,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, ConfigDict
 from fastapi.middleware.cors import CORSMiddleware
+from mangum import Mangum
 import logging
 
 logger = logging.getLogger("thenoreal")
@@ -10,7 +11,7 @@ logger.setLevel(logging.INFO)
 
 app = FastAPI()
 
-# CORS abierto para pruebas
+# CORS abierto
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -53,8 +54,8 @@ class Ajustes(BaseModel):
 class ConfigPayload(BaseModel):
     model_config = ConfigDict(extra="ignore")
     generos: List[str] = Field(default_factory=list)
-    estilo: Estilo = Estilo()
-    ajustes: Ajustes = Ajustes()
+    estilo: Estilo = Field(default_factory=Estilo)
+    ajustes: Ajustes = Field(default_factory=Ajustes)
 
 class GeneratePromptBody(BaseModel):
     model_config = ConfigDict(extra="ignore")
@@ -66,8 +67,8 @@ class StoryBody(BaseModel):
     option: Optional[str] = ""
     optionsPerDecision: Optional[int] = 2
     genres: List[str] = Field(default_factory=list)
-    estilo: Estilo = Estilo()
-    ajustes: Ajustes = Ajustes()
+    estilo: Estilo = Field(default_factory=Estilo)
+    ajustes: Ajustes = Field(default_factory=Ajustes)
     language: Optional[str] = "es"
     endingMode: Optional[str] = "capitulos"
     chaptersCount: Optional[int] = 3
@@ -76,8 +77,11 @@ class StoryBody(BaseModel):
 # ====== ENDPOINTS ======
 
 @app.get("/")
-@app.get("/api")
 def root():
+    return {"status": "ok", "message": "TheNoReal API"}
+
+@app.get("/api")
+def api_root():
     return {"status": "ok", "message": "TheNoReal API"}
 
 @app.get("/api/health")
@@ -87,7 +91,7 @@ def health():
 @app.post("/api/prompt/generate")
 async def generate_prompt(body: GeneratePromptBody):
     try:
-        logger.info("generate body %s", body.model_dump())
+        logger.info(f"generate_prompt called with: {body.model_dump()}")
         prompt = {
             "prompt": "Texto generado según config.",
             "debug": body.model_dump()
@@ -103,7 +107,7 @@ async def generate_prompt(body: GeneratePromptBody):
 @app.post("/api/story")
 async def story(body: StoryBody):
     try:
-        logger.info("story body %s", body.model_dump())
+        logger.info(f"story called with: {body.model_dump()}")
         
         if not body.story or len(body.story.strip()) == 0:
             return JSONResponse(
@@ -127,5 +131,5 @@ async def story(body: StoryBody):
             status_code=500
         )
 
-# IMPORTANTE: Para Vercel, necesitamos exportar el handler
-handler = app
+# IMPORTANTE: Handler para Vercel usando Mangum
+handler = Mangum(app, lifespan="off")

@@ -6,3 +6,4 @@ python-multipart==0.0.6
 pydantic==2.11.5
 httpx==0.24.1
 aiofiles==23.1.0
+mangum==0.15.0
