@@ -2,6 +2,7 @@ import {
   parseStoryResponse,
   parseStoryResponseStrict,
 } from '@thenoreal/shared'
+import { coerceStoryPayload } from '@/utils/storyPayload'
 
 describe('parseStoryResponse', () => {
   it('extrae capítulo y opciones etiquetadas', () => {
@@ -47,5 +48,52 @@ describe('parseStoryResponseStrict', () => {
     const text = 'Historia sin separador\n1. Opción inválida';
     const result = parseStoryResponseStrict(text, 1);
     expect(result.errors).toContain('missing options separator');
+  });
+});
+
+describe('coerceStoryPayload', () => {
+  it('normaliza respuestas estructuradas con story', () => {
+    const payload = {
+      story: 'Capítulo limpio',
+      options: [' Opción A  ', 'Opción B', 'Opción A'],
+      isFinal: false,
+    };
+    expect(coerceStoryPayload(payload, 2)).toEqual({
+      story: 'Capítulo limpio',
+      options: ['Opción A', 'Opción B'],
+      isFinal: false,
+    });
+  });
+
+  it('acepta respuestas estilo chapter.text', () => {
+    const payload = {
+      chapter: {
+        text: 'Capítulo parseado',
+        options: ['Opción A', 'Opción B'],
+      },
+    };
+    expect(coerceStoryPayload(payload, 2)).toEqual({
+      story: 'Capítulo parseado',
+      options: ['Opción A', 'Opción B'],
+      isFinal: false,
+    });
+  });
+
+  it('parsea respuestas de texto plano', () => {
+    const text = [
+      '[CAPÍTULO]',
+      'Historia etiquetada',
+      '[/CAPÍTULO]',
+      '',
+      '[OPCIONES]',
+      'Opción 1: Seguir explorando',
+      'Opción 2: Regresar al pueblo',
+      '[/OPCIONES]',
+    ].join('\n');
+    expect(coerceStoryPayload({ text }, 2)).toEqual({
+      story: 'Historia etiquetada',
+      options: ['Seguir explorando', 'Regresar al pueblo'],
+      isFinal: false,
+    });
   });
 });

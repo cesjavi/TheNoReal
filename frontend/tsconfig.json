@@ -24,8 +24,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@thenoreal/shared": ["../packages/shared/dist"],
-      "@thenoreal/shared/*": ["../packages/shared/dist/*"],
+      "@thenoreal/shared": ["../packages/shared/src"],
+      "@thenoreal/shared/*": ["../packages/shared/src/*"],
       "@/*": ["./*"]
     }
   },

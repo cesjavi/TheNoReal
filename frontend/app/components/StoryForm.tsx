@@ -11,11 +11,11 @@ import StorySettings, {
   AJUSTES_SECTIONS,
   Ajustes,
 } from './StorySettings';
-import { parseStoryResponse } from '@thenoreal/shared'
 import { resolveLanguagePreference } from '@thenoreal/shared'
 import { resolveApiUrl } from '@/utils/api';
 import { CapacitorHttp } from '@capacitor/core';
 import { Capacitor } from '@capacitor/core';
+import { coerceStoryPayload } from '@/utils/storyPayload';
 
 const MODALITY_HELP = {
   capitulos: 'Divide la historia en capítulos.',
@@ -111,9 +111,6 @@ function isObject(x: unknown): x is Record<string, unknown> {
 }
 function isStoryAPI(x: unknown): x is { story: string; options?: unknown } {
   return !!x && typeof (x as { story?: unknown }).story === 'string';
-}
-function hasText(x: unknown): x is { text: string } {
-  return !!x && typeof (x as { text?: unknown }).text === 'string';
 }
 function normalizeStringArray(a: unknown): string[] {
   if (!Array.isArray(a)) return [];
@@ -487,12 +484,10 @@ export default function StoryForm() {
       if (isStoryAPI(data)) {
         firstChapter = data.story || '';
         firstOptions = Array.from(new Set(normalizeStringArray((data as { options?: unknown }).options)));
-      } else if (hasText(data)) {
-        const parsed = parseStoryResponse(data.text, optionsPerDecision);
-        firstChapter = parsed.story;
-        firstOptions = parsed.options;
       } else {
-        throw new Error('Respuesta inesperada del servidor');
+        const normalized = coerceStoryPayload(data, optionsPerDecision);
+        firstChapter = normalized.story;
+        firstOptions = normalized.options;
       }
 
       setInitialStory(firstChapter);
