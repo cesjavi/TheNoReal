@@ -4,22 +4,30 @@ import {
 } from '@thenoreal/shared'
 
 describe('parseStoryResponse', () => {
-  it('separates historia y opciones con ---', () => {
+  it('extrae capítulo y opciones etiquetadas', () => {
+    const text = [
+      '[CAPITULO]',
+      'La ciudad olvidada permanecía en silencio.',
+      '[/CAPITULO]',
+      '',
+      '[OPCIONES]',
+      'Opción 1: Explorar la plaza central cubierta de niebla',
+      'Opción 2: Investigar las luces extrañas del bosque cercano',
+      '[/OPCIONES]',
+    ].join('\n');
+    const { story, options } = parseStoryResponse(text, 2);
+    expect(story).toBe('La ciudad olvidada permanecía en silencio.');
+    expect(options).toEqual([
+      'Explorar la plaza central cubierta de niebla',
+      'Investigar las luces extrañas del bosque cercano',
+    ]);
+  });
+
+  it('mantiene compatibilidad con separador ---', () => {
     const text =
       'Había una vez\n---\n1. Explorar el misterioso bosque oscuro con gran cautela\n2. Investigar las antiguas ruinas de la ciudad perdida';
     const { story, options } = parseStoryResponse(text, 2);
     expect(story).toBe('Había una vez');
-    expect(options).toEqual([
-      'Explorar el misterioso bosque oscuro con gran cautela',
-      'Investigar las antiguas ruinas de la ciudad perdida',
-    ]);
-  });
-
-  it('maneja respuesta solo con opciones', () => {
-    const text =
-      '---\n1. Explorar el misterioso bosque oscuro con gran cautela\n2. Investigar las antiguas ruinas de la ciudad perdida';
-    const { story, options } = parseStoryResponse(text, 2);
-    expect(story).toBe('');
     expect(options).toEqual([
       'Explorar el misterioso bosque oscuro con gran cautela',
       'Investigar las antiguas ruinas de la ciudad perdida',
