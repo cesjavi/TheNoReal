@@ -189,6 +189,9 @@ export default function Story({
       .map((c, idx) => (idx === 0 ? c.texto : `> ${choices[idx - 1]}\n\n${c.texto}`))
       .join('\n\n');
     const nextStory = `${currentStory}\n> ${option}`;
+    const shouldFinalizeNext =
+      typeof chaptersCount === 'number' && chaptersCount > 0 && currentChapter + 1 >= chaptersCount;
+    const optionsLimit = shouldFinalizeNext ? 0 : optionsPerDecision;
 
     try {
       const nextChapter = currentChapter + 1;
@@ -201,11 +204,12 @@ export default function Story({
         body: JSON.stringify({
           story: nextStory,
           option,
-          optionsPerDecision,
+          optionsPerDecision: optionsLimit,
           genres,
           estilo,
           ajustes: ajustesPayload,
           language,
+          ...(shouldFinalizeNext ? { finalize: true } : {}),
         }),
         signal: controller.signal,
       });
@@ -219,10 +223,7 @@ export default function Story({
         throw new Error(message);
       }
 
-      const { story: newStory, options: newOptions, isFinal } = coerceStoryPayload(
-        data,
-        optionsPerDecision,
-      );
+      const { story: newStory, options: newOptions, isFinal } = coerceStoryPayload(data, optionsLimit);
 
       const imageUrl: string | null = null;
 
@@ -285,7 +286,7 @@ export default function Story({
 
         let end = false;
         if (endingMode === 'capitulos') {
-          if (chaptersCount && nextChapter > chaptersCount) end = true;
+          if (chaptersCount && nextChapter >= chaptersCount) end = true;
         } else if (endingMode === 'final_sorpresa') {
           const SURPRISE_ENDING_PROBABILITY = 0.1;
           if ((chaptersCount && nextChapter > chaptersCount) || Math.random() < SURPRISE_ENDING_PROBABILITY) {
@@ -568,7 +569,7 @@ export default function Story({
 
         {/* Estado finalizado */}
         {finalized && (
-          <div className="mt-8 rounded-3xl border border-accent/30 bg-accent/10 p-5 text-sm text-accent shadow-inner">
+          <div className="mt-8 rounded-3xl border border-accent/60 bg-white p-5 text-sm font-semibold text-foreground shadow-lg shadow-accent/15 dark:bg-zinc-900 dark:text-zinc-100">
             {t('finalized')}
           </div>
         )}
