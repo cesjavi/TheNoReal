@@ -1,9 +1,10 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-process.env.NEXT_PUBLIC_API_BASE_URL = 'http://localhost:4000/api';
-
 import Story from '../app/components/Story';
+import { TEST_API_BASE_URL } from '../testUtils/apiBase';
+
+process.env.NEXT_PUBLIC_API_BASE_URL = TEST_API_BASE_URL;
 
 jest.mock('next-intl', () => ({
   useTranslations: () => (key: string) => key,
@@ -60,10 +61,10 @@ describe('Story options regeneration', () => {
     await waitFor(() => expect(global.fetch).toHaveBeenCalledTimes(2));
 
     expect((global.fetch as jest.Mock).mock.calls[0][0]).toBe(
-      'http://localhost:4000/api/story'
+      `${TEST_API_BASE_URL}/story`
     );
     expect((global.fetch as jest.Mock).mock.calls[1][0]).toBe(
-      'http://localhost:4000/api/options'
+      `${TEST_API_BASE_URL}/options`
     );
     expect(
       await screen.findByText(

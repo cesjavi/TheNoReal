@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom';
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import StoryForm from '../app/components/StoryForm';
+import { TEST_API_BASE_URL } from '../testUtils/apiBase';
 
 jest.mock('../app/components/Story', () => () => null);
 jest.mock('next-intl', () => ({
@@ -10,10 +12,8 @@ jest.mock('../app/providers/LanguageProvider', () => ({
   useLanguage: () => ({ locale: 'es' }),
 }));
 
-const API_BASE = 'http://localhost:4000/api';
+const API_BASE = TEST_API_BASE_URL;
 process.env.NEXT_PUBLIC_API_BASE_URL = API_BASE;
-
-import StoryForm from '../app/components/StoryForm';
 
 describe('StoryForm prompt actions', () => {
   beforeEach(() => {
