@@ -2,6 +2,33 @@ import { parseStoryResponse, parseStoryResponseStrict } from '@thenoreal/shared'
 
 describe('parseStoryResponseStrict compatibility', () => {
   const N = 2;
+  test('parses tagged format and cleans labels', () => {
+    const text = [
+      '[CAPÍTULO]',
+      'La ciudad olvidada susurraba secretos en cada rincón.',
+      '[/CAPÍTULO]',
+      '',
+      '[OPCIONES]',
+      'Opción 1: Seguir el eco de las voces hacia la biblioteca sellada',
+      'Opción 2: Investigar las luces danzantes que surgen del lago',
+      '[/OPCIONES]',
+    ].join('\n');
+    const legacy = parseStoryResponse(text, N);
+    const strict = parseStoryResponseStrict(text, N);
+
+    expect(legacy).toEqual({
+      story: 'La ciudad olvidada susurraba secretos en cada rincón.',
+      options: [
+        'Seguir el eco de las voces hacia la biblioteca sellada',
+        'Investigar las luces danzantes que surgen del lago',
+      ],
+      isFinal: false,
+    });
+    expect(strict.errors).toHaveLength(0);
+    expect(strict.story).toBe(legacy.story);
+    expect(strict.options).toEqual(legacy.options);
+  });
+
   test('detects final with FINALIZADO and no options', () => {
     const text = 'El fin de la historia\nFINALIZADO';
     const legacy = parseStoryResponse(text, N);
