@@ -582,7 +582,7 @@ export default function StoryForm() {
                   <div className="space-y-3">
                     <textarea
                       id="story-initial-prompt"
-                      className="h-40 w-full resize-none rounded-2xl border border-black/20 bg-white/80 p-4 text-base text-gray-900 shadow-inner transition placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="h-40 w-full resize-none rounded-2xl border border-black/20 bg-white p-4 text-base text-gray-900 shadow-inner transition placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
                       placeholder="Escribe el inicio de la historia"
                       value={prompt}
                       onChange={(e) => {
@@ -776,7 +776,7 @@ export default function StoryForm() {
                         max={6}
                         value={numOptions}
                         onChange={(e) => setNumOptions(clamp(Number(e.target.value) || 2, 2, 6))}
-                        className="rounded-xl border border-black/20 bg-white/80 p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
+                        className="rounded-xl border border-black/20 bg-white p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </label>
 
@@ -786,7 +786,7 @@ export default function StoryForm() {
                         id="modality"
                         value={modality}
                         onChange={(e) => setModality(e.target.value as EndingMode)}
-                        className="rounded-xl border border-black/20 bg-white/80 p-2 text-base text-gray-900 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
+                        className="rounded-xl border border-black/20 bg-white p-2 text-base text-gray-900 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
                       >
                         <option value="capitulos">Capítulos</option>
                         <option value="final_sorpresa">Final sorpresa</option>
@@ -805,7 +805,7 @@ export default function StoryForm() {
                           required={modality === 'capitulos'}
                           value={chapters}
                           onChange={(e) => setChapters(e.target.value)}
-                          className="rounded-xl border border-black/20 bg-white/80 p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
+                          className="rounded-xl border border-black/20 bg-white p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
                         />
                       </label>
                     )}
@@ -819,7 +819,7 @@ export default function StoryForm() {
                         max={600}
                         value={targetWords}
                         onChange={(e) => updateTargetWords(Number(e.target.value) || DEFAULT_TARGET_WORDS)}
-                        className="rounded-xl border border-black/20 bg-white/80 p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
+                        className="rounded-xl border border-black/20 bg-white p-2 text-base text-gray-900 placeholder:text-gray-500 focus:border-accent-dark focus:outline-none focus:ring-2 focus:ring-accent"
                       />
                     </label>
                   </div>
