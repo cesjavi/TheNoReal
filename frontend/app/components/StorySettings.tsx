@@ -257,7 +257,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
             type="text"
             value={local.ajustes.lugar || ''}
             onChange={e => handleField('lugar', e.target.value)}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
             title="Ingrese el país o ciudad"
             placeholder="Ingrese el país o ciudad"
           />
@@ -270,7 +270,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
             list="sugerencias-longitud"
             value={local.ajustes.longitudPalabras ?? ''}
             onChange={e => handleField('longitudPalabras', Number(e.target.value))}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
             title="Sugerencias: 200, 500, 1000; puedes ingresar otro valor"
             placeholder="Ej: 200, 500, 1000 o ingresa otro valor"
           />
@@ -302,7 +302,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
                 e.preventDefault();
               }
             }}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
           />
         </div>
 
@@ -327,7 +327,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
                 e.preventDefault();
               }
             }}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
           />
         </div>
 
@@ -336,7 +336,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
           <select
             value={currentMode}
             onChange={e => setCreativeMode(e.target.value as CreativeMode)}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
           >
             {Object.entries(CREATIVE_MODES).map(([key, { label }]) => (
               <option key={key} value={key}>
@@ -352,7 +352,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
             type="number"
             value={local.ajustes.semilla ?? ''}
             onChange={e => handleField('semilla', Number(e.target.value))}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
             placeholder="Ingrese una semilla aleatoria"
           />
         </div>
@@ -376,7 +376,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
             type="text"
             value={local.ajustes.estiloVisual || ''}
             onChange={e => handleField('estiloVisual', e.target.value)}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
             placeholder="Ej: realista, cartoon, acuarela..."
           />
         </div>
@@ -387,7 +387,7 @@ export default function StorySettings({ open, config, onClose, onSave }: StorySe
             type="text"
             value={local.ajustes.paleta || ''}
             onChange={e => handleField('paleta', e.target.value)}
-            className="w-full rounded border border-black/30 p-1 text-gray-900 placeholder:text-gray-600"
+            className="w-full rounded border border-black/30 bg-white p-1 text-gray-900 placeholder:text-gray-600"
             placeholder="Ej: colores, tonos, etc."
           />
         </div>
