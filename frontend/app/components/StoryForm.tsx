@@ -160,6 +160,7 @@ export default function StoryForm() {
   const [promptTruncated, setPromptTruncated] = useState(false);
   const [config, setConfig] = useState<ConfigGeneracion>(defaults);
   const [open, setOpen] = useState(false);
+  const [showAdvancedForm, setShowAdvancedForm] = useState(false);
   const [topSvgs, setTopSvgs] = useState<string[] | null>([]);
   const [bottomSvgs, setBottomSvgs] = useState<string[] | null>([]);
   const [topSvg, setTopSvg] = useState<string | null>(null);
@@ -207,6 +208,12 @@ export default function StoryForm() {
   const [activeSection, setActiveSection] = useState<SectionId>('prompt');
 
   useEffect(() => {
+    if (!showAdvancedForm) {
+      setActiveSection('prompt');
+    }
+  }, [showAdvancedForm]);
+
+  useEffect(() => {
     const nextTarget =
       typeof config.ajustes.targetWords === 'number' && Number.isFinite(config.ajustes.targetWords)
         ? config.ajustes.targetWords
@@ -244,6 +251,10 @@ export default function StoryForm() {
   }, [bottomSvgs]);
 
   useEffect(() => {
+    if (!showAdvancedForm) {
+      return;
+    }
+
     const observer = new IntersectionObserver(
       (entries) => {
         const visible = entries
@@ -267,7 +278,7 @@ export default function StoryForm() {
       });
       observer.disconnect();
     };
-  }, [sections]);
+  }, [sections, showAdvancedForm]);
 
   const handleScrollTo = useCallback(
     (id: SectionId) => {
@@ -543,25 +554,31 @@ export default function StoryForm() {
                   <p className="text-sm uppercase tracking-[0.2em] text-gray-600">Narrativa asistida</p>
                   <h1 className="text-3xl font-semibold text-gray-900">Diseña tu historia interactiva</h1>
                   <p className="max-w-2xl text-sm text-gray-700">
-                    Sigue el recorrido guiado para definir el tono, la estructura y los ajustes finos de tu aventura.
-                    Cada sección está pensada para ayudarte a decidir sin perderte entre paneles secundarios.
+                    Empezá escribiendo la semilla de tu historia y creala al instante. Si querés personalizarla, abrí el
+                    formulario completo para elegir géneros, estructura y más detalles.
                   </p>
                 </div>
-                <ol className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
-                  <li className="flex items-center gap-2 rounded-full bg-accent/70 px-4 py-2 font-medium text-black">
-                    1. Idea inicial
-                  </li>
-                  <li className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
-                    2. Estilo y género
-                  </li>
-                  <li className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
-                    3. Opciones narrativas
-                  </li>
-                </ol>
+                {showAdvancedForm && (
+                  <ol className="flex flex-wrap items-center gap-3 text-sm text-gray-700">
+                    <li className="flex items-center gap-2 rounded-full bg-accent/70 px-4 py-2 font-medium text-black">
+                      1. Idea inicial
+                    </li>
+                    <li className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
+                      2. Estilo y género
+                    </li>
+                    <li className="flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 shadow-sm">
+                      3. Opciones narrativas
+                    </li>
+                  </ol>
+                )}
               </div>
             </header>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]">
+            <div
+              className={`grid grid-cols-1 gap-8 ${
+                showAdvancedForm ? 'lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]' : ''
+              }`}
+            >
               <div className="flex flex-col gap-8">
                 <section
                   ref={promptRef}
@@ -594,42 +611,102 @@ export default function StoryForm() {
                       aria-invalid={tokenLimitReached}
                       aria-describedby={promptDescribedBy}
                       disabled={loading}
-                    />
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
-                      <span>
-                        {tokenCount}/{TOKEN_LIMIT} tokens
-                      </span>
-                      {tokenLimitReached && (
-                        <span
-                          id={tokenWarningId}
-                          className="text-red-600"
-                          role="status"
-                          aria-live="polite"
-                        >
-                          Límite alcanzado
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-wrap gap-3">
-                      <button
-                        type="button"
-                        onClick={handleImprovePrompt}
-                        disabled={loading}
-                        className="flex-1 min-w-[140px] rounded-xl border border-transparent bg-accent px-4 py-2 text-sm font-medium text-black shadow hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
+                      />
+                    {!showAdvancedForm && tokenLimitReached && (
+                      <p
+                        id={tokenWarningId}
+                        className="text-sm text-red-600"
+                        role="status"
+                        aria-live="polite"
                       >
-                        {t('improvePrompt')}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleGeneratePrompt}
-                        disabled={loading}
-                        className="flex-1 min-w-[140px] rounded-xl border border-black/20 bg-white/70 px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition hover:border-black/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
-                      >
-                        {t('generatePrompt')}
-                      </button>
-                    </div>
+                        Límite alcanzado
+                      </p>
+                    )}
+                    {showAdvancedForm && (
+                      <>
+                        <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-gray-600">
+                          <span>
+                            {tokenCount}/{TOKEN_LIMIT} tokens
+                          </span>
+                          {tokenLimitReached && (
+                            <span
+                              id={tokenWarningId}
+                              className="text-red-600"
+                              role="status"
+                              aria-live="polite"
+                            >
+                              Límite alcanzado
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={handleImprovePrompt}
+                            disabled={loading}
+                            className="flex-1 min-w-[140px] rounded-xl border border-transparent bg-accent px-4 py-2 text-sm font-medium text-black shadow hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
+                          >
+                            {t('improvePrompt')}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleGeneratePrompt}
+                            disabled={loading}
+                            className="flex-1 min-w-[140px] rounded-xl border border-black/20 bg-white/70 px-4 py-2 text-sm font-medium text-gray-900 shadow-sm transition hover:border-black/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-60"
+                          >
+                            {t('generatePrompt')}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </section>
+
+                <section className="rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm">
+                  <div className="flex flex-col gap-4">
+                    <button
+                      onClick={handleSubmit}
+                      disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
+                      className="w-full rounded-2xl border border-transparent bg-accent px-4 py-3 text-base font-semibold text-black shadow-lg transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {loading ? t('sending') : t('createStory')}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvancedForm((prev) => !prev)}
+                      className="w-full rounded-2xl border border-black/20 bg-white/70 px-4 py-3 text-sm font-medium text-gray-900 shadow-sm transition hover:border-black/40 hover:bg-white focus:outline-none focus:ring-2 focus:ring-accent"
+                    >
+                      {showAdvancedForm ? 'Ocultar formulario completo' : 'Mostrar formulario completo'}
+                    </button>
+                    <p className="text-xs text-gray-600">
+                      {showAdvancedForm
+                        ? 'Ocultá este panel cuando quieras volver a una vista simplificada.'
+                        : 'Abrí el formulario completo para elegir géneros, estructura y configuraciones avanzadas.'}
+                    </p>
+                  </div>
+                </section>
+
+                {promptTruncated && (
+                  <p className="rounded-2xl border border-yellow-400 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+                    {t('promptTruncated', { limit: TOKEN_LIMIT })}
+                  </p>
+                )}
+
+                {error && (
+                  <p
+                    id="storyform-error"
+                    className="rounded-2xl border border-red-400 bg-red-50 px-4 py-3 text-sm text-red-700"
+                    role="alert"
+                    aria-live="assertive"
+                  >
+                    {error === 'GROQ_API_KEY no configurada'
+                      ? 'La clave de la API de Groq no está configurada.'
+                      : error}
+                  </p>
+                )}
+
+                {showAdvancedForm && (
+                  <>
 
                 <section
                   ref={genresRef}
@@ -752,20 +829,6 @@ export default function StoryForm() {
                       Paso 3
                     </span>
                   </div>
-
-                  <div className="mb-6 flex flex-col gap-4 rounded-2xl border border-black/10 bg-white/60 p-4">
-                    <button
-                      onClick={handleSubmit}
-                      disabled={!prompt.trim() || loading || tokenCount > TOKEN_LIMIT}
-                      className="w-full rounded-2xl border border-transparent bg-accent px-4 py-3 text-base font-semibold text-black shadow-lg transition hover:bg-accent-dark focus:outline-none focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {loading ? t('sending') : t('createStory')}
-                    </button>
-                    <p className="text-xs text-gray-600">
-                      Podés volver a este botón cuando ajustes cualquier parámetro. Guardamos automáticamente tus últimas selecciones.
-                    </p>
-                  </div>
-
                   <div className="grid gap-4 md:grid-cols-2">
                     <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Opciones por decisión</span>
@@ -879,72 +942,62 @@ export default function StoryForm() {
                     <ul className="list-disc space-y-2 pl-5">
                       <li>Guardá tus combinaciones favoritas en la configuración y reutilizalas desde las chips destacadas.</li>
                       <li>Usá el generador automático como punto de partida y luego refiná el prompt con tus propias notas.</li>
-                      <li>Si trabajás con capítulos largos, fijá las palabras objetivo para que el modelo mantenga una extensión equilibrada.</li>
-                    </ul>
-                  </div>
-                </section>
-
-                {promptTruncated && (
-                  <p className="rounded-2xl border border-yellow-400 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-                    {t('promptTruncated', { limit: TOKEN_LIMIT })}
-                  </p>
-                )}
-
-                {error && (
-                  <p id="storyform-error" className="rounded-2xl border border-red-400 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert" aria-live="assertive">
-                    {error === 'GROQ_API_KEY no configurada'
-                      ? 'La clave de la API de Groq no está configurada.'
-                      : error}
-                  </p>
-                )}
-              </div>
-
-              <aside className="flex flex-col gap-6">
-                <nav
-                  aria-label="Mapa de secciones"
-                  className="sticky top-24 space-y-4 rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur"
-                >
-                  <div>
-                    <h2 className="text-lg font-semibold text-gray-900">Mapa interactivo</h2>
-                    <p className="text-sm text-gray-600">
-                      Saltá entre las secciones clave sin perder el foco en el contenido que ya completaste.
-                    </p>
-                  </div>
-                  <ul className="space-y-3">
-                    {sections.map(({ id, label, description }) => (
-                      <li key={id}>
-                        <button
-                          type="button"
-                          onClick={() => handleScrollTo(id)}
-                          className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
-                            activeSection === id
-                              ? 'border-transparent bg-accent text-black shadow'
-                              : 'border-black/10 bg-white/80 text-gray-800 hover:border-black/30 hover:bg-white'
-                          }`}
-                        >
-                          <span className="block text-sm font-semibold">{label}</span>
-                          <span className="block text-xs text-gray-600">{description}</span>
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-
-                <div className="rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur">
-                  <h3 className="text-lg font-semibold text-gray-900">Recomendaciones para simplificar</h3>
-                  <ul className="mt-4 space-y-3 text-sm text-gray-700">
-                    <li>
-                      Anclá tu modo creativo favorito desde Configuración avanzada para no reconfigurarlo en cada sesión.
-                    </li>
-                    <li>
-                      Divide los ajustes en dos pasadas: primero géneros y tono, luego estructura. Así mantenés cada decisión enfocada.
-                    </li>
-                    <li>
-                      Activá el mapa interactivo cuando vuelvas a la página: conserva tu progreso y te deja retomar donde lo dejaste.
-                    </li>
+                    <li>Si trabajás con capítulos largos, fijá las palabras objetivo para que el modelo mantenga una extensión equilibrada.</li>
                   </ul>
                 </div>
-              </aside>
+                </section>
+              </>
+            )}
+              </div>
+
+              {showAdvancedForm && (
+                <aside className="flex flex-col gap-6">
+                  <nav
+                    aria-label="Mapa de secciones"
+                    className="sticky top-24 space-y-4 rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur"
+                  >
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900">Mapa interactivo</h2>
+                      <p className="text-sm text-gray-600">
+                        Saltá entre las secciones clave sin perder el foco en el contenido que ya completaste.
+                      </p>
+                    </div>
+                    <ul className="space-y-3">
+                      {sections.map(({ id, label, description }) => (
+                        <li key={id}>
+                          <button
+                            type="button"
+                            onClick={() => handleScrollTo(id)}
+                            className={`w-full rounded-2xl border px-4 py-3 text-left transition ${
+                              activeSection === id
+                                ? 'border-transparent bg-accent text-black shadow'
+                                : 'border-black/10 bg-white/80 text-gray-800 hover:border-black/30 hover:bg-white'
+                            }`}
+                          >
+                            <span className="block text-sm font-semibold">{label}</span>
+                            <span className="block text-xs text-gray-600">{description}</span>
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </nav>
+
+                  <div className="rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur">
+                    <h3 className="text-lg font-semibold text-gray-900">Recomendaciones para simplificar</h3>
+                    <ul className="mt-4 space-y-3 text-sm text-gray-700">
+                      <li>
+                        Anclá tu modo creativo favorito desde Configuración avanzada para no reconfigurarlo en cada sesión.
+                      </li>
+                      <li>
+                        Divide los ajustes en dos pasadas: primero géneros y tono, luego estructura. Así mantenés cada decisión enfocada.
+                      </li>
+                      <li>
+                        Activá el mapa interactivo cuando vuelvas a la página: conserva tu progreso y te deja retomar donde lo dejaste.
+                      </li>
+                    </ul>
+                  </div>
+                </aside>
+              )}
             </div>
           </>
         ) : (
