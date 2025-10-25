@@ -139,6 +139,7 @@ const defaults: ConfigGeneracion = {
 
 export default function StoryForm() {
   const t = useTranslations('StoryForm');
+  const menuT = useTranslations('StoryForm.menu');
   const { locale } = useLanguage();
 
   const [userPrompt, setUserPrompt] = useState<string>('');
@@ -179,30 +180,30 @@ export default function StoryForm() {
       [
         {
           id: 'prompt' as SectionId,
-          label: 'Inicio',
-          description: 'Define el punto de partida de tu historia.',
+          label: menuT('sections.prompt.label'),
+          description: menuT('sections.prompt.description'),
           ref: promptRef,
         },
         {
           id: 'genres' as SectionId,
-          label: 'Géneros',
-          description: 'Elige tonos y referencias para la narración.',
+          label: menuT('sections.genres.label'),
+          description: menuT('sections.genres.description'),
           ref: genresRef,
         },
         {
           id: 'structure' as SectionId,
-          label: 'Estructura',
-          description: 'Configura ritmo, capítulos y longitud.',
+          label: menuT('sections.structure.label'),
+          description: menuT('sections.structure.description'),
           ref: structureRef,
         },
         {
           id: 'summary' as SectionId,
-          label: 'Resumen',
-          description: 'Revisa ajustes clave y abre la configuración.',
+          label: menuT('sections.summary.label'),
+          description: menuT('sections.summary.description'),
           ref: summaryRef,
         },
       ],
-    [promptRef, genresRef, structureRef, summaryRef]
+    [menuT, promptRef, genresRef, structureRef, summaryRef]
   );
 
   const [activeSection, setActiveSection] = useState<SectionId>('prompt');
@@ -953,14 +954,12 @@ export default function StoryForm() {
               {showAdvancedForm && (
                 <aside className="flex flex-col gap-6">
                   <nav
-                    aria-label="Mapa de secciones"
+                    aria-label={menuT('ariaLabel')}
                     className="sticky top-24 space-y-4 rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur"
                   >
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900">Mapa interactivo</h2>
-                      <p className="text-sm text-gray-600">
-                        Saltá entre las secciones clave sin perder el foco en el contenido que ya completaste.
-                      </p>
+                      <h2 className="text-lg font-semibold text-gray-900">{menuT('title')}</h2>
+                      <p className="text-sm text-gray-600">{menuT('description')}</p>
                     </div>
                     <ul className="space-y-3">
                       {sections.map(({ id, label, description }) => (

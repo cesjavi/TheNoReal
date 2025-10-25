@@ -5,7 +5,30 @@
     "generatePrompt": "Generate Prompt",
     "createStory": "Create story",
     "sending": "Sending...",
-    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens."
+    "promptTruncated": "Your prompt was truncated to the limit of {limit} tokens.",
+    "menu": {
+      "ariaLabel": "Section map",
+      "title": "Interactive map",
+      "description": "Jump between the key sections without losing sight of what you have already completed.",
+      "sections": {
+        "prompt": {
+          "label": "Start",
+          "description": "Define the starting point of your story."
+        },
+        "genres": {
+          "label": "Genres",
+          "description": "Pick tones and references for the narration."
+        },
+        "structure": {
+          "label": "Structure",
+          "description": "Configure pacing, chapters and length."
+        },
+        "summary": {
+          "label": "Summary",
+          "description": "Review key settings and open the configuration."
+        }
+      }
+    }
   },
   "StorySettings": {
     "save": "Save",
