@@ -5,7 +5,30 @@
     "generatePrompt": "Generar Prompt",
     "createStory": "Crear historia",
     "sending": "Enviando...",
-    "promptTruncated": "Tu prompt fue recortado al límite de {limit} tokens."
+    "promptTruncated": "Tu prompt fue recortado al límite de {limit} tokens.",
+    "menu": {
+      "ariaLabel": "Mapa de secciones",
+      "title": "Mapa interactivo",
+      "description": "Saltá entre las secciones clave sin perder el foco en el contenido que ya completaste.",
+      "sections": {
+        "prompt": {
+          "label": "Inicio",
+          "description": "Define el punto de partida de tu historia."
+        },
+        "genres": {
+          "label": "Géneros",
+          "description": "Elige tonos y referencias para la narración."
+        },
+        "structure": {
+          "label": "Estructura",
+          "description": "Configura ritmo, capítulos y longitud."
+        },
+        "summary": {
+          "label": "Resumen",
+          "description": "Revisa ajustes clave y abre la configuración."
+        }
+      }
+    }
   },
   "StorySettings": {
     "save": "Guardar",
