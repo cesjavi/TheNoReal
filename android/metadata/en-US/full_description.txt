@@ -1,0 +1,12 @@
+The Non Real turns your ideas into interactive fiction powered by generative AI. Start from a single prompt and watch the app spin entire worlds, characters, and twists while you decide how the narrative should evolve.
+
+Design every detail of the experience before you hit "create". Combine genres, adjust tone and pacing, switch narrative voices, and tailor the setting so each chapter feels uniquely yours. Decide whether you want a finite number of chapters, an unexpected ending, or an open saga that keeps expanding.
+
+Key features:
+- Guided editor that helps you craft prompts and story structure with visual sections for genres, style, and pacing.
+- Multiple ending modes (chapters, surprise finale, endless) with customizable decisions per chapter for branching adventures.
+- Fine-grained controls for creativity, language, register, and target length so the output matches your audience.
+- Built-in text-to-speech playback to listen to each chapter hands-free while you follow the action.
+- Multilingual interface that adapts to your device preferences and lets you request stories in Spanish, English, French, and more.
+
+Whether you are prototyping interactive fiction, running a writing workshop, or just exploring surreal storytelling, The Non Real gives you the tools to experiment, iterate, and share your next narrative universe.
