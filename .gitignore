@@ -2,6 +2,7 @@
 
 # dependencies
 /node_modules
+/frontend/node_modules
 /.pnp
 .pnp.*
 .yarn/*
@@ -20,6 +21,8 @@ frontend/.next/
 /.next/cache/
 # production
 /build
+android/capacitor-cordova-android-plugins/.gradle/
+android/capacitor-cordova-android-plugins/build/
 
 # misc
 .DS_Store
