@@ -41,8 +41,7 @@ export default function RootLayout({
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
-          <div className="p-4 flex justify-end">
-            <LanguageSelector />
+          <div className="p-4 flex justify-end">        
           </div>
           {children}
         </LanguageProvider>
