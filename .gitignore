@@ -68,3 +68,5 @@ frontend/out/404.html
 /frontend/.next
 /frontend/out
 /frontend/android/app
+/frontend/.next/cache
+/frontend/.next
