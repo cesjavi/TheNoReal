@@ -25,6 +25,7 @@ export const SUPPORTED = [
 
 type Locale = typeof SUPPORTED[number];
 const DEFAULT_LOCALE: Locale = 'es';
+const STORAGE_KEY = 'preferred-language';
 
 const LanguageContext = createContext<LangContext>({
   locale: DEFAULT_LOCALE,
@@ -49,17 +50,20 @@ function normalizeLocale(tag: string): Locale {
 }
 
 export default function LanguageProvider({ children }: { children: ReactNode }) {
-  // Pedimos el idioma del navegador solo en cliente
-  const initialRequested =
-    typeof navigator !== 'undefined' ? navigator.language : DEFAULT_LOCALE;
-
-  const initialLocale = normalizeLocale(initialRequested);
-
-  const [requestedLocale, setRequestedLocale] = useState<Locale>(initialLocale);
-  const [resolvedLocale, setResolvedLocale] = useState<Locale>(initialLocale);
+  const [requestedLocale, setRequestedLocale] = useState<Locale>(DEFAULT_LOCALE);
+  const [resolvedLocale, setResolvedLocale] = useState<Locale>(DEFAULT_LOCALE);
   const [messages, setMessages] = useState<Messages>({});
   const [loaded, setLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (!stored) return;
+    const normalized = normalizeLocale(stored);
+    setRequestedLocale(normalized);
+    setResolvedLocale(normalized);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -119,6 +123,20 @@ export default function LanguageProvider({ children }: { children: ReactNode }) 
       cancelled = true;
     };
   }, [requestedLocale]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(STORAGE_KEY, requestedLocale);
+    } catch (error) {
+      console.warn('LanguageProvider: no se pudo persistir el idioma preferido.', error);
+    }
+  }, [requestedLocale]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.documentElement.lang = resolvedLocale;
+  }, [resolvedLocale]);
 
   if (!loaded) return null;
 
