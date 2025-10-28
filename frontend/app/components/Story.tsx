@@ -528,14 +528,32 @@ export default function Story({
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <button
-                    onClick={() => handleSpeak(texto)}
-                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-background/70 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                    aria-label={isReading ? t('reading.stop') : t('reading.read')}
-                  >
-                    <span aria-hidden>🔊</span>
-                    {isReading ? t('reading.stop') : t('reading.read')}
-                  </button>
+                  {(() => {
+                    const speakLabel = isReading ? t('reading.stop') : t('reading.read');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleSpeak(texto)}
+                        className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                          isReading
+                            ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
+                            : 'border-accent/40 bg-background/80 text-accent hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30'
+                        }`}
+                        aria-label={speakLabel}
+                        aria-pressed={isReading}
+                      >
+                        <span
+                          aria-hidden
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors ${
+                            isReading ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
+                          }`}
+                        >
+                          {isReading ? '⏹️' : '🔊'}
+                        </span>
+                        <span className="tracking-wide">{speakLabel}</span>
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </article>
