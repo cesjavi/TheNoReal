@@ -209,6 +209,9 @@ export default function Story({
           estilo,
           ajustes: ajustesPayload,
           language,
+          endingMode,
+          chaptersCount,
+          chapterIndex: nextChapter,
           ...(shouldFinalizeNext ? { finalize: true } : {}),
         }),
         signal: controller.signal,
@@ -357,6 +360,9 @@ export default function Story({
           estilo,
           ajustes: ajustesPayload,
           language,
+          endingMode,
+          chaptersCount,
+          chapterIndex: currentChapter + 1,
         }),
         signal: controller.signal,
       });
@@ -512,7 +518,7 @@ export default function Story({
                 {idx > 0 && (
                   <p className="flex items-start gap-2 text-sm text-muted-foreground">
                     <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
-                    <span className="italic">"{choices[idx - 1]}"</span>
+                    <span className="italic">&ldquo;{choices[idx - 1]}&rdquo;</span>
                   </p>
                 )}
 

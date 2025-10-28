@@ -48,6 +48,7 @@ class StoryPayload(BaseModel):
     language: str | None = "es"
     endingMode: str | None = None
     chaptersCount: int | None = None
+    chapterIndex: int | None = None
     finalize: bool = False
 
 
@@ -59,6 +60,24 @@ def _normalize_banned_keywords(values: list[str] | None) -> list[str]:
     if not values:
         return []
     return [str(value).strip() for value in values if str(value).strip()]
+
+
+def _infer_chapter_index(text: str) -> int:
+    normalized = (text or "").replace("\r\n", "\n")
+    stripped = normalized.strip()
+    if not stripped:
+        return 1
+
+    option_lines = re.findall(r"(?m)^\s*>\s", normalized)
+    count = len(option_lines)
+    if count == 0:
+        return 1
+
+    last_line = stripped.splitlines()[-1].lstrip()
+    if last_line.startswith(">"):
+        return max(1, count)
+
+    return max(1, count + 1)
 
 
 @router.post("")
@@ -88,6 +107,7 @@ async def create_story(payload: StoryPayload):
         language = payload.language or "es"
         ending_mode = payload.endingMode
         chapters_count = payload.chaptersCount
+        chapter_index_raw = payload.chapterIndex
         finalize = payload.finalize
 
         is_first_turn = not re.search(r"\n>\s*", story_text)
@@ -95,6 +115,19 @@ async def create_story(payload: StoryPayload):
             return JSONResponse(
                 status_code=400, content={"error": "Missing option", "requestId": request_id}
             )
+
+        if isinstance(chapter_index_raw, int) and chapter_index_raw > 0:
+            chapter_index = chapter_index_raw
+        else:
+            chapter_index = _infer_chapter_index(story_text)
+
+        if isinstance(chapters_count, int):
+            if finalize:
+                chapter_index = min(max(chapter_index, chapters_count), chapters_count)
+            else:
+                chapter_index = max(1, min(chapter_index, chapters_count))
+        else:
+            chapter_index = max(1, chapter_index)
 
         base_temp = limit_temperature(ajustes.temperature) or 0.75
         base_top_p = limit_top_p(ajustes.top_p) or 0.9
@@ -127,11 +160,13 @@ async def create_story(payload: StoryPayload):
         meta_config_lines = [
             f"language={language}",
             f"genres=[{genres_text}]",
+            f"chapter_index={chapter_index}",
         ]
         if ending_mode:
             meta_config_lines.append(f"ending_mode={ending_mode}")
         if isinstance(chapters_count, int):
             meta_config_lines.append(f"chapters_count={chapters_count}")
+            meta_config_lines.append(f"max_chapters={chapters_count}")
         meta_config_lines.append(f"estilo={json.dumps(estilos, ensure_ascii=False)}")
         ajustes_rest = ajustes.model_dump(
             exclude={"evitar", "temperature", "top_p", "targetWords"}, exclude_none=True
