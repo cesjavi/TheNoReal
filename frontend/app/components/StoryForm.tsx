@@ -464,6 +464,7 @@ export default function StoryForm() {
         language: lang,
         endingMode: final,
         chaptersCount: final === 'capitulos' || final === 'final_sorpresa' ? chaptersNum : undefined,
+        chapterIndex: 1,
         finalize: false,
       } as const;
 
