@@ -595,7 +595,7 @@ export default function Story({
               <button
                 onClick={handleFinalize}
                 disabled={loading || finalized}
-                className="rounded-2xl bg-gradient-to-r from-accent to-purple-500 px-5 py-2 text-sm font-semibold text-white shadow-md transition-transform hover:-translate-y-0.5 hover:shadow-lg disabled:opacity-60"
+                className="rounded-2xl border border-accent/40 bg-white px-5 py-2 text-sm font-semibold text-gray-900 shadow-md transition-transform hover:-translate-y-0.5 hover:border-accent/70 hover:bg-accent/10 hover:shadow-lg disabled:opacity-60"
               >
                 {t('finalize')}
               </button>
