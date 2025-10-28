@@ -514,7 +514,7 @@ export default function StoryForm() {
       setTokenCount(0);
       setNumOptions(2);
       setModality('capitulos');
-      setChapters('');
+      setChapters('3');
     } catch (err) {
       console.error('Error al iniciar la historia', err);
       const message = err instanceof Error ? err.message : 'Error al conectar con el servidor';

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import LanguageProvider from "./providers/LanguageProvider";
-import LanguageSelector from "./components/LanguageSelector";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,14 +34,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es">
       <head>
         <meta name="monetag" content="4643aa80204b58950281fa93f7e174b9" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <LanguageProvider>
-          <div className="p-4 flex justify-end">        
-          </div>
           {children}
         </LanguageProvider>
       </body>

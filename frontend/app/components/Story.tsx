@@ -141,10 +141,16 @@ export default function Story({
     [ajustes.idioma, locale]
   );
 
+  const actualChapters = useMemo(
+    () => Math.max(chapters.length - 1, 0),
+    [chapters.length]
+  );
+
   const progress = useMemo(() => {
-    const denom = chaptersCount ? chaptersCount : Math.max(chapters.length, 1);
-    return Math.min(100, Math.round((chapters.length / denom) * 100));
-  }, [chapters.length, chaptersCount]);
+    const denom = chaptersCount ?? Math.max(actualChapters, 1);
+    if (denom === 0) return 0;
+    return Math.min(100, Math.round((actualChapters / denom) * 100));
+  }, [actualChapters, chaptersCount]);
 
   const handleSpeak = (text: string) => {
     if (isReading || window.speechSynthesis.speaking) {
@@ -453,7 +459,7 @@ export default function Story({
                   {t('progress')}
                 </p>
                 <p className="text-lg font-semibold">
-                  Cap. {chapters.length}
+                  Cap. {actualChapters}
                   {chaptersCount ? ` / ${chaptersCount}` : ''}
                 </p>
               </div>
@@ -496,13 +502,17 @@ export default function Story({
         {/* Chapters */}
         <div className="relative space-y-8 pl-6">
           <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-muted-foreground/20 to-transparent" />
-          {chapters.map(({ texto, imageUrl }, idx) => (
+          {chapters.map(({ texto, imageUrl }, idx) => {
+            const isPrompt = idx === 0;
+            const displayLabel = isPrompt ? t('promptLabel') : idx;
+
+            return (
             <article
               key={idx}
               className="relative ml-4 overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
             >
               <div className="absolute -left-8 top-8 flex h-8 w-8 items-center justify-center rounded-full border border-accent/40 bg-background text-sm font-semibold text-accent shadow-md">
-                {idx + 1}
+                {displayLabel}
               </div>
               {imageUrl ? (
                 <div className="overflow-hidden rounded-b-[2.2rem]">
@@ -528,18 +538,37 @@ export default function Story({
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <button
-                    onClick={() => handleSpeak(texto)}
-                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-background/70 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                    aria-label={isReading ? t('reading.stop') : t('reading.read')}
-                  >
-                    <span aria-hidden>🔊</span>
-                    {isReading ? t('reading.stop') : t('reading.read')}
-                  </button>
+                  {(() => {
+                    const speakLabel = isReading ? t('reading.stop') : t('reading.read');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleSpeak(texto)}
+                        className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                          isReading
+                            ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
+                            : 'border-accent/40 bg-background/80 text-slate-900 hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30 dark:text-slate-100'
+                        }`}
+                        aria-label={speakLabel}
+                        aria-pressed={isReading}
+                      >
+                        <span
+                          aria-hidden
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors ${
+                            isReading ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
+                          }`}
+                        >
+                          {isReading ? '⏹️' : '🔊'}
+                        </span>
+                        <span className="tracking-wide">{speakLabel}</span>
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </article>
-          ))}
+          );
+          })}
         </div>
 
         {/* Opciones */}
