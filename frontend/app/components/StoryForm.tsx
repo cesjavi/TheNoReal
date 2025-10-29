@@ -525,14 +525,14 @@ export default function StoryForm() {
   };
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
+    <main className="relative min-h-screen w-full overflow-hidden px-4 pb-16 pt-8 sm:px-6 lg:px-10">
       {topSvg && (
         <img
           src={topSvg}
           style={{ animationDelay: topDelay }}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute left-1/2 top-0 h-72 w-[520px] -translate-x-1/2 opacity-40"
+          className="pointer-events-none absolute left-1/2 top-0 h-64 w-[460px] -translate-x-1/2 opacity-35 sm:h-72 sm:w-[520px]"
         />
       )}
 
@@ -542,14 +542,14 @@ export default function StoryForm() {
           style={{ animationDelay: bottomDelay }}
           alt=""
           aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-0 h-48 w-full opacity-60"
+          className="pointer-events-none absolute bottom-0 left-0 h-40 w-full opacity-55 sm:h-48"
         />
       )}
 
       <div className="relative z-10 mx-auto w-full max-w-6xl">
         {!initialStory ? (
           <>
-            <header className="mb-10 rounded-3xl bg-white/70 p-6 shadow-xl backdrop-blur">
+            <header className="mb-10 rounded-3xl bg-white/70 p-5 shadow-xl backdrop-blur sm:p-6">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
                 <div className="space-y-2">
                   <p className="text-sm uppercase tracking-[0.2em] text-gray-600">Narrativa asistida</p>
@@ -576,7 +576,7 @@ export default function StoryForm() {
             </header>
 
             <div
-              className={`grid grid-cols-1 gap-8 ${
+              className={`grid grid-cols-1 gap-6 sm:gap-8 ${
                 showAdvancedForm ? 'lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]' : ''
               }`}
             >
@@ -584,9 +584,9 @@ export default function StoryForm() {
                 <section
                   ref={promptRef}
                   id="prompt"
-                  className="scroll-mt-28 rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm"
+                  className="scroll-mt-28 rounded-3xl bg-white/75 p-5 shadow-md backdrop-blur-sm sm:p-6"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Inicio de la historia</h2>
                       <p className="text-sm text-gray-600">
@@ -663,7 +663,7 @@ export default function StoryForm() {
                   </div>
                 </section>
 
-                <section className="rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm">
+                <section className="rounded-3xl bg-white/75 p-5 shadow-md backdrop-blur-sm sm:p-6">
                   <div className="flex flex-col gap-4">
                     <button
                       onClick={handleSubmit}
@@ -712,9 +712,9 @@ export default function StoryForm() {
                 <section
                   ref={genresRef}
                   id="genres"
-                  className="scroll-mt-28 rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm"
+                  className="scroll-mt-28 rounded-3xl bg-white/75 p-5 shadow-md backdrop-blur-sm sm:p-6"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Géneros e inspiración visual</h2>
                       <p className="text-sm text-gray-600">
@@ -726,7 +726,7 @@ export default function StoryForm() {
                     </span>
                   </div>
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 sm:grid-cols-3">
                       {GENRES.map((genre) => {
                         const selected = config.generos.includes(genre);
                         return (
@@ -786,7 +786,7 @@ export default function StoryForm() {
                     </div>
 
                     {config.generos.length > 0 && (
-                      <div className="rounded-2xl border border-black/10 bg-white/60 p-4">
+                      <div className="rounded-2xl border border-black/10 bg-white/60 p-4 sm:p-5">
                         <p className="mb-2 text-sm font-medium text-gray-700">Géneros seleccionados</p>
                         <div className="flex flex-wrap gap-2">
                           {config.generos.map((genre) => (
@@ -817,9 +817,9 @@ export default function StoryForm() {
                 <section
                   ref={structureRef}
                   id="structure"
-                  className="scroll-mt-28 rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm"
+                  className="scroll-mt-28 rounded-3xl bg-white/75 p-5 shadow-md backdrop-blur-sm sm:p-6"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Estructura y decisiones</h2>
                       <p className="text-sm text-gray-600">
@@ -830,8 +830,8 @@ export default function StoryForm() {
                       Paso 3
                     </span>
                   </div>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
+                  <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
+                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700 sm:p-5">
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Opciones por decisión</span>
                       <input
                         id="numOptions"
@@ -844,7 +844,7 @@ export default function StoryForm() {
                       />
                     </label>
 
-                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
+                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700 sm:p-5">
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Modalidad de final</span>
                       <select
                         id="modality"
@@ -860,7 +860,7 @@ export default function StoryForm() {
                     </label>
 
                     {showChapters && (
-                      <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
+                      <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700 sm:p-5">
                         <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Capítulos</span>
                         <input
                           id="chapters"
@@ -874,7 +874,7 @@ export default function StoryForm() {
                       </label>
                     )}
 
-                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
+                    <label className="flex flex-col gap-2 rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700 sm:p-5">
                       <span className="text-xs font-semibold uppercase tracking-wide text-gray-500">Palabras objetivo</span>
                       <input
                         id="targetWords"
@@ -888,7 +888,7 @@ export default function StoryForm() {
                     </label>
                   </div>
 
-                  <p className="mt-4 rounded-2xl border border-dashed border-accent/40 bg-accent/10 p-4 text-sm text-gray-700">
+                  <p className="mt-4 rounded-2xl border border-dashed border-accent/40 bg-accent/10 p-4 text-sm text-gray-700 sm:p-5">
                     {MODALITY_HELP[modality]}
                   </p>
                 </section>
@@ -896,9 +896,9 @@ export default function StoryForm() {
                 <section
                   ref={summaryRef}
                   id="summary"
-                  className="scroll-mt-28 rounded-3xl bg-white/75 p-6 shadow-md backdrop-blur-sm"
+                  className="scroll-mt-28 rounded-3xl bg-white/75 p-5 shadow-md backdrop-blur-sm sm:p-6"
                 >
-                  <div className="mb-4 flex items-center justify-between gap-4">
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <h2 className="text-xl font-semibold text-gray-900">Resumen y ajustes rápidos</h2>
                       <p className="text-sm text-gray-600">
@@ -938,7 +938,7 @@ export default function StoryForm() {
                     </div>
                   )}
 
-                  <div className="rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700">
+                  <div className="rounded-2xl border border-black/10 bg-white/60 p-4 text-sm text-gray-700 sm:p-5">
                     <p className="mb-3 font-medium text-gray-800">Consejos de navegación rápida</p>
                     <ul className="list-disc space-y-2 pl-5">
                       <li>Guardá tus combinaciones favoritas en la configuración y reutilizalas desde las chips destacadas.</li>
@@ -952,10 +952,10 @@ export default function StoryForm() {
               </div>
 
               {showAdvancedForm && (
-                <aside className="flex flex-col gap-6">
+                <aside className="flex flex-col gap-5">
                   <nav
                     aria-label="Mapa de secciones"
-                    className="sticky top-24 space-y-4 rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur"
+                    className="sticky top-24 space-y-4 rounded-3xl bg-white/70 p-5 shadow-lg backdrop-blur sm:p-6"
                   >
                     <div>
                       <h2 className="text-lg font-semibold text-gray-900">Mapa interactivo</h2>
@@ -983,7 +983,7 @@ export default function StoryForm() {
                     </ul>
                   </nav>
 
-                  <div className="rounded-3xl bg-white/70 p-6 shadow-lg backdrop-blur">
+                  <div className="rounded-3xl bg-white/70 p-5 shadow-lg backdrop-blur sm:p-6">
                     <h3 className="text-lg font-semibold text-gray-900">Recomendaciones para simplificar</h3>
                     <ul className="mt-4 space-y-3 text-sm text-gray-700">
                       <li>
@@ -1002,7 +1002,7 @@ export default function StoryForm() {
             </div>
           </>
         ) : (
-          <div className="rounded-3xl bg-white/70 p-4 shadow-xl backdrop-blur">
+          <div className="rounded-3xl bg-white/70 p-4 shadow-xl backdrop-blur sm:p-5">
             {storyConfig && (
               <Story
                 userPrompt={userPrompt}
