@@ -14,6 +14,7 @@
   "Story": {
     "immersiveExperience": "Expérience immersive",
     "progress": "Progression",
+    "promptLabel": "Début",
     "chooseContinuation": "Choose how it continues:",
     "suggestion": "Suggestion #{index}",
     "finalized": "The story has finished. You can download it or return to the start.",
