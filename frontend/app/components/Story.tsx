@@ -141,10 +141,16 @@ export default function Story({
     [ajustes.idioma, locale]
   );
 
+  const actualChapters = useMemo(
+    () => Math.max(chapters.length - 1, 0),
+    [chapters.length]
+  );
+
   const progress = useMemo(() => {
-    const denom = chaptersCount ? chaptersCount : Math.max(chapters.length, 1);
-    return Math.min(100, Math.round((chapters.length / denom) * 100));
-  }, [chapters.length, chaptersCount]);
+    const denom = chaptersCount ?? Math.max(actualChapters, 1);
+    if (denom === 0) return 0;
+    return Math.min(100, Math.round((actualChapters / denom) * 100));
+  }, [actualChapters, chaptersCount]);
 
   const handleSpeak = (text: string) => {
     if (isReading || window.speechSynthesis.speaking) {
@@ -425,14 +431,14 @@ export default function Story({
   };
 
   return (
-    <div className="relative">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-80 bg-gradient-to-b from-accent/20 via-background to-background" />
-      <div className="pointer-events-none absolute -right-10 top-32 -z-10 h-56 w-56 rounded-full bg-gradient-to-br from-accent/10 via-transparent to-transparent blur-3xl" />
-      <div className="pointer-events-none absolute -left-10 top-64 -z-10 h-60 w-60 rounded-full bg-gradient-to-br from-purple-300/30 via-transparent to-transparent blur-3xl" />
+    <div className="relative overflow-hidden">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-accent/15 via-background to-background" />
+      <div className="pointer-events-none absolute -right-14 top-32 -z-10 h-48 w-48 rounded-full bg-gradient-to-br from-accent/15 via-transparent to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -left-16 top-64 -z-10 h-52 w-52 rounded-full bg-gradient-to-br from-purple-300/25 via-transparent to-transparent blur-3xl" />
 
-      <div className="relative mx-auto max-w-3xl px-4 py-10">
+      <div className="relative mx-auto w-full max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 overflow-hidden rounded-3xl border bg-background/70 p-6 shadow-xl shadow-accent/10 backdrop-blur">
+        <div className="mb-8 overflow-hidden rounded-3xl border bg-background/70 p-5 shadow-xl shadow-accent/10 backdrop-blur sm:p-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -442,8 +448,8 @@ export default function Story({
                 Historia interactiva
               </h1>
             </div>
-            <div className="flex items-center gap-4 rounded-2xl border bg-card/60 p-4 shadow-inner">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+            <div className="flex items-center gap-4 rounded-2xl border bg-card/60 p-3 shadow-inner sm:p-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent sm:h-14 sm:w-14">
                 <span className="text-2xl" aria-hidden>
                   ✨
                 </span>
@@ -453,7 +459,7 @@ export default function Story({
                   {t('progress')}
                 </p>
                 <p className="text-lg font-semibold">
-                  Cap. {chapters.length}
+                  Cap. {actualChapters}
                   {chaptersCount ? ` / ${chaptersCount}` : ''}
                 </p>
               </div>
@@ -494,16 +500,20 @@ export default function Story({
         )}
 
         {/* Chapters */}
-        <div className="relative space-y-8 pl-6">
-          <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-muted-foreground/20 to-transparent" />
-          {chapters.map(({ texto, imageUrl }, idx) => (
-            <article
-              key={idx}
-              className="relative ml-4 overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-            >
-              <div className="absolute -left-8 top-8 flex h-8 w-8 items-center justify-center rounded-full border border-accent/40 bg-background text-sm font-semibold text-accent shadow-md">
-                {idx + 1}
-              </div>
+        <div className="relative space-y-6 pl-5 sm:space-y-8 sm:pl-7">
+          <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-muted-foreground/20 to-transparent sm:left-3" />
+          {chapters.map(({ texto, imageUrl }, idx) => {
+            const isPrompt = idx === 0;
+            const displayLabel = isPrompt ? t('promptLabel') : idx;
+
+            return (
+              <article
+                key={idx}
+                className="relative ml-6 overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:ml-8"
+              >
+                <div className="absolute left-0 top-8 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-accent/40 bg-background text-sm font-semibold text-accent shadow-md sm:-left-8 sm:translate-x-0">
+                  {displayLabel}
+                </div>
               {imageUrl ? (
                 <div className="overflow-hidden rounded-b-[2.2rem]">
                   <img
@@ -514,7 +524,7 @@ export default function Story({
                 </div>
               ) : null}
 
-              <div className="space-y-4 px-6 py-7">
+              <div className="space-y-4 px-5 py-6 sm:px-6 sm:py-7">
                 {idx > 0 && (
                   <p className="flex items-start gap-2 text-sm text-muted-foreground">
                     <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
@@ -528,27 +538,46 @@ export default function Story({
                 </div>
 
                 <div className="flex flex-wrap gap-2 pt-1">
-                  <button
-                    onClick={() => handleSpeak(texto)}
-                    className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-background/70 px-3 py-1.5 text-sm font-medium text-accent transition-colors hover:bg-accent/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40"
-                    aria-label={isReading ? t('reading.stop') : t('reading.read')}
-                  >
-                    <span aria-hidden>🔊</span>
-                    {isReading ? t('reading.stop') : t('reading.read')}
-                  </button>
+                  {(() => {
+                    const speakLabel = isReading ? t('reading.stop') : t('reading.read');
+                    return (
+                      <button
+                        type="button"
+                        onClick={() => handleSpeak(texto)}
+                        className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+                          isReading
+                            ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
+                            : 'border-accent/40 bg-background/80 text-slate-900 hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30 dark:text-slate-100'
+                        }`}
+                        aria-label={speakLabel}
+                        aria-pressed={isReading}
+                      >
+                        <span
+                          aria-hidden
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors ${
+                            isReading ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
+                          }`}
+                        >
+                          {isReading ? '⏹️' : '🔊'}
+                        </span>
+                        <span className="tracking-wide">{speakLabel}</span>
+                      </button>
+                    );
+                  })()}
                 </div>
               </div>
             </article>
-          ))}
+          );
+          })}
         </div>
 
         {/* Opciones */}
         {options.length > 0 && (
-          <div className="mt-12 rounded-3xl border bg-background/80 p-6 shadow-lg shadow-accent/10">
+          <div className="mt-10 rounded-3xl border bg-background/80 p-5 shadow-lg shadow-accent/10 sm:mt-12 sm:p-6">
             <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               {t('chooseContinuation')}
             </h2>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {options.map((opt, idx) => (
                 <button
                   key={`${idx}-${opt}`}
@@ -581,27 +610,27 @@ export default function Story({
         )}
 
         {/* Barra de acciones sticky */}
-        <div className="sticky bottom-6 mt-12">
-          <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 rounded-3xl border border-accent/20 bg-background/80 p-3 shadow-2xl shadow-accent/10 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="sticky bottom-6 mt-10">
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-accent/20 bg-background/85 p-3 shadow-2xl shadow-accent/10 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:flex-nowrap">
             <button
               onClick={handleBack}
               disabled={loading}
-              className="rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
+              className="flex-1 rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 sm:flex-none"
             >
               {t('back')}
             </button>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-1 flex-wrap items-center gap-2 sm:flex-none">
               <button
                 onClick={handleDownload}
                 disabled={loading}
-                className="rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50"
+                className="flex-1 rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 sm:flex-none"
               >
                 {t('download')}
               </button>
               <button
                 onClick={handleFinalize}
                 disabled={loading || finalized}
-                className="rounded-2xl border border-accent/40 bg-white px-5 py-2 text-sm font-semibold text-gray-900 shadow-md transition-transform hover:-translate-y-0.5 hover:border-accent/70 hover:bg-accent/10 hover:shadow-lg disabled:opacity-60"
+                className="flex-1 rounded-2xl border border-accent/40 bg-white px-5 py-2 text-sm font-semibold text-gray-900 shadow-md transition-transform hover:-translate-y-0.5 hover:border-accent/70 hover:bg-accent/10 hover:shadow-lg disabled:opacity-60 sm:flex-none"
               >
                 {t('finalize')}
               </button>

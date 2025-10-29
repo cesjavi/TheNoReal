@@ -14,6 +14,7 @@
   "Story": {
     "immersiveExperience": "Immersive experience",
     "progress": "Progress",
+    "promptLabel": "Start",
     "chooseContinuation": "Choose how it continues:",
     "suggestion": "Suggestion #{index}",
     "finalized": "The story has finished. You can download it or return to the start.",
@@ -26,10 +27,5 @@
     },
     "generating": "Generating content…",
     "regeneratingOptions": "Regenerating options…"
-  },
-  "LanguageSelector": {
-    "selectLanguage": "Select language",
-    "english": "English",
-    "spanish": "Spanish"
   }
 }

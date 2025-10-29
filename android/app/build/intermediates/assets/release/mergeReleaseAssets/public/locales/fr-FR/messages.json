@@ -26,10 +26,5 @@
     },
     "generating": "Generating content…",
     "regeneratingOptions": "Regenerating options…"
-  },
-  "LanguageSelector": {
-    "selectLanguage": "Select language",
-    "english": "English",
-    "spanish": "Spanish"
   }
 }
