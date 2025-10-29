@@ -76,3 +76,8 @@ textarea::placeholder {
   animation: splash-pulse 3s ease-in-out infinite;
 }
 
+/* Oculta el selector de idioma del layout principal */
+#language-select {
+  display: none !important;
+}
+
