@@ -533,7 +533,7 @@ export default function Story({
                 )}
 
                 {/* Texto del capítulo */}
-                <div className="prose prose-invert max-w-none leading-relaxed">
+                <div className="prose max-w-none leading-relaxed dark:prose-invert">
                   <p className="whitespace-pre-line text-base text-foreground/90">{texto}</p>
                 </div>
 
