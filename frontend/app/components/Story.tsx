@@ -431,31 +431,31 @@ export default function Story({
   };
 
   return (
-    <div className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-accent/15 via-background to-background" />
-      <div className="pointer-events-none absolute -right-14 top-32 -z-10 h-48 w-48 rounded-full bg-gradient-to-br from-accent/15 via-transparent to-transparent blur-3xl" />
-      <div className="pointer-events-none absolute -left-16 top-64 -z-10 h-52 w-52 rounded-full bg-gradient-to-br from-purple-300/25 via-transparent to-transparent blur-3xl" />
+    <div className="relative overflow-hidden bg-slate-50 text-slate-900">
+      <div className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-72 bg-gradient-to-b from-accent/10 via-white to-white" />
+      <div className="pointer-events-none absolute -right-14 top-32 -z-10 h-48 w-48 rounded-full bg-gradient-to-br from-accent/20 via-transparent to-transparent blur-3xl" />
+      <div className="pointer-events-none absolute -left-16 top-64 -z-10 h-52 w-52 rounded-full bg-gradient-to-br from-purple-200/30 via-transparent to-transparent blur-3xl" />
 
       <div className="relative mx-auto w-full max-w-4xl px-4 pb-16 pt-8 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="mb-8 overflow-hidden rounded-3xl border bg-background/70 p-5 shadow-xl shadow-accent/10 backdrop-blur sm:p-6">
+        <div className="mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-xl shadow-accent/10 sm:p-6">
           <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-2">
-              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-600">
                 {t('immersiveExperience')}
               </p>
               <h1 className="text-2xl font-semibold tracking-tight md:text-3xl">
                 Historia interactiva
               </h1>
             </div>
-            <div className="flex items-center gap-4 rounded-2xl border bg-card/60 p-3 shadow-inner sm:p-4">
+            <div className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-3 shadow-inner sm:p-4">
               <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent sm:h-14 sm:w-14">
                 <span className="text-2xl" aria-hidden>
                   ✨
                 </span>
               </div>
               <div>
-                <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-600">
                   {t('progress')}
                 </p>
                 <p className="text-lg font-semibold">
@@ -480,7 +480,7 @@ export default function Story({
               {genres.map((g) => (
                 <span
                   key={g}
-                  className="rounded-full border border-accent/40 bg-accent/5 px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm"
+                  className="rounded-full border border-accent/40 bg-accent/5 px-3 py-1 text-xs font-medium text-slate-700 shadow-sm"
                 >
                   {g}
                 </span>
@@ -501,7 +501,7 @@ export default function Story({
 
         {/* Chapters */}
         <div className="relative space-y-6 pl-5 sm:space-y-8 sm:pl-7">
-          <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-muted-foreground/20 to-transparent sm:left-3" />
+          <div className="absolute left-2 top-4 bottom-6 w-px bg-gradient-to-b from-accent/60 via-slate-300/50 to-transparent sm:left-3" />
           {chapters.map(({ texto, imageUrl }, idx) => {
             const isPrompt = idx === 0;
             const displayLabel = isPrompt ? t('promptLabel') : idx;
@@ -509,61 +509,61 @@ export default function Story({
             return (
               <article
                 key={idx}
-                className="relative ml-6 overflow-hidden rounded-3xl border border-border/60 bg-card/80 shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:ml-8"
+                className="relative ml-6 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg shadow-accent/5 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl sm:ml-8"
               >
-                <div className="absolute left-0 top-8 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-accent/40 bg-background text-sm font-semibold text-accent shadow-md sm:-left-8 sm:translate-x-0">
+                <div className="absolute left-0 top-8 flex h-8 w-8 -translate-x-1/2 items-center justify-center rounded-full border border-accent/40 bg-white text-sm font-semibold text-accent shadow-md sm:-left-8 sm:translate-x-0">
                   {displayLabel}
                 </div>
-              {imageUrl ? (
-                <div className="overflow-hidden rounded-b-[2.2rem]">
-                  <img
-                    src={imageUrl}
-                    alt={`Ilustración capítulo ${idx + 1}`}
-                    className="h-56 w-full object-cover"
-                  />
-                </div>
-              ) : null}
+                {imageUrl ? (
+                  <div className="overflow-hidden rounded-b-[2.2rem]">
+                    <img
+                      src={imageUrl}
+                      alt={`Ilustración capítulo ${idx + 1}`}
+                      className="h-56 w-full object-cover"
+                    />
+                  </div>
+                ) : null}
 
-              <div className="space-y-4 px-5 py-6 sm:px-6 sm:py-7">
-                {idx > 0 && (
-                  <p className="flex items-start gap-2 text-sm text-muted-foreground">
-                    <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
-                    <span className="italic">&ldquo;{choices[idx - 1]}&rdquo;</span>
-                  </p>
-                )}
+                <div className="space-y-4 px-5 py-6 sm:px-6 sm:py-7">
+                  {idx > 0 && (
+                    <p className="flex items-start gap-2 text-sm text-slate-600">
+                      <span className="mt-0.5 select-none text-lg text-accent/80">↳</span>
+                      <span className="italic text-slate-700">&ldquo;{choices[idx - 1]}&rdquo;</span>
+                    </p>
+                  )}
 
-                {/* Texto del capítulo */}
-                <div className="prose max-w-none leading-relaxed dark:prose-invert">
-                  <p className="whitespace-pre-line text-base text-foreground/90">{texto}</p>
-                </div>
+                  {/* Texto del capítulo */}
+                  <div className="prose max-w-none leading-relaxed">
+                    <p className="whitespace-pre-line text-base text-slate-900">{texto}</p>
+                  </div>
 
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {(() => {
-                    const speakLabel = isReading ? t('reading.stop') : t('reading.read');
-                    return (
-                      <button
-                        type="button"
-                        onClick={() => handleSpeak(texto)}
-                        className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-                          isReading
-                            ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
-                            : 'border-accent/40 bg-background/80 text-slate-900 hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30 dark:text-slate-100'
-                        }`}
-                        aria-label={speakLabel}
-                        aria-pressed={isReading}
-                      >
-                        <span
-                          aria-hidden
-                          className={`flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors ${
-                            isReading ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {(() => {
+                      const speakLabel = isReading ? t('reading.stop') : t('reading.read');
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handleSpeak(texto)}
+                          className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 ${
+                            isReading
+                              ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
+                              : 'border-accent/40 bg-white text-slate-900 hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30'
                           }`}
+                          aria-label={speakLabel}
+                          aria-pressed={isReading}
                         >
-                          {isReading ? '⏹️' : '🔊'}
-                        </span>
-                        <span className="tracking-wide">{speakLabel}</span>
-                      </button>
-                    );
-                  })()}
+                          <span
+                            aria-hidden
+                            className={`flex h-8 w-8 items-center justify-center rounded-full text-base transition-colors ${
+                              isReading ? 'bg-white/20 text-white' : 'bg-accent/10 text-accent'
+                            }`}
+                          >
+                            {isReading ? '⏹️' : '🔊'}
+                          </span>
+                          <span className="tracking-wide">{speakLabel}</span>
+                        </button>
+                      );
+                    })()}
                 </div>
               </div>
             </article>
@@ -573,8 +573,8 @@ export default function Story({
 
         {/* Opciones */}
         {options.length > 0 && (
-          <div className="mt-10 rounded-3xl border bg-background/80 p-5 shadow-lg shadow-accent/10 sm:mt-12 sm:p-6">
-            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="mt-10 rounded-3xl border border-slate-200 bg-white p-5 shadow-lg shadow-accent/10 sm:mt-12 sm:p-6">
+            <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.2em] text-slate-600">
               {t('chooseContinuation')}
             </h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -583,13 +583,13 @@ export default function Story({
                   key={`${idx}-${opt}`}
                   onClick={() => handleSelect(opt)}
                   disabled={loading || finalized}
-                  className="group relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-background via-background to-accent/5 px-4 py-4 text-left text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-lg disabled:opacity-60"
+                  className="group relative overflow-hidden rounded-2xl border border-accent/30 bg-gradient-to-br from-white via-slate-50 to-accent/10 px-4 py-4 text-left text-sm shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/60 hover:shadow-lg disabled:opacity-60"
                 >
                   <span className="absolute right-4 top-4 text-xs font-semibold text-accent/70">
                     #{idx + 1}
                   </span>
-                  <span className="block font-semibold text-foreground/90">{opt}</span>
-                  <span className="mt-2 block text-xs text-muted-foreground">
+                  <span className="block font-semibold text-slate-900">{opt}</span>
+                  <span className="mt-2 block text-xs text-slate-600">
                     {t('suggestion', { index: idx + 1 })}
                   </span>
                   <span
@@ -604,18 +604,18 @@ export default function Story({
 
         {/* Estado finalizado */}
         {finalized && (
-          <div className="mt-8 rounded-3xl border border-accent/60 bg-white p-5 text-sm font-semibold text-foreground shadow-lg shadow-accent/15 dark:bg-zinc-900 dark:text-zinc-100">
+          <div className="mt-8 rounded-3xl border border-accent/60 bg-white p-5 text-sm font-semibold text-slate-900 shadow-lg shadow-accent/15">
             {t('finalized')}
           </div>
         )}
 
         {/* Barra de acciones sticky */}
         <div className="sticky bottom-6 mt-10">
-          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-accent/20 bg-background/85 p-3 shadow-2xl shadow-accent/10 backdrop-blur supports-[backdrop-filter]:bg-background/60 sm:flex-nowrap">
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3 rounded-3xl border border-accent/20 bg-white/90 p-3 shadow-2xl shadow-accent/10 backdrop-blur supports-[backdrop-filter]:bg-white/70 sm:flex-nowrap">
             <button
               onClick={handleBack}
               disabled={loading}
-              className="flex-1 rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 sm:flex-none"
+              className="flex-1 rounded-2xl border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50 sm:flex-none"
             >
               {t('back')}
             </button>
@@ -623,7 +623,7 @@ export default function Story({
               <button
                 onClick={handleDownload}
                 disabled={loading}
-                className="flex-1 rounded-2xl border border-border/60 px-5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 disabled:opacity-50 sm:flex-none"
+                className="flex-1 rounded-2xl border border-slate-200 px-5 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100 disabled:opacity-50 sm:flex-none"
               >
                 {t('download')}
               </button>
@@ -644,7 +644,7 @@ export default function Story({
             className="fixed inset-x-0 bottom-24 flex justify-center"
             style={{ pointerEvents: 'none' }}
           >
-            <div className="animate-pulse rounded-full border border-accent/30 bg-background/80 px-3 py-1 text-xs text-muted-foreground backdrop-blur">
+            <div className="animate-pulse rounded-full border border-accent/30 bg-white/90 px-3 py-1 text-xs text-slate-700 backdrop-blur">
               {regeneratingOptions ? t('regeneratingOptions') : t('generating')}
             </div>
           </div>
