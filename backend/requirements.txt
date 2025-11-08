@@ -4,3 +4,4 @@ pydantic-settings
 groq
 httpx
 mangum
+uvicorn
