@@ -8,6 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Response
 from fastapi.responses import JSONResponse
+from groq import APIError
 from pydantic import BaseModel, Field
 
 from app.services.completion_utils import extract_message_content
@@ -27,10 +28,6 @@ class ImprovePayload(BaseModel):
     prompt: str = Field(..., description="Prompt existente que se desea mejorar")
 
 
-def _ensure_api_key() -> bool:
-    return bool(os.getenv("GROQ_API_KEY"))
-
-
 @router.options("")
 @router.options("/{_path:path}")
 async def handle_preflight(_path: str | None = None) -> Response:
@@ -40,9 +37,6 @@ async def handle_preflight(_path: str | None = None) -> Response:
 
 @router.post("/generate")
 async def generate_prompt(payload: GeneratePayload):
-    if not _ensure_api_key():
-        return JSONResponse(status_code=400, content={"error": "GROQ_API_KEY is not configured"})
-
     params = {
         "model": DEFAULT_MODEL,
         "messages": [
@@ -56,18 +50,20 @@ async def generate_prompt(payload: GeneratePayload):
             {"role": "user", "content": json.dumps(payload.config, ensure_ascii=False)},
         ],
     }
-    completion = await run_chat_completion(params)
-    prompt = extract_message_content(completion)
-    if not prompt:
-        logger.error("Empty response from model during prompt generation")
-        return JSONResponse(status_code=502, content={"error": "Empty response from model"})
-    return {"prompt": prompt}
+    try:
+        completion = await run_chat_completion(params)
+        prompt = extract_message_content(completion)
+        if not prompt:
+            logger.error("Empty response from model during prompt generation")
+            return JSONResponse(status_code=502, content={"error": "Empty response from model"})
+        return {"prompt": prompt}
+    except (APIError, RuntimeError) as e:
+        logger.error("Error during prompt generation: %s", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
 
 
 @router.post("/improve")
 async def improve_prompt(payload: ImprovePayload):
-    if not _ensure_api_key():
-        return JSONResponse(status_code=400, content={"error": "GROQ_API_KEY is not configured"})
     if not isinstance(payload.prompt, str) or not payload.prompt.strip():
         return JSONResponse(status_code=400, content={"error": "prompt is required"})
 
@@ -84,9 +80,13 @@ async def improve_prompt(payload: ImprovePayload):
             {"role": "user", "content": payload.prompt},
         ],
     }
-    completion = await run_chat_completion(params)
-    improved = extract_message_content(completion)
-    if not improved:
-        logger.error("Empty response from model during prompt improvement")
-        return JSONResponse(status_code=502, content={"error": "Empty response from model"})
-    return {"prompt": improved}
+    try:
+        completion = await run_chat_completion(params)
+        improved = extract_message_content(completion)
+        if not improved:
+            logger.error("Empty response from model during prompt improvement")
+            return JSONResponse(status_code=502, content={"error": "Empty response from model"})
+        return {"prompt": improved}
+    except (APIError, RuntimeError) as e:
+        logger.error("Error during prompt improvement: %s", e)
+        return JSONResponse(status_code=500, content={"error": str(e)})
