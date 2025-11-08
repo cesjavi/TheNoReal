@@ -671,4 +671,57 @@ class Handler(BaseHTTPRequestHandler):
             logger.error(f"Error generating options: {e}")
             self._send_json({"error": str(e)}, 500)
             
-handler = Handler
+def handler(request):
+    """Vercel Python adapter for BaseHTTPRequestHandler"""
+    from io import BytesIO
+    import json
+
+    # Fake minimal response object for Vercel
+    class Response:
+        def __init__(self):
+            self.status_code = 200
+            self.headers = {}
+            self.body = BytesIO()
+
+        def write(self, data):
+            if isinstance(data, (dict, list)):
+                data = json.dumps(data)
+            if isinstance(data, str):
+                data = data.encode("utf-8")
+            self.body.write(data)
+
+    response = Response()
+
+    # Simple routing
+    path = request.path
+    if path == "/api/health":
+        response.write({"ok": True})
+    elif path == "/api/backgrounds":
+        response.write({
+            "backgrounds": [
+                {"id": "bg1", "url": "/backgrounds/default.jpg", "name": "Default"},
+                {"id": "bg2", "url": "/backgrounds/space.jpg", "name": "Space"},
+                {"id": "bg3", "url": "/backgrounds/forest.jpg", "name": "Forest"},
+            ]
+        })
+    elif path == "/api/story":
+        try:
+            body = json.loads(request.body or "{}")
+            story_text = body.get("story", "")
+            if not story_text:
+                raise ValueError("story vacío")
+            result = {
+                "chapter": {
+                    "text": f"Capítulo inicial: {story_text}",
+                    "options": ["Continuar explorando", "Buscar una nueva galaxia"]
+                }
+            }
+            response.write(result)
+        except Exception as e:
+            response.status_code = 500
+            response.write({"error": str(e)})
+    else:
+        response.status_code = 404
+        response.write({"detail": "Not Found"})
+
+    return response
