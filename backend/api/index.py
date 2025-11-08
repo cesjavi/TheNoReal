@@ -670,3 +670,5 @@ class Handler(BaseHTTPRequestHandler):
         except Exception as e:
             logger.error(f"Error generating options: {e}")
             self._send_json({"error": str(e)}, 500)
+            
+handler = Handler

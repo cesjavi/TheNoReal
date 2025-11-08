@@ -485,6 +485,7 @@ export default function StoryForm() {
           const record = data as Record<string, unknown>;
           if (typeof record.error === 'string') {
             errMsg = record.error;
+            console.error('API error message:', errMsg);
           }
         }
         throw new Error(errMsg);
