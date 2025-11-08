@@ -63,6 +63,8 @@ app.include_router(prompt.router)
 app.include_router(story.router)
 app.include_router(options.router)
 app.include_router(backgrounds.router)
+app.include_router(story.router, prefix="/api")
+app.include_router(backgrounds.router, prefix="/api")
 
 
 @app.get("/", tags=["meta"])
