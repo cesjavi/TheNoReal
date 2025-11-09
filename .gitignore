@@ -80,3 +80,4 @@ frontend/.env.local
 frontend/.env.example
 /frontend/.next
 frontend/.env.local
+frontend/.env.local
