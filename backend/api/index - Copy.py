@@ -34,7 +34,7 @@ async def any_options(full_path: str):
     })
 
 @app.get("/api/ping")
-async def ping():
+async def ping():xcvzxcvzxcv zxc v
     return JSONResponse({"pong": True})
 
 @app.get("/api/backgrounds")
