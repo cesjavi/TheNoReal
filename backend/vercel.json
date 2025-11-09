@@ -1,8 +1,7 @@
 {
-  "builds": [
-    { "src": "api/**/*.py", "use": "@vercel/python" }
-  ],
-  "routes": [
-    { "src": "/(.*)", "dest": "/api/index.py" }
-  ]
+  "functions": {
+    "api/index.py": {
+      "runtime": "python3.9"
+    }
+  }
 }
