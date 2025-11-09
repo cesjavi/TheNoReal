@@ -9,6 +9,16 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.routes import backgrounds, options, ping, prompt, story
+import os
+from dotenv import load_dotenv
+
+# Cargar variables desde .env
+load_dotenv()
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+if not GROQ_API_KEY:
+    print("⚠️ Advertencia: GROQ_API_KEY no configurada")
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +62,10 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
         "https://thenonreal.com.ar",
+        "https://the-no-real-frontend.vercel.app",
         "http://localhost:4000",
         "http://127.0.0.1:4000"
     ],
@@ -63,11 +76,10 @@ app.add_middleware(
 
 # Include routers
 app.include_router(ping.router)
-app.include_router(prompt.router)
+app.include_router(prompt.router, prefix="/api")
+app.include_router(options.router, prefix="/api")
+app.include_router(backgrounds.router, prefix="/api")
 app.include_router(story.router)
-app.include_router(options.router)
-app.include_router(backgrounds.router)
-app.include_router(story.router, prefix="/api")
 app.include_router(backgrounds.router, prefix="/api")
 
 

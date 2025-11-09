@@ -75,3 +75,7 @@ frontend/out/404.html
 /frontend/.next
 /frontend/.next
 /frontend/.next
+backend/.env.local
+frontend/.env.local
+frontend/.env.example
+/frontend/.next

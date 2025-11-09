@@ -5,3 +5,4 @@ groq
 httpx
 mangum
 uvicorn
+python-dotenv
