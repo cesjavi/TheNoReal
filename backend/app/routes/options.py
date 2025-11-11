@@ -20,6 +20,19 @@ MAX_OPTIONS = 5
 DEFAULT_MODEL = os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct")
 
 
+def _shorten_text(value: str | None, *, max_length: int = 120) -> str:
+    """Return a shortened preview of the provided text for logging purposes."""
+
+    if not value:
+        return ""
+
+    normalized = value.replace("\n", "\\n")
+    if len(normalized) <= max_length:
+        return normalized
+
+    return f"{normalized[:max_length]}… (len={len(normalized)})"
+
+
 class OptionsPayload(BaseModel):
     prompt: str = Field(..., description="Texto base utilizado para pedir opciones nuevas")
     numOptions: int | None = Field(None, ge=1, le=MAX_OPTIONS)
@@ -44,6 +57,15 @@ async def generate_options(payload: OptionsPayload):
     safe_temperature = limit_temperature(payload.temperature)
     safe_top_p = limit_top_p(payload.top_p)
 
+    logger.info(
+        "options request received | prompt_len=%s prompt_preview='%s' requested=%s temperature=%s top_p=%s",
+        len(payload.prompt or ""),
+        _shorten_text(payload.prompt),
+        count,
+        safe_temperature,
+        safe_top_p,
+    )
+
     raw_options: list[str] = []
     valid_options: list[str] = []
     attempts = 0
@@ -58,12 +80,30 @@ async def generate_options(payload: OptionsPayload):
             "temperature": safe_temperature,
             "top_p": safe_top_p,
         }
+        logger.debug(
+            "options attempt %s payload: %s",
+            attempts,
+            {
+                "model": DEFAULT_MODEL,
+                "temperature": safe_temperature,
+                "top_p": safe_top_p,
+                "prompt_preview": _shorten_text(payload.prompt, max_length=240),
+            },
+        )
         completion = await run_chat_completion(params)
         option_text = extract_message_content(completion)
         if option_text:
             raw_options.append(option_text)
             result = validate_options(raw_options, count)
             valid_options = result.valid
+            logger.debug(
+                "options attempt %s response: %s",
+                attempts,
+                {
+                    "raw_preview": _shorten_text(option_text),
+                    "valid_so_far": len(valid_options),
+                },
+            )
         logger.info(
             "options progress", extra={"expected": count, "received": len(valid_options), "attempts": attempts}
         )
@@ -72,10 +112,21 @@ async def generate_options(payload: OptionsPayload):
         logger.warning(
             "Fewer valid options generated than requested", extra={"expected": count, "received": len(valid_options)}
         )
+        logger.error(
+            "options request failed | generated=%s expected=%s attempts=%s",
+            len(valid_options),
+            count,
+            attempts,
+        )
         return JSONResponse(
             status_code=502,
             content={"error": f"Generated {len(valid_options)} of {count} options", "options": valid_options},
         )
 
     logger.debug("Groq options response: %s", valid_options)
+    logger.info(
+        "options request completed | generated=%s attempts=%s",
+        len(valid_options),
+        attempts,
+    )
     return {"options": valid_options}
