@@ -225,7 +225,7 @@ export default function Story({
 
       const data = await response.json().catch(() => ({}));
       if (!response.ok) {
-        let message = 'Error al consultar la API de Groq';
+        let message = 'Error al consultar la API de Groq1';
         if (data && typeof (data as { error?: unknown }).error === 'string') {
           message = (data as { error: string }).error;
         }
@@ -321,7 +321,7 @@ export default function Story({
       if (error instanceof DOMException && error.name === 'AbortError') {
         return;
       }
-      console.error('Error al consultar la API de Groq', error);
+      console.error('Error al consultar la API de Groq2', error);
       const message =
         error instanceof Error
           ? error.message
