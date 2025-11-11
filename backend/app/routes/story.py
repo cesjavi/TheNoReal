@@ -31,6 +31,19 @@ REQUEST_TIMEOUT_MS = int(os.getenv("GROQ_REQUEST_TIMEOUT_MS", "30000"))
 MODEL_PRIORITY = [os.getenv("GROQ_MODEL", "moonshotai/kimi-k2-instruct"), "gpt-oss-20b"]
 
 
+def _shorten_text(value: str | None, *, max_length: int = 120) -> str:
+    """Return a shortened preview of the provided text for logging purposes."""
+
+    if not value:
+        return ""
+
+    normalized = value.replace("\n", "\\n")
+    if len(normalized) <= max_length:
+        return normalized
+
+    return f"{normalized[:max_length]}… (len={len(normalized)})"
+
+
 class Ajustes(BaseModel):
     temperature: float | None = None
     top_p: float | None = None
@@ -109,6 +122,30 @@ async def create_story(payload: StoryPayload):
         chapters_count = payload.chaptersCount
         chapter_index_raw = payload.chapterIndex
         finalize = payload.finalize
+
+        logger.info(
+            "[%s] story request received | story_len=%s option_len=%s options=%s language=%s finalize=%s",
+            request_id,
+            len(story_text),
+            len(chosen_option),
+            options_count,
+            language,
+            finalize,
+        )
+        logger.debug(
+            "[%s] story raw payload: %s",
+            request_id,
+            {
+                "story_preview": _shorten_text(story_text),
+                "option_preview": _shorten_text(chosen_option),
+                "genres": payload.genres,
+                "estilo": estilos,
+                "ajustes": ajustes.model_dump() if ajustes else None,
+                "endingMode": ending_mode,
+                "chaptersCount": chapters_count,
+                "chapterIndex": chapter_index_raw,
+            },
+        )
 
         is_first_turn = not re.search(r"\n>\s*", story_text)
         if not finalize and not is_first_turn and not chosen_option.strip():
@@ -207,6 +244,31 @@ async def create_story(payload: StoryPayload):
                     {"role": "user", "content": user_content + anti_repetition},
                 ]
 
+                logger.info(
+                    "[%s] requesting Groq completion | model=%s attempt=%s temperature=%.2f top_p=%.2f",
+                    request_id,
+                    model,
+                    attempt + 1,
+                    temperature,
+                    top_p,
+                )
+                logger.debug(
+                    "[%s] Groq request payload: %s",
+                    request_id,
+                    {
+                        "model": model,
+                        "messages_preview": [
+                            {
+                                "role": message["role"],
+                                "content": _shorten_text(message["content"], max_length=240),
+                            }
+                            for message in messages
+                        ],
+                        "temperature": temperature,
+                        "top_p": top_p,
+                    },
+                )
+
                 try:
                     completion = await run_chat_completion(
                         {
@@ -241,12 +303,31 @@ async def create_story(payload: StoryPayload):
                 options = result.options
                 is_final = result.is_final
 
+                logger.info(
+                    "[%s] Groq completion succeeded | model=%s story_len=%s options=%s final=%s",
+                    request_id,
+                    model,
+                    len(story_body or ""),
+                    len(options or []),
+                    is_final,
+                )
+                logger.debug(
+                    "[%s] Parsed story response: %s",
+                    request_id,
+                    {
+                        "story_preview": _shorten_text(story_body),
+                        "options_preview": [_shorten_text(option) for option in options],
+                        "is_final": is_final,
+                    },
+                )
+
                 if not is_final and not finalize and story_body:
                     fingerprint = compute_fingerprint(story_body, payload.genres)
                     similar = is_fingerprint_too_similar(fingerprint, recent)
                     if similar:
                         if attempt < max_retries:
                             continue
+                        logger.warning("[%s] Similar fingerprint detected", request_id)
                         return {
                             "story": story_body,
                             "options": options,
@@ -258,6 +339,7 @@ async def create_story(payload: StoryPayload):
 
                 return {"story": story_body, "options": options, "isFinal": is_final}
 
+        logger.error("[%s] All models failed after retries", request_id)
         return JSONResponse(
             status_code=502, content={"error": "Todos los modelos fallaron", "requestId": request_id}
         )
