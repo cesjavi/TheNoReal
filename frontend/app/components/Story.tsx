@@ -546,9 +546,17 @@ export default function Story({
                           onClick={() => handleSpeak(texto)}
                           className={`group inline-flex items-center gap-3 rounded-full border px-4 py-2 text-sm font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-50 ${
                             isReading
-                              ? 'border-accent bg-accent text-white shadow-lg hover:bg-accent/90 focus-visible:ring-accent/60'
+                              ? 'border-transparent text-white shadow-lg hover:brightness-105 focus-visible:ring-accent/60'
                               : 'border-accent/40 bg-white text-slate-900 hover:border-accent/60 hover:bg-accent/10 focus-visible:ring-accent/30'
                           }`}
+                          style={
+                            isReading
+                              ? {
+                                  backgroundColor: 'var(--accent-dark)',
+                                  borderColor: 'var(--accent-dark)',
+                                }
+                              : undefined
+                          }
                           aria-label={speakLabel}
                           aria-pressed={isReading}
                         >
