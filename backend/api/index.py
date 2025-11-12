@@ -33,9 +33,7 @@ MODEL_MAPPINGS = {
     },
     # Groq direct models (when using GROQ_API_KEY)
     'groq': {
-        'llama-3.3-70b': 'llama-3.3-70b-versatile',
-        'llama-3.1-70b': 'llama-3.1-70b-versatile',
-        'default': 'llama-3.3-70b-versatile'
+        'default': 'openai/gpt-oss-120b'
     }
 }
 
