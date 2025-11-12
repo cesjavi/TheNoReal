@@ -67,7 +67,7 @@ def call_groq(messages, model=None, temperature=0.7, max_tokens=2000, retry_coun
     
     # Resolve model name
     if model is None:
-        model = os.environ.get('DEFAULT_MODEL', 'llama-3.3-70b')
+        model = os.environ.get('DEFAULT_MODEL', 'openai/gpt-oss-120b')
     
     # Map model to provider-specific format
     provider = 'openrouter' if use_openrouter else 'groq'
